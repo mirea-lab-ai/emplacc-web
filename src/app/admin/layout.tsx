@@ -10,13 +10,10 @@ export const metadata: Metadata = {
   title: 'TaskManager',
   description: 'Track tasks and time',
 };
-const nav = [
-  { label: 'Главная', href: '/' },
-  { label: 'Мои проекты', href: '/projects'},
-  { label: 'Команды', href: '/teams' },
-  { label: 'Отчет', href: '/report' },
-  { label: 'Форум', href: '/forum' },
-  { label: 'Настройки профиля', href: '/settings' },
+const admin_nav = [
+  { label: 'Сотрудники', href: '/admin' },
+  { label: 'Задачи', href: '/admin/tasks' },
+  { label: 'Посещаемость и отчеты', href: '/admin/attendance' },
 ];
 
 export default function RootLayout({
@@ -27,8 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en">
     <body className={`${inter.className} bg-[#0f1422] text-white`}>
-    <div className="mx-auto max-w-screen items-center p-6">
-      <Header items={nav}/>
+    <div className="mx-auto max-w-6xl p-6">
+      <Header items={admin_nav}/>
       {children}
     </div>
     </body>

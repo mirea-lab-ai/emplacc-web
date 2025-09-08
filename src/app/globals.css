@@ -10,3 +10,23 @@
 /* спрятать полоску прокрутки у контейнера шагов */
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* --- Стилизованный скролл для темной темы сайта --- */
+.custom-scroll {
+    scrollbar-width: thin;                     /* Firefox */
+    scrollbar-color: #2b3681 transparent;
+}
+.custom-scroll::-webkit-scrollbar {          /* Chrome/Edge */
+    width: 10px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg,#2b3681,#3452ff);
+    border-radius: 9999px;
+    border: 2px solid #0f1422;                 /* цвет фона страницы */
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: #3452ff;
+}

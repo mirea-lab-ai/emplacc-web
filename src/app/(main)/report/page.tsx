@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import ReportTaskPicker, { Task } from '@/components/ReportTaskPicker';
+import SlideTrack from '@/components/ReportWizard/SlideTrack';
+import WizardNav from '@/components/ReportWizard/WizardNav';
+import NotesForm from '@/components/ReportWizard/NotesForm';
+import FinalQuestions from '@/components/ReportWizard/FinalQuestions';
 
 type Notes = Record<string, string>; // key `${taskId}:${subId}` -> text
 
 const demoTasks: Task[] = [
   {
     id: 't1',
-    title: 'Design System',
-    subtitle: 'Create Components',
+    title: 'Дрон Гараж',
+    subtitle: '',
     subtasks: [
       { id: 's11', title: 'Buttons & Inputs' },
       { id: 's12', title: 'Modals & Alerts' },
@@ -18,18 +22,17 @@ const demoTasks: Task[] = [
   },
   {
     id: 't2',
-    title: 'Write Documentation',
-    subtitle: 'API Reference',
+    title: 'Emplacc',
+    subtitle: '',
     subtasks: [
-      { id: 's21', title: 'Auth & Sessions' },
-      { id: 's22', title: 'Rate Limits' },
-      { id: 's23', title: 'Webhooks' },
+      { id: 's21', title: 'Фронт' },
+      { id: 's22', title: 'Бэк' },
     ],
   },
   {
     id: 't3',
     title: 'Team Meeting',
-    subtitle: 'Discuss Q3 Goals',
+    subtitle: '',
     subtasks: [
       { id: 's31', title: 'Agenda Prep' },
       { id: 's32', title: 'Notes & Action Items' },
@@ -38,12 +41,12 @@ const demoTasks: Task[] = [
 ];
 
 export default function ReportsPage() {
-  // выбор "сегодня сделал(а)"
+  // выборы
   const [selectedDone, setSelectedDone] = useState<Set<string>>(new Set());
-  const [doneNotes, setDoneNotes] = useState<Notes>({});
-
-  // выбор "план на завтра"
   const [selectedPlan, setSelectedPlan] = useState<Set<string>>(new Set());
+
+  // заметки
+  const [doneNotes, setDoneNotes] = useState<Notes>({});
   const [planNotes, setPlanNotes] = useState<Notes>({});
 
   // финальные поля
@@ -51,10 +54,10 @@ export default function ReportsPage() {
   const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>(null);
   const [comment, setComment] = useState('');
 
-  // индекс текущего «слайда»
+  // текущий индекс слайда
   const [step, setStep] = useState(0);
 
-  // сортировка выбранных ключей по порядку задач/подзадач
+  // сортировка выбранных ключей в порядке задач
   const orderedKeys = (set: Set<string>) => {
     const keys = Array.from(set);
     const order: string[] = [];
@@ -70,7 +73,7 @@ export default function ReportsPage() {
   const doneKeys = useMemo(() => orderedKeys(selectedDone), [selectedDone]);
   const planKeys = useMemo(() => orderedKeys(selectedPlan), [selectedPlan]);
 
-  // всего «слайдов»: выбор1 + формыDone + выбор2 + формыPlan + финал
+  // всего слайдов: выбор1 + формыDone + выбор2 + формыPlan + финал
   const stepsCount = 1 + doneKeys.length + 1 + planKeys.length + 1;
 
   const goTo = (i: number) => {
@@ -108,15 +111,15 @@ export default function ReportsPage() {
     return t && s ? `${t.title} — ${s.title}` : key;
   };
 
-  // собираем содержимое «слайдов» (контент без контейнеров)
-  const slidesContent: React.ReactNode[] = [];
+  // Слайды
+  const slides: React.ReactNode[] = [];
   let idx = 0;
 
-  // --- (0) выбор "сегодня сделал(а)"
+  // (0) выбор "сегодня сделал(а)"
   {
     const i0 = idx;
-    slidesContent.push(
-      <div key={`c-${i0}`} className="flex flex-col justify-between min-h-screen">
+    slides.push(
+      <div key={`slide-${i0}`} className="flex flex-col justify-between">
         <div className="rounded-2xl bg-[#111829]/70 p-6 ring-1 ring-white/5">
           <ReportTaskPicker
             tasks={demoTasks}
@@ -126,65 +129,38 @@ export default function ReportsPage() {
             description="Можно выбрать несколько подзадач в разных задачах."
           />
         </div>
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={() => selectedDone.size > 0 && goTo(i0 + 1)}
-            disabled={selectedDone.size === 0}
-            className={[
-              'rounded-xl px-8 py-3 font-semibold',
-              selectedDone.size === 0
-                ? 'bg-[#3452ff]/50 text-white/60 cursor-not-allowed'
-                : 'bg-[#3452ff] text-white hover:brightness-110 active:translate-y-px',
-            ].join(' ')}
-          >
-            Далее
-          </button>
-        </div>
+        <WizardNav
+          onNext={() => selectedDone.size > 0 && goTo(i0 + 1)}
+          nextDisabled={selectedDone.size === 0}
+        />
       </div>
     );
     idx++;
   }
 
-  // --- (1..n) формы "что сделал(а)"
+  // (1..n) формы "что сделал(а)"
   doneKeys.forEach((k) => {
     const i1 = idx; // фикс индекса
-    const value = doneNotes[k] ?? '';
-    slidesContent.push(
-      <div key={`c-${i1}`} className="flex flex-col justify-between min-h-screen">
-        <div className="rounded-2xl bg-[#111829]/80 p-6 ring-1 ring-white/5">
-          <h2 className="text-3xl font-semibold mb-2">Напишите, что вы сделали по задаче:</h2>
-          <p className="text-slate-300 mb-4">{renderTaskLabel(k)}</p>
-          <textarea
-            value={value}
-            onChange={(e) => setDoneNotes((prev) => ({ ...prev, [k]: e.target.value }))}
-            placeholder="Опишите выполненную работу…"
-            className="w-full min-h-[220px] rounded-xl bg-[#141c2f] text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-          />
-        </div>
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => goTo(i1 - 1)}
-            className="rounded-xl bg-[#2b3681] px-6 py-3 font-semibold text-slate-200 hover:brightness-110 active:translate-y-px"
-          >
-            Назад
-          </button>
-          <button
-            onClick={() => goTo(i1 + 1)}
-            className="rounded-xl bg-[#3452ff] px-8 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
-          >
-            Далее
-          </button>
-        </div>
+    slides.push(
+      <div key={`slide-${i1}`} className="flex flex-col justify-between">
+        <NotesForm
+          title="Напишите, что вы сделали по задаче:"
+          taskLabel={renderTaskLabel(k)}
+          value={doneNotes[k] ?? ''}
+          placeholder="Опишите выполненную работу…"
+          onChange={(v) => setDoneNotes((prev) => ({ ...prev, [k]: v }))}
+        />
+        <WizardNav  onPrev={() => goTo(i1 - 1)} onNext={() => goTo(i1 + 1)} />
       </div>
     );
     idx++;
   });
 
-  // --- выбор "план на завтра"
+  // выбор "план на завтра"
   {
     const i2 = idx;
-    slidesContent.push(
-      <div key={`c-${i2}`} className="flex flex-col justify-between min-h-screen">
+    slides.push(
+      <div key={`slide-${i2}`} className="flex flex-col justify-between">
         <div className="rounded-2xl bg-[#111829]/70 p-6 ring-1 ring-white/5">
           <ReportTaskPicker
             tasks={demoTasks}
@@ -194,67 +170,36 @@ export default function ReportsPage() {
             description="Можно выбрать несколько подзадач."
           />
         </div>
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => goTo(i2 - 1)}
-            className="rounded-xl bg-[#2b3681] px-6 py-3 font-semibold text-slate-200 hover:brightness-110 active:translate-y-px"
-          >
-            Назад
-          </button>
-          <button
-            onClick={() => selectedPlan.size > 0 && goTo(i2 + 1)}
-            disabled={selectedPlan.size === 0}
-            className={[
-              'rounded-xl px-8 py-3 font-semibold',
-              selectedPlan.size === 0
-                ? 'bg-[#3452ff]/50 text-white/60 cursor-not-allowed'
-                : 'bg-[#3452ff] text-white hover:brightness-110 active:translate-y-px',
-            ].join(' ')}
-          >
-            Далее
-          </button>
-        </div>
+        <WizardNav
+
+          onPrev={() => goTo(i2 - 1)}
+          onNext={() => selectedPlan.size > 0 && goTo(i2 + 1)}
+          nextDisabled={selectedPlan.size === 0}
+        />
       </div>
     );
     idx++;
   }
 
-  // --- формы по планам
+  // формы по планам
   planKeys.forEach((k) => {
     const i3 = idx;
-    const value = planNotes[k] ?? '';
-    slidesContent.push(
-      <div key={`c-${i3}`} className="flex flex-col justify-between min-h-screen">
-        <div className="rounded-2xl bg-[#111829]/80 p-6 ring-1 ring-white/5">
-          <h2 className="text-3xl font-semibold mb-2">План на завтра по задаче:</h2>
-          <p className="text-slate-300 mb-4">{renderTaskLabel(k)}</p>
-          <textarea
-            value={value}
-            onChange={(e) => setPlanNotes((prev) => ({ ...prev, [k]: e.target.value }))}
-            placeholder="Что планируете сделать завтра…"
-            className="w-full min-h-[220px] rounded-xl bg-[#141c2f] text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-          />
-        </div>
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => goTo(i3 - 1)}
-            className="rounded-xl bg-[#2b3681] px-6 py-3 font-semibold text-slate-200 hover:brightness-110 active:translate-y-px"
-          >
-            Назад
-          </button>
-          <button
-            onClick={() => goTo(i3 + 1)}
-            className="rounded-xl bg-[#3452ff] px-8 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
-          >
-            Далее
-          </button>
-        </div>
+    slides.push(
+      <div key={`slide-${i3}`} className="flex flex-col justify-between">
+        <NotesForm
+          title="План на завтра по задаче:"
+          taskLabel={renderTaskLabel(k)}
+          value={planNotes[k] ?? ''}
+          placeholder="Что планируете сделать завтра…"
+          onChange={(v) => setPlanNotes((prev) => ({ ...prev, [k]: v }))}
+        />
+        <WizardNav  onPrev={() => goTo(i3 - 1)} onNext={() => goTo(i3 + 1)} />
       </div>
     );
     idx++;
   });
 
-  // --- финальный слайд
+  // финал
   {
     const i4 = idx;
     const handleSubmit = () => {
@@ -269,98 +214,25 @@ export default function ReportsPage() {
       alert('Отчёт собран в консоли. Подключи отправку на сервер.');
     };
 
-    slidesContent.push(
-      <div key={`c-${i4}`} className="flex flex-col justify-between min-h-screen">
-        <div className="rounded-2xl bg-[#111829]/80 p-6 ring-1 ring-white/5">
-          <h2 className="text-3xl font-semibold mb-6">Завершающие вопросы</h2>
-
-          <div className="grid gap-6">
-            <div>
-              <label className="block text-slate-200 mb-2">Проблема</label>
-              <textarea
-                value={problem}
-                onChange={(e) => setProblem(e.target.value)}
-                placeholder="Опишите возникшие сложности…"
-                className="w-full min-h-[140px] rounded-xl bg-[#141c2f] text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-              />
-            </div>
-
-            <div>
-              <span className="block text-slate-200 mb-2">Нужна ли чья-то помощь?</span>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setNeedHelp('yes')}
-                  className={[
-                    'rounded-xl px-5 py-2 ring-1 transition',
-                    needHelp === 'yes'
-                      ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/50'
-                      : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
-                  ].join(' ')}
-                >
-                  Да
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNeedHelp('no')}
-                  className={[
-                    'rounded-xl px-5 py-2 ring-1 transition',
-                    needHelp === 'no'
-                      ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/50'
-                      : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
-                  ].join(' ')}
-                >
-                  Нет
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-slate-200 mb-2">Комментарий</label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Любые дополнительные заметки…"
-                className="w-full min-h-[120px] rounded-xl bg-[#141c2f] text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => goTo(i4 - 1)}
-            className="rounded-xl bg-[#2b3681] px-6 py-3 font-semibold text-slate-200 hover:brightness-110 active:translate-y-px"
-          >
-            Назад
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="rounded-xl bg-[#3452ff] px-8 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
-          >
-            Завершить
-          </button>
-        </div>
+    slides.push(
+      <div key={`slide-${i4}`} className="flex flex-col justify-between">
+        <FinalQuestions
+          problem={problem}
+          setProblem={setProblem}
+          needHelp={needHelp}
+          setNeedHelp={setNeedHelp}
+          comment={comment}
+          setComment={setComment}
+        />
+        <WizardNav onPrev={() => goTo(i4 - 1)} onFinish={handleSubmit} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0f1422] text-white">
-      <div className="mx-auto max-w-6xl p-6">
-        {/* трек слайдов: без scroll-snap, листаем translateX */}
-        <div className="relative overflow-hidden">
-          <div
-            className="flex transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${step * 100}%)` }}
-          >
-            {slidesContent.map((node, i) => (
-              <div key={i} className="w-full shrink-0 px-0">
-                {node}
-              </div>
-            ))}
-          </div>
-        </div>
+    <main className="bg-[#0f1422] text-white">
+      <div className="  mx-auto max-w-6xl p-6">
+        <SlideTrack step={step}>{slides}</SlideTrack>
       </div>
     </main>
   );

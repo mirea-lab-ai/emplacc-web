@@ -1,88 +1,68 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Header from '@/components/Header';
-import TimerBar from '@/components/TimerBar';
-import TaskList, { Task } from '@/components/TaskList';
+import Link from 'next/link';
+import Panel from '@/components/ui/Panel';
+import YourTasks, { Task } from '@/components/main/YourTasks';
+import HelpRequests, { HelpReq } from '@/components/main/HelpRequests';
+import ForumUpdates, { ForumNote } from '@/components/main/ForumUpdates';
+import Problems, { Problem } from '@/components/main/Problems';
+import TodayPlan, { PlanItem } from '@/components/main/TodayPlan';
+// демо-данные — подставь реальные
+const demoTasks: Task[] = [
+  { id: 't1', title: 'Design System', next: 'Состояния кнопок', urgent: true, severity: 5, due: 'сегодня' },
+  { id: 't2', title: 'API Docs', next: 'OAuth2 раздел', urgent: true, severity: 4, due: 'сегодня' },
+  { id: 't3', title: 'Team Meeting', next: 'Повестка', severity: 3, due: 'завтра' },
+  { id: 't4', title: 'Webhooks Retry', next: 'DLQ и метрики', severity: 2, due: 'на неделе' },
+  { id: 't5', title: 'Rate Limits', next: 'Таблица лимитов', severity: 1, due: '—' },
+];
 
-export default function Page() {
-  // демо-данные
-  const tasks: Task[] = useMemo(
-    () => [
-      {
-        id: 't1',
-        title: 'Дрон Гараж',
-        subtitle: 'Create Components',
-        subtasks: [
-          { id: 's11', title: 'Buttons & Inputs' },
-          { id: 's12', title: 'Modals & Alerts' },
-          { id: 's13', title: 'Cards & Lists' },
-        ],
-      },
-      {
-        id: 't2',
-        title: 'Emplacc',
-        subtitle: 'API Reference',
-        subtasks: [
-          { id: 's21', title: 'Фронт' },
-          { id: 's22', title: 'Бэк' }
-        ],
-      },
-      {
-        id: 't3',
-        title: 'Буратино',
-        subtitle: 'Discuss Q3 Goals',
-        subtasks: [
-          { id: 's31', title: 'Agenda Prep' },
-          { id: 's32', title: 'Notes & Action Items' },
-        ],
-      },
-    ],
-    []
-  );
+const demoHelps: HelpReq[] = [
+  { id: 'h1', from: 'Мария Иванова', task: 'API Docs — OAuth2', text: 'Нужна проверка последовательности обмена токенов' },
+  { id: 'h2', from: 'Илья Петров', task: 'Design System — Tooltip', text: 'Помоги с анимацией появления' },
+];
 
-  // простой «рабочий» таймер
-  const [seconds, setSeconds] = useState(42); // старт как на картинке – 0:42
-  const [running, setRunning] = useState(false);
+const demoForum: ForumNote[] = [
+  { id: 'f1', topic: 'Design System', text: 'Добавил варианты disabled для кнопок…', href: '/forum' },
+  { id: 'f2', topic: 'API Docs', text: 'Обновил описание refresh токенов…', href: '/forum' },
+];
 
-  // плавный тиковый цикл
-  useState(() => {
-    const id = setInterval(() => {
-      setSeconds((s) => (running && s < 60 * 25 ? s + 1 : s)); // до 25 мин демо
-    }, 1000);
-    return () => clearInterval(id);
-  });
+const demoProblems: Problem[] = [
+  { id: 'p1', title: 'Сломался компьютер (не включается)', when: 'сегодня, 10:20', status: 'open' },
+  { id: 'p2', title: 'Не работает интернет (3 этаж)', when: 'сегодня, 09:05', status: 'inprogress' },
+  { id: 'p3', title: 'VPN отваливается каждые 15 минут', when: 'вчера, 16:40', status: 'open' },
+];
 
-  const handleStart = () => setRunning(true);
-  const handleBreak = () => setRunning(false);
-  const handleComplete = () => {
-    setRunning(false);
-    setSeconds(0);
-  };
 
-  // процент прогресса для полосы
-  const progress = Math.min(100, Math.round((seconds / (60 * 25)) * 100)); // 25 мин за 100%
+const demoPlan: PlanItem[] = [
+  { id: 'pl1', task: 'Emplacc', subtask: 'фронт', text:'доделать панель админа' },
+];
 
+export default function Home() {
   return (
     <main className="min-h-screen bg-[#0f1422] text-white">
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="mx-auto p-6 space-y-6">
+        {/* фикс-сетка: левая широкая колонка + правая с 4 малыми блоками */}
+        <div className="grid grid-cols-[480px_1fr] gap-6">
+          <YourTasks tasks={demoTasks} />
 
-        <section className="mt-6 rounded-2xl bg-[#111829]/80 p-6 ring-1 ring-white/5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
-          <TimerBar
-            seconds={seconds}
-            progress={progress}
-            onStart={handleStart}
-            onBreak={handleBreak}
-            onComplete={handleComplete}
-            running={running}
-          />
-        </section>
-
-        <section className="mt-8 rounded-2xl bg-[#111829]/70 p-6 ring-1 ring-white/5">
-          <h2 className="text-3xl font-semibold tracking-tight mb-4">Выбрать задачу</h2>
-          <TaskList tasks={tasks} />
-        </section>
+          <div className="grid grid-cols-2 grid-rows-[1fr_1fr] gap-6 min-h-[680px]">
+            <HelpRequests items={demoHelps}/>
+            <ForumUpdates notes={demoForum}/>
+            <Problems items={demoProblems}/>
+            <TodayPlan items={demoPlan}/>
+          </div>
+        </div>
       </div>
     </main>
   );
 }
+
+function LinkBtn({href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className="rounded-xl bg-[#2b3681] px-4 py-2 text-slate-200 hover:brightness-110">
+      {children}
+    </Link>
+  );
+}
+
+

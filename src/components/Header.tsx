@@ -3,25 +3,25 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const nav = [
-  { label: 'Главная', href: '/' },
-  { label: 'Отчет', href: '/report' },
-  { label: 'Настройки профиля', href: '/settings' },
-];
 
-export default function Header() {
+
+type Props = {
+  items: { label:string; href:string }[];     // или назови hrefs, если хочешь
+};
+
+export default function Header({ items }: Props) {
   const pathname = usePathname();
 
   const isActive = (href: string) =>
-    pathname === href || (href !== '/' && pathname.startsWith(href));
+    pathname === href;
 
   return (
-    <header className="rounded-2xl bg-[#111829]/80 px-6 py-4 ring-1 ring-white/5 backdrop-blur shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
+    <header className="rounded-2xl items-center bg-[#111829]/80 mx-auto px-6 py-4 ring-1 max-w-6xl ring-white/5 backdrop-blur shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
       <div className="flex items-center justify-between">
         <div className="text-2xl font-semibold">TaskManager</div>
 
         <nav className="flex gap-10">
-          {nav.map(({ label, href }) => {
+          {items.map(({ label, href }) => {
             const active = isActive(href);
             return (
               <Link

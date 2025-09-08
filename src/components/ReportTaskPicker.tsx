@@ -46,7 +46,7 @@ export default function ReportTaskPicker({
   };
 
   return (
-    <section className="min-h-screen flex flex-col justify-start">
+    <section className="flex flex-col justify-start">
       <h2 className="text-3xl font-semibold tracking-tight mb-2">{title}</h2>
       {description && <p className="text-slate-300 mb-4">{description}</p>}
 

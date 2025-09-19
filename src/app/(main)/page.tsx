@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import Panel from '@/components/ui/Panel';
 import YourTasks, { Task } from '@/components/main/YourTasks';
 import HelpRequests, { HelpReq } from '@/components/main/HelpRequests';
 import ForumUpdates, { ForumNote } from '@/components/main/ForumUpdates';
@@ -39,7 +37,7 @@ const demoPlan: PlanItem[] = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0f1422] text-white">
+    <main className="min-h-screen bg-emerald-950 text-white">
       <div className="mx-auto p-6 space-y-6">
         {/* фикс-сетка: левая широкая колонка + правая с 4 малыми блоками */}
         <div className="grid grid-cols-[480px_1fr] gap-6">
@@ -57,12 +55,5 @@ export default function Home() {
   );
 }
 
-function LinkBtn({href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link href={href} className="rounded-xl bg-[#2b3681] px-4 py-2 text-slate-200 hover:brightness-110">
-      {children}
-    </Link>
-  );
-}
 
 

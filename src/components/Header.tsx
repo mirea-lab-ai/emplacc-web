@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
+import { clearTokens, getRefreshToken } from '@/lib/auth';
+import { apiLogout } from '@/features/auth/api';
+import { useRouter } from 'next/navigation';
 
 
 type Props = {
@@ -10,15 +12,30 @@ type Props = {
 };
 
 export default function Header({ items }: Props) {
-  const pathname = usePathname();
+    const router = useRouter();
+
+    async function onLogout() {
+        try {
+            const rt = getRefreshToken();
+            if (rt) await apiLogout(rt); // по спецификации
+        } catch (_) {
+        }
+        clearTokens();
+        router.replace('/login');
+    }
+
+    const pathname = usePathname();
 
   const isActive = (href: string) =>
     pathname === href;
 
   return (
-    <header className="rounded-2xl items-center bg-[#111829]/80 mx-auto px-6 py-4 ring-1 max-w-6xl ring-white/5 backdrop-blur shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
+    <header className=" items-center bg-emerald-950  mx-auto px-6 py-4 border-b border-gray-400 max-w-6xl ">
       <div className="flex items-center justify-between">
-        <div className="text-2xl font-semibold">TaskManager</div>
+        <div className="text-2xl font-semibold">Emplacc</div>
+          <button onClick={onLogout} className="text-sm opacity-80 hover:opacity-100">
+              Выйти
+          </button>
 
         <nav className="flex gap-10">
           {items.map(({ label, href }) => {

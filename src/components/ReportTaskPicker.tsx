@@ -60,8 +60,8 @@ export default function ReportTaskPicker({
               className={[
                 'relative overflow-hidden cursor-pointer select-none',
                 'rounded-2xl p-5 ring-1 ring-white/5',
-                'bg-[#141c2f] hover:bg-[#16213a] transition-colors',
-                open ? 'ring-2 ring-indigo-500/40' : '',
+                'backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors',
+                open ? 'ring-2 ring-emerald-500/40' : '',
               ].join(' ')}
             >
               {/* мягкая подложка при открытии */}
@@ -69,7 +69,7 @@ export default function ReportTaskPicker({
                 className={[
                   'pointer-events-none absolute inset-0 rounded-2xl transition-opacity',
                   open
-                    ? 'opacity-60 bg-gradient-to-r from-indigo-600 via-blue-600 to-fuchsia-600'
+                    ? 'opacity-100 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400'
                     : 'opacity-0',
                 ].join(' ')}
               />
@@ -99,7 +99,7 @@ export default function ReportTaskPicker({
                           className={[
                             'rounded-lg px-4 py-2 ring-1 transition-colors cursor-pointer select-none',
                             isPicked
-                              ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/50'
+                              ? 'bg-cyan-500 text-white ring-emerald-500/10 border-2 border-cyan-500'
                               : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
                           ].join(' ')}
                         >

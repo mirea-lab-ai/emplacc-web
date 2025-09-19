@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 const demoTeams: Team[] = [
   {
     id: 'tm1',
-    name: 'TaskManager',
+    name: 'Emplacc',
     lead: { id: 'l1', name: 'Алексей Смирнов' },
     members: [
       { id: 'u1', name: 'Мария Иванова', role: 'React Developer' },
@@ -79,10 +79,10 @@ export default function TeamsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0f1422] text-white">
+    <main className="min-h-screen bg-emerald-950 text-white">
       <div className="mx-auto p-6 space-y-6">
 
-        <div className="flex gap-6">
+        <div className="flex gap-6 ">
           {/* левая колонка */}
           <TeamSidebar
             teams={teams}
@@ -94,13 +94,13 @@ export default function TeamsPage() {
           {/* правая область */}
           <div className="flex-1 min-w-0">
             {!teams.length ? (
-              <Panel className="grid place-items-center min-h-[520px]">
+              <Panel className="grid place-items-center min-h-[520px] backdrop-blur-md bg-white/5 border border-white/10">
                 <div className="text-slate-400">
                   Вы не состоите ни в одной команде
                 </div>
               </Panel>
             ) : !activeTeam ? (
-              <Panel className="grid place-items-center min-h-[520px]">
+              <Panel className="grid place-items-center min-h-[520px] backdrop-blur-md bg-white/5 border border-white/10">
                 <div className="text-slate-400">Выберите команду слева</div>
               </Panel>
             ) : (

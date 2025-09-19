@@ -43,7 +43,7 @@ export default function AddTeamModal({
       className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-lg rounded-2xl bg-[#111829] p-6 ring-1 ring-white/10">
+      <div className="w-full max-w-lg rounded-2xl bg-emerald-950 p-6 ring-1 ring-white/10">
         <h2 className="text-xl font-semibold mb-4">Создать команду</h2>
 
         <label className="grid gap-2 mb-3">
@@ -52,8 +52,8 @@ export default function AddTeamModal({
             ref={inputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-12 rounded-xl bg-[#141c2f] px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-            placeholder="Например, TaskManager"
+            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            placeholder="Например, Emplacc"
           />
         </label>
 
@@ -62,7 +62,7 @@ export default function AddTeamModal({
           <input
             value={lead}
             onChange={(e) => setLead(e.target.value)}
-            className="h-12 rounded-xl bg-[#141c2f] px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             placeholder="Имя тимлида"
           />
         </label>
@@ -74,7 +74,7 @@ export default function AddTeamModal({
           <button
             onClick={submit}
             disabled={!name.trim()}
-            className="rounded-lg bg-[#3452ff] px-5 py-2 font-semibold text-white hover:brightness-110 disabled:opacity-60"
+            className="rounded-lg bg-emerald-600 px-5 py-2 font-semibold text-white hover:brightness-110 disabled:opacity-60"
           >
             Создать
           </button>

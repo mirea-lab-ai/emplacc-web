@@ -18,7 +18,7 @@ export default function WizardNav({
       {onPrev ? (
         <button
           onClick={onPrev}
-          className="rounded-xl bg-[#2b3681] px-6 py-3 font-semibold text-slate-200 hover:brightness-110 active:translate-y-px"
+          className="rounded-xl bg-cyan-400 px-6 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
         >
           Назад
         </button>
@@ -29,7 +29,7 @@ export default function WizardNav({
       {onFinish ? (
         <button
           onClick={onFinish}
-          className="rounded-xl bg-[#3452ff] px-8 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
+          className="rounded-xl bg-cyan-400 px-8 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
         >
           Завершить
         </button>
@@ -40,8 +40,8 @@ export default function WizardNav({
           className={[
             'rounded-xl px-8 py-3 font-semibold',
             nextDisabled
-              ? 'bg-[#3452ff]/50 text-white/60 cursor-not-allowed'
-              : 'bg-[#3452ff] text-white hover:brightness-110 active:translate-y-px',
+              ? 'bg-cyan-600 text-white/60 cursor-not-allowed'
+              : 'bg-cyan-400 text-white hover:brightness-110 active:translate-y-px',
           ].join(' ')}
         >
           Далее

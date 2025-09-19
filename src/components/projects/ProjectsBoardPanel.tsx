@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
-import KanbanBoard, { KBColumn } from '@/components/projects/KanbanBoard';
+import KanbanBoard, { KBColumn } from '@/components/projects/kanban';
 
 const demoColumns: KBColumn[] = [
   { id: 'c-open', title: 'Open', tasks: [] },
@@ -31,11 +31,13 @@ export default function ProjectsBoardPanel() {
     localStorage.setItem('proj_kanban_v2', JSON.stringify(columns));
   }, [columns]);
 
-  return (
-    <Panel className="p-6">
-      <KanbanBoard columns={columns} onChange={setColumns} viewportOffset={160} />
-    </Panel>
-  );
+    return (
+        <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
+            {/* было viewportOffset={160} */}
+            <KanbanBoard columns={columns} onChange={setColumns} viewportOffset={260} />
+        </Panel>
+    );
+
 }
 
 function safeParse<T>(raw: string, fallback: T): T {

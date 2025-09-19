@@ -17,19 +17,19 @@ export default function TeamSidebar({
   const hasTeams = teams.length > 0;
 
   return (
-    <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start max-h-[calc(100vh-7rem)] overflow-auto custom-scroll space-y-3">
+    <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start max-h-[calc(100vh-7rem)] overflow-auto custom-scroll space-y-3 backdrop-blur-md bg-white/5 border border-white/10">
       <h2 className="text-lg font-semibold px-1">Мои команды</h2>
 
       {/* новая плитка «Добавить команду» */}
       <button
         onClick={onAddTeam}
         className={[
-          'group w-full rounded-2xl border border-dashed border-white/15 bg-[#0f1422]/40',
-          'hover:border-indigo-500/50 hover:bg-[#141c2f] transition-colors p-4 text-left',
+          'group w-full rounded-2xl border border-dashed border-white/15 bg-emerald-800',
+          'hover:border-emerald-500/50 hover:bg-emerald-950 transition-colors p-4 text-left',
         ].join(' ')}
       >
         <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#141c2f] ring-1 ring-white/10 group-hover:ring-indigo-400/40">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-950 ring-1 ring-white/10 group-hover:ring-indigo-400/40">
             <span className="text-lg leading-none">＋</span>
           </span>
           <div>
@@ -53,15 +53,15 @@ export default function TeamSidebar({
                   onClick={() => onSelect(t.id)}
                   className={[
                     'relative w-full text-left rounded-2xl px-4 py-3 transition-colors',
-                    'ring-1 ring-white/10 bg-[#141c2f] hover:bg-[#16213a]',
-                    active ? 'ring-2 ring-indigo-500/40' : '',
+                    'ring-1 ring-white/10 bg-emerald-950 hover:bg-emerald-900',
+                    active ? 'ring-2 ring-emerald-500/40' : '',
                   ].join(' ')}
                 >
                   <div
                     className={[
                       'pointer-events-none absolute inset-0 rounded-2xl transition-opacity',
                       active
-                        ? 'opacity-60 bg-gradient-to-r from-indigo-600 via-blue-600 to-fuchsia-600'
+                        ? 'opacity-80 bg-gradient-to-r to-[#FF7500]  from-[#8B5CF6]'
                         : 'opacity-0',
                     ].join(' ')}
                   />

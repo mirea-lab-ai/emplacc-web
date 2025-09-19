@@ -1,6 +1,11 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { useMyProblems } from '@/features/problems/hooks';
+import {getUserId, isAuthed} from "@/lib/auth";
+import { useIsClient } from '@/hooks/useIsClient';
+import {useMyTasks} from "@/features/tasks/hooks";
+import type {UIProblem} from "@/features/problems/api";
 
 export type Problem = {
   id: string;
@@ -10,30 +15,34 @@ export type Problem = {
 };
 
 export default function Problems({ items }: { items: Problem[] }) {
+    const isClient = useIsClient();
+
+    const hasCreds = isClient && isAuthed() && !!getUserId();
+    const { data, isLoading, error } = useMyTasks(1, 20, hasCreds);
+    const problems = (data ?? []) as UIProblem[];
   return (
-    <Panel className="p-5 h-full flex flex-col">
+    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Проблемы</h2>
       </div>
 
       <div className="flex-1 min-h-0">
-        {items.length ? (
+        {problems.length ? (
           <ul className="space-y-2 h-full overflow-auto pr-1 custom-scroll">
-            {items.map((p) => (
+            {problems.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between rounded-xl bg-[#141c2f] ring-1 ring-white/10 px-4 py-2"
+                className="flex items-center justify-between rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 px-4 py-2"
               >
                 <div>
                   <div className="font-medium">{p.title}</div>
-                  <div className="text-slate-400 text-sm">{p.when}</div>
+                  <div className="text-slate-400 text-sm">{p.updated}</div>
                 </div>
-                <StatusBadge status={p.status ?? 'open'} />
               </li>
             ))}
           </ul>
         ) : (
-          <div className="grid h-full place-items-center rounded-xl bg-[#141c2f] ring-1 ring-white/10 text-slate-400">
+          <div className="grid h-full place-items-center text-slate-400">
             Похоже, проблем нет
           </div>
         )}

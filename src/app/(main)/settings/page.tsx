@@ -64,15 +64,15 @@ export default function ProfilePage() {
   }, [data.name]);
 
   return (
-    <main className="min-h-screen bg-[#0f1422] text-white">
-      <div className="mx-auto max-w-5xl p-6 space-y-8">
+    <main className="min-h-screen bg-emerald-950 text-white">
+      <div className=" mx-auto max-w-5xl p-6 space-y-8">
         {/* верхняя панель */}
 
 
         {/* двухколоночный блок */}
         <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-6">
           {/* левая колонка — аватар и резюме */}
-          <Panel className="p-6 flex flex-col items-center gap-4">
+          <Panel className="p-6 flex flex-col items-center gap-4 backdrop-blur-md bg-white/5 border border-white/10">
             <AvatarEditor
               name={data.name}
               src={data.avatarSrc}
@@ -99,8 +99,7 @@ export default function ProfilePage() {
             </div>
           </Panel>
 
-          {/* правая колонка — форма */}
-          <Panel className="p-6">
+          <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
             <h2 className="text-xl font-semibold mb-4">Личные данные</h2>
             <div className="grid gap-4">
               <TextField
@@ -135,7 +134,7 @@ export default function ProfilePage() {
             </div>
 
             {/* липкая зона сохранения */}
-            <div className="sticky bottom-0 pt-6 mt-8 bg-gradient-to-t from-[#111829]/80 to-10% via-transparent">
+            <div className="sticky bottom-0 pt-6 mt-8">
               <div className="flex justify-end">
                 <button
                   onClick={submit}

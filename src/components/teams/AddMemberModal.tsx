@@ -37,7 +37,7 @@ export default function AddMemberModal({
       className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-2xl bg-[#111829] p-6 ring-1 ring-white/10">
+      <div className="w-full max-w-md rounded-2xl bg-emerald-950 p-6 ring-1 ring-white/10">
         <h2 className="text-xl font-semibold mb-4">Добавить сотрудника</h2>
 
         <label className="grid gap-2 mb-3">
@@ -46,7 +46,7 @@ export default function AddMemberModal({
             ref={inputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-12 rounded-xl bg-[#141c2f] px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             placeholder="Имя Фамилия"
           />
         </label>
@@ -56,7 +56,7 @@ export default function AddMemberModal({
           <input
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="h-12 rounded-xl bg-[#141c2f] px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             placeholder="Роль в команде"
           />
         </label>

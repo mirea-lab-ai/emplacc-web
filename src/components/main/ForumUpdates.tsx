@@ -12,7 +12,7 @@ export type ForumNote = {
 
 export default function ForumUpdates({ notes }: { notes: ForumNote[] }) {
   return (
-    <Panel className="p-5 h-full flex flex-col">
+    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Форум</h2>
         <Link href="/forum" className="text-sm text-slate-300 hover:text-white">
@@ -26,7 +26,7 @@ export default function ForumUpdates({ notes }: { notes: ForumNote[] }) {
             {notes.map((n) => (
               <li
                 key={n.id}
-                className="rounded-xl bg-[#141c2f] ring-1 ring-white/10 px-4 py-2 hover:bg-[#16213a]"
+                className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 px-4 py-2"
               >
                 <Link href={n.href ?? '/forum'}>
                   <div className="font-semibold">{n.topic}</div>

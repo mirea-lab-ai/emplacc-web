@@ -9,6 +9,17 @@ import FinalQuestions from '@/components/ReportWizard/FinalQuestions';
 
 type Notes = Record<string, string>; // key `${taskId}:${subId}` -> text
 
+
+const employees = [
+    { id: 'u1', name: 'Мария Иванова', email: 'm.ivanova@emplacc.io', role: 'Frontend' },
+    { id: 'u2', name: 'Андрей Петров', email: 'a.petrov@emplacc.io', role: 'Backend' },
+    { id: 'u3', name: 'Светлана Ким', email: 's.kim@emplacc.io', role: 'QA' },
+    { id: 'u4', name: 'Илья Смирнов', email: 'i.smirnov@emplacc.io', role: 'DevOps' },
+    { id: 'u5', name: 'Илья Смирнов', email: 'i.smirnov@emplacc.io', role: 'DevOps' },
+    { id: 'u6', name: 'Илья Смирнов', email: 'i.smirnov@emplacc.io', role: 'DevOps' },
+    { id: 'u7', name: 'Илья Смирнов', email: 'i.smirnov@emplacc.io', role: 'DevOps' },
+];
+
 const demoTasks: Task[] = [
   {
     id: 't1',
@@ -120,7 +131,7 @@ export default function ReportsPage() {
     const i0 = idx;
     slides.push(
       <div key={`slide-${i0}`} className="flex flex-col justify-between">
-        <div className="rounded-2xl bg-[#111829]/70 p-6 ring-1 ring-white/5">
+        <div className="rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
           <ReportTaskPicker
             tasks={demoTasks}
             selected={selectedDone}
@@ -161,7 +172,7 @@ export default function ReportsPage() {
     const i2 = idx;
     slides.push(
       <div key={`slide-${i2}`} className="flex flex-col justify-between">
-        <div className="rounded-2xl bg-[#111829]/70 p-6 ring-1 ring-white/5">
+        <div className="rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
           <ReportTaskPicker
             tasks={demoTasks}
             selected={selectedPlan}
@@ -223,6 +234,7 @@ export default function ReportsPage() {
           setNeedHelp={setNeedHelp}
           comment={comment}
           setComment={setComment}
+          employees={employees}
         />
         <WizardNav onPrev={() => goTo(i4 - 1)} onFinish={handleSubmit} />
       </div>
@@ -230,7 +242,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className="bg-[#0f1422] text-white">
+    <main className="bg-emerald-950 text-white">
       <div className="  mx-auto max-w-6xl p-6">
         <SlideTrack step={step}>{slides}</SlideTrack>
       </div>

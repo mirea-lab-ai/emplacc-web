@@ -11,23 +11,21 @@ export default function ProjectsPage() {
   const [tab, setTab] = useState<Tab>('board');
 
   return (
-    <main className="min-h-screen bg-[#0f1422] text-white">
+    <main className="min-h-screen bg-emerald-950 text-white">
       <div className="mx-auto p-6 space-y-6">
-        <Panel className="px-6 py-5">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold">Мои проекты</h1>
-            <span className="text-slate-400">Доска / Команды / Настройки</span>
-          </div>
-        </Panel>
 
         <div className="flex gap-6">
-          {/* NAV */}
-          <aside className="w-[240px] shrink-0 sticky top-24 self-start">
-            <ProjectsNav tab={tab} onChange={setTab} />
-          </aside>
+            {/* NAV */}
+            <aside className="sticky top-6 h-[calc(100dvh-3rem)] w-[240px] shrink-0 ">
+                {/* свой внутренний скролл, чтобы сайдбар не «ездил» вместе со страницей */}
+                <div className="h-full  overflow-auto custom-scroll">
+                    <ProjectsNav tab={tab} onChange={setTab} />
+                </div>
+            </aside>
 
-          {/* CONTENT */}
-          <section className="flex-1 min-w-0 space-y-6">
+
+            {/* CONTENT */}
+          <section className="flex-1 min-w-0 space-y-6 ">
             {tab === 'board' && <ProjectsBoardPanel />}
             {tab === 'teams' && <ProjectsTeamsPanel />}
             {tab === 'settings' && <ProjectsSettingsPanel />}

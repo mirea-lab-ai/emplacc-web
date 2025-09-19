@@ -10,3 +10,14 @@ export type Task = {
 export function cn(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
+
+export type Employee = {
+    id: string;
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+    role?: string;
+};
+
+
+

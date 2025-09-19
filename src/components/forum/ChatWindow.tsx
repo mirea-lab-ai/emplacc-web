@@ -42,7 +42,7 @@ export default function ChatWindow({
   };
 
   return (
-    <div className="flex h-[calc(100vh-11rem)] min-h-[520px] flex-col rounded-2xl ring-1 ring-white/5 bg-[#111829]/80">
+    <div className="flex h-[calc(100vh-11rem)] min-h-[520px] flex-col rounded-2xl ring-1 ring-white/5 backdrop-blur-md bg-white/5 border border-white/10">
       {/* header */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
         <div>
@@ -66,7 +66,7 @@ export default function ChatWindow({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={onKey}
             placeholder="Напишите сообщение… (Shift+Enter — новая строка)"
-            className="min-h-[56px] max-h-40 flex-1 rounded-xl bg-[#141c2f] text-slate-100 p-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="min-h-[56px] max-h-40 flex-1 rounded-xl bg-emerald-950 text-slate-100 p-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
           <button
             onClick={send}

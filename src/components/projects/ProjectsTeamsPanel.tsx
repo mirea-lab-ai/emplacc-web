@@ -62,7 +62,7 @@ export default function ProjectsTeamsPanel() {
           <h2 className="text-xl font-semibold">Команды проекта</h2>
           <button
             onClick={() => setOpenCreateTeam(true)}
-            className="rounded-xl bg-[#2b3681] px-4 py-2 text-slate-200 hover:brightness-110"
+            className="rounded-xl bg-emerald-700 px-4 py-2 text-slate-200 hover:brightness-110"
           >
             + Добавить команду
           </button>

@@ -21,9 +21,9 @@ export default function TeamBoard({
     // компактный блок тимлида + список сотрудников
     <div className="grid grid-rows-[auto_1fr] gap-6 min-h-[620px]">
       {/* Тимлид */}
-      <Panel className="p-4">
+      <Panel className="p-4 backdrop-blur-md bg-white/5 border border-white/10">
         <div className="flex items-center gap-4">
-          <div className="rounded-full p-[2px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80">
+          <div className="rounded-full p-[2px] bg-gradient-to-br from-[#FF7500] via-blue-500/80 to-[#14B8A6]">
             <div className="h-14 w-14 rounded-full overflow-hidden bg-[#0f1422] grid place-items-center text-lg font-semibold">
               {team.lead.avatarSrc ? (
                 <img src={team.lead.avatarSrc} alt={team.lead.name} className="h-full w-full object-cover" />
@@ -40,7 +40,7 @@ export default function TeamBoard({
       </Panel>
 
       {/* Сотрудники */}
-      <Panel className="p-6 min-h-0 h-full">
+      <Panel className="p-6 min-h-0 h-full backdrop-blur-md bg-white/5 border border-white/10">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h3 className="text-xl font-semibold">{team.name}</h3>
           <button
@@ -59,7 +59,7 @@ export default function TeamBoard({
               {team.members.map((m) => (
                 <li
                   key={m.id}
-                  className="flex items-center justify-between rounded-xl bg-[#141c2f] ring-1 ring-white/10 px-4 py-3"
+                  className="flex items-center justify-between rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 ring-1 ring-white/10 px-4 py-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar name={m.name} src={m.avatarSrc} />

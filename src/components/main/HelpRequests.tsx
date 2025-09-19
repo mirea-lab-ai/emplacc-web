@@ -15,20 +15,20 @@ export default function HelpRequests({ items }: { items: HelpReq[] }) {
   const has = items.length > 0;
 
   return (
-    <Panel className="p-5 h-full flex flex-col">
+    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Просьбы о помощи</h2>
         {has && (
           <div className="flex items-center gap-2">
             <button
-              className="rounded-xl bg-[#2b3681] px-3 py-1.5 text-slate-200 hover:brightness-110"
+              className="rounded-xl bg-emerald-700 px-3 py-1.5 text-slate-200 hover:brightness-110"
               onClick={() => setI((i - 1 + items.length) % items.length)}
               aria-label="Назад"
             >
               ←
             </button>
             <button
-              className="rounded-xl bg-[#2b3681] px-3 py-1.5 text-slate-200 hover:brightness-110"
+              className="rounded-xl bg-emerald-700 px-3 py-1.5 text-slate-200 hover:brightness-110"
               onClick={() => setI((i + 1) % items.length)}
               aria-label="Вперёд"
             >
@@ -40,11 +40,11 @@ export default function HelpRequests({ items }: { items: HelpReq[] }) {
 
       <div className="flex-1 min-h-0">
         {!has ? (
-          <div className="grid h-full place-items-center rounded-xl bg-[#141c2f] ring-1 ring-white/10 text-slate-400">
+          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 ring-1 ring-white/10 text-slate-400">
             Вас никто не просил о помощи
           </div>
         ) : (
-          <div className="h-full rounded-xl bg-[#141c2f] ring-1 ring-white/10 p-3 text-sm overflow-auto custom-scroll">
+          <div className="h-full rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 p-3 text-sm overflow-auto custom-scroll">
             <div className="text-slate-300">Просит:</div>
             <div className="font-semibold">{items[i].from}</div>
             <div className="mt-1 text-slate-300">По задаче:</div>

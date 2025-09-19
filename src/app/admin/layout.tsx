@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'TaskManager',
+  title: 'Emplacc',
   description: 'Track tasks and time',
 };
 const admin_nav = [

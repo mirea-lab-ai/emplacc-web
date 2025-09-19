@@ -7,7 +7,7 @@ type ProjectInfo = { description: string; start?: string; deadline?: string };
 
 export default function ProjectsSettingsPanel() {
   const [info, setInfo] = useState<ProjectInfo>({
-    description: 'TaskManager — внутренняя система задач, отчётов и форумов.',
+    description: 'Emplacc — внутренняя система задач, отчётов и форумов.',
     start: new Date().toISOString().slice(0, 10),
     deadline: '',
   });
@@ -21,7 +21,7 @@ export default function ProjectsSettingsPanel() {
   const saveInfo = () => localStorage.setItem('proj_settings', JSON.stringify(info));
 
   return (
-    <Panel className="p-6">
+    <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
       <h2 className="text-xl font-semibold mb-4">Настройки проекта</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <label className="grid gap-2">
@@ -30,7 +30,7 @@ export default function ProjectsSettingsPanel() {
             rows={8}
             value={info.description}
             onChange={(e) => setInfo((p) => ({ ...p, description: e.target.value }))}
-            className="rounded-xl bg-[#141c2f] px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             placeholder="Опишите цели, контекст, ключевые требования…"
           />
         </label>
@@ -41,7 +41,7 @@ export default function ProjectsSettingsPanel() {
               type="date"
               value={info.start ?? ''}
               onChange={(e) => setInfo((p) => ({ ...p, start: e.target.value }))}
-              className="h-12 rounded-xl bg-[#141c2f] px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </label>
           <label className="grid gap-2">
@@ -50,7 +50,7 @@ export default function ProjectsSettingsPanel() {
               type="date"
               value={info.deadline ?? ''}
               onChange={(e) => setInfo((p) => ({ ...p, deadline: e.target.value }))}
-              className="h-12 rounded-xl bg-[#141c2f] px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </label>
         </div>

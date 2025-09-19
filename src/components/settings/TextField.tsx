@@ -25,11 +25,11 @@ export default function TextField({
         placeholder={placeholder}
         className={[
           'h-12 w-full rounded-xl px-4',
-          'bg-[#141c2f] text-slate-100 placeholder:text-slate-500',
+          'bg-emerald-950 text-slate-100 placeholder:text-slate-500',
           'ring-1 ring-white/10 focus:outline-none focus:ring-2',
           error
             ? 'focus:ring-rose-500/60 ring-rose-500/60'
-            : 'focus:ring-indigo-500/50',
+            : 'focus:ring-emerald-500/50',
         ].join(' ')}
       />
       {error && <span className="text-rose-400 text-sm">{error}</span>}

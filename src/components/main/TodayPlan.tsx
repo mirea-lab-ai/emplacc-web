@@ -11,7 +11,7 @@ export type PlanItem = {
 
 export default function TodayPlan({ items }: { items: PlanItem[] }) {
   return (
-    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-5 h-full flex flex-col t-surface">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">План из вашего прошлого отчета</h2>
       </div>
@@ -27,7 +27,7 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="font-medium">{p.task}</div>
                   {p.subtask && (
-                    <span className="text-s rounded-lg px-5 py-0.5 ring-1 ring-indigo-400/40 bg-indigo-500/15 text-indigo-200">
+                    <span className="text-s rounded-lg px-5 py-0.5 ring-1 bg-emerald-500/10 text-emerald-300">
                       {p.subtask}
                     </span>
                   )}

@@ -28,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-    <body className={`${inter.className} bg-emerald-950 text-white`}>
+    <body className={`${inter.className} bg-[#06140f] bg-[radial-gradient(900px_500px_at_20%_-10%,rgba(34,197,94,0.18),transparent),radial-gradient(900px_500px_at_100%_20%,rgba(132,204,22,0.15),transparent)] text-white`}>
     <Providers>
         <AuthGate>
             <div className="mx-auto max-w-screen items-center p-6">

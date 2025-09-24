@@ -79,7 +79,7 @@ export default function TeamsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-emerald-950 text-white">
+    <main className="min-h-screen text-white">
       <div className="mx-auto p-6 space-y-6">
 
         <div className="flex gap-6 ">
@@ -94,13 +94,13 @@ export default function TeamsPage() {
           {/* правая область */}
           <div className="flex-1 min-w-0">
             {!teams.length ? (
-              <Panel className="grid place-items-center min-h-[520px] backdrop-blur-md bg-white/5 border border-white/10">
+              <Panel className="grid place-items-center min-h-[520px] t-surface">
                 <div className="text-slate-400">
                   Вы не состоите ни в одной команде
                 </div>
               </Panel>
             ) : !activeTeam ? (
-              <Panel className="grid place-items-center min-h-[520px] backdrop-blur-md bg-white/5 border border-white/10">
+              <Panel className="grid place-items-center min-h-[520px] t-surface">
                 <div className="text-slate-400">Выберите команду слева</div>
               </Panel>
             ) : (

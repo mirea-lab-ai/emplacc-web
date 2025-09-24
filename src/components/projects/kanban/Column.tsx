@@ -30,50 +30,52 @@ export default function Column({
     };
 
     return (
+        <div className="group flex flex-col h-full min-h-0 flex-1 basis-[320px] min-w-[260px] p-3">
+        <div className="mb-2 flex items-center justify-between">
+            <div className="font-semibold">
+                <span className="align-middle text-2xl">{column.title}</span>
+                <button
+                    onClick={onRename}
+                    className="ml-2 align-middle opacity-0 group-hover:opacity-100 transition rounded-md p-1 ring-1 ring-white/10 hover:bg-emerald-800"
+                    title="Переименовать"
+                >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5l4 4L7 21H3v-4L16.5 3.5z" />
+                    </svg>
+                </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={onAddTask}
+                    className="rounded-md bg-white/6 px-3 py-2 text-sm hover:bg-white/8 transition inline-flex items-center gap-2"
+                >
+                    + Задача
+                </button>
+                <button
+                    onClick={onRemove}
+                    className="rounded-md p-1 ring-1 ring-white/10 hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 transition"
+                    title="Удалить колонку"
+                >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                    </svg>
+                </button>
+            </div>
+        </div>
         <Panel
             // КЛЮЧЕВОЕ: колонка — flex-колонка, тянется на всю высоту, умеет сжиматься по ширине до min-w
-            className="backdrop-blur-sm bg-white/10 border border-white/20 text-white group flex flex-col h-full min-h-0 flex-1 basis-[320px] min-w-[260px] p-3"
+            className="t-surface text-white group flex flex-col h-full min-h-0 flex-1 basis-[320px] min-w-[260px] p-3"
             onDragOver={(e: React.DragEvent) => e.preventDefault()}
             onDrop={handleDrop}
         >
-            {/* шапка фиксированной высоты */}
-            <div className="mb-2 flex items-center justify-between">
-                <div className="font-semibold">
-                    <span className="align-middle">{column.title}</span>
-                    <button
-                        onClick={onRename}
-                        className="ml-2 align-middle opacity-0 group-hover:opacity-100 transition rounded-md p-1 ring-1 ring-white/10 hover:bg-emerald-800"
-                        title="Переименовать"
-                    >
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5l4 4L7 21H3v-4L16.5 3.5z" />
-                        </svg>
-                    </button>
-                </div>
 
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={onAddTask}
-                        className="rounded-xl bg-emerald-700 px-3 py-1.5 text-slate-200 hover:brightness-110 text-sm"
-                    >
-                        + Задача
-                    </button>
-                    <button
-                        onClick={onRemove}
-                        className="rounded-md p-1 ring-1 ring-white/10 hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 transition"
-                        title="Удалить колонку"
-                    >
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path d="M3 6h18" />
-                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+
 
             {/* список задач занимает ВСЮ оставшуюся высоту, скролл только внутри */}
             <div className="flex-1 min-h-0 overflow-auto pr-1 custom-scroll space-y-2 ">
@@ -82,5 +84,6 @@ export default function Column({
                 ))}
             </div>
         </Panel>
+        </div>
     );
 }

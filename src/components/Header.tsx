@@ -30,13 +30,10 @@ export default function Header({ items }: Props) {
     pathname === href;
 
   return (
-    <header className=" items-center bg-emerald-950  mx-auto px-6 py-4 border-b border-gray-400 max-w-6xl ">
+    <header className=" items-center mx-auto px-6 py-4 border-b border-gray-400 max-w-6xl ">
       <div className="flex items-center justify-between">
-        <div className="text-2xl font-semibold">Emplacc</div>
-          <button onClick={onLogout} className="text-sm opacity-80 hover:opacity-100">
-              Выйти
-          </button>
-
+        <div className="text-5xl font-semibold bg-gradient-to-r from-emerald-500 to-lime-400 bg-clip-text text-transparent">Emplacc</div>
+        
         <nav className="flex gap-10">
           {items.map(({ label, href }) => {
             const active = isActive(href);
@@ -48,7 +45,7 @@ export default function Header({ items }: Props) {
                 className={[
                   'relative transition-colors',
                   active
-                    ? 'text-white underline decoration-[#3452ff] decoration-2 underline-offset-8'
+                    ? 'text-white underline decoration-lime-400 decoration-2 underline-offset-8'
                     : 'text-slate-300 hover:text-white',
                 ].join(' ')}
               >

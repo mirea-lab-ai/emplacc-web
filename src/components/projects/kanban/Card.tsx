@@ -14,7 +14,7 @@ export default function Card({
         <div
             draggable
             onDragStart={onDragStart}
-            className="group relative rounded-xl bg-emerald-700 ring-1 ring-white/10 px-3 py-2 cursor-grab active:cursor-grabbing hover:brightness-110"
+            className="group relative rounded-lg p-3 t-accent-grad/20 border border-white/6 cursor-grab active:cursor-grabbing hover:brightness-110"
             title="Перетащите в соседнюю колонку"
         >
             <button

@@ -67,8 +67,24 @@ export default function LoginPage() {
                 >
                     {loading ? 'Входим…' : 'Войти'}
                 </button>
+                <SSOButton/>
                 {err && <div className="text-red-300 text-sm">{err}</div>}
             </form>
         </div>
+    );
+}
+
+function SSOButton() {
+    // Сформируй значения из env по необходимости
+    const authUrl = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL;
+    const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
+    const redirectUri = typeof window !== 'undefined' ? window.location.origin + '/callback' : '';
+    const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM;
+    if (!authUrl || !clientId || !realm) return null;
+    const url = `${authUrl}/realms/${realm}/protocol/openid-connect/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    return (
+        <a href={url} className="mt-3 inline-block w-full text-center rounded-md px-3 py-2 bg-indigo-600 hover:bg-indigo-500">
+            Войти через Keycloak
+        </a>
     );
 }

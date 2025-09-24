@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Panel from '@/components/ui/Panel';
 import ProjectsNav, { Tab } from '@/components/projects/ProjectsNav';
 import ProjectsBoardPanel from '@/components/projects/ProjectsBoardPanel';
 import ProjectsTeamsPanel from '@/components/projects/ProjectsTeamsPanel';
@@ -11,7 +10,7 @@ export default function ProjectsPage() {
   const [tab, setTab] = useState<Tab>('board');
 
   return (
-    <main className="min-h-screen bg-emerald-950 text-white">
+    <main className="min-h-screen text-white">
       <div className="mx-auto p-6 space-y-6">
 
         <div className="flex gap-6">

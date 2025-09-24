@@ -32,7 +32,7 @@ export default function ProjectsBoardPanel() {
   }, [columns]);
 
     return (
-        <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
+        <Panel className="p-6 t-surface">
             {/* было viewportOffset={160} */}
             <KanbanBoard columns={columns} onChange={setColumns} viewportOffset={260} />
         </Panel>

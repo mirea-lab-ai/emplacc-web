@@ -14,7 +14,7 @@ type PanelProps = React.HTMLAttributes<HTMLDivElement> & {
 const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
   ({ className = '', children, ...rest }, ref) => {
     const base =
-      'rounded-2xl ring-1 ring-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur';
+      'rounded-2xl ring-1 ring-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] t-surface';
     return (
       <div ref={ref} {...rest} className={`${base} ${className}`}>
         {children}

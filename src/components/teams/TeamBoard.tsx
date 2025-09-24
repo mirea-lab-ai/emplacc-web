@@ -21,9 +21,9 @@ export default function TeamBoard({
     // компактный блок тимлида + список сотрудников
     <div className="grid grid-rows-[auto_1fr] gap-6 min-h-[620px]">
       {/* Тимлид */}
-      <Panel className="p-4 backdrop-blur-md bg-white/5 border border-white/10">
+      <Panel className="p-4 t-surface">
         <div className="flex items-center gap-4">
-          <div className="rounded-full p-[2px] bg-gradient-to-br from-[#FF7500] via-blue-500/80 to-[#14B8A6]">
+          <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
             <div className="h-14 w-14 rounded-full overflow-hidden bg-[#0f1422] grid place-items-center text-lg font-semibold">
               {team.lead.avatarSrc ? (
                 <img src={team.lead.avatarSrc} alt={team.lead.name} className="h-full w-full object-cover" />
@@ -40,12 +40,12 @@ export default function TeamBoard({
       </Panel>
 
       {/* Сотрудники */}
-      <Panel className="p-6 min-h-0 h-full backdrop-blur-md bg-white/5 border border-white/10">
+      <Panel className="p-6 min-h-0 h-full t-surface">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h3 className="text-xl font-semibold">{team.name}</h3>
           <button
             onClick={() => setOpenAdd(true)}
-            className="rounded-xl bg-[#2b3681] px-4 py-2 text-slate-200 hover:brightness-110"
+            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-black hover:brightness-110"
           >
             + Добавить сотрудника
           </button>
@@ -55,11 +55,11 @@ export default function TeamBoard({
             с items-start чтобы карточки НЕ растягивались по высоте */}
         {team.members.length ? (
           <div className="flex h-full min-h-0 flex-col">
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-auto pr-1 custom-scroll items-start content-start">
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-1 custom-scroll items-start content-start">
               {team.members.map((m) => (
                 <li
                   key={m.id}
-                  className="flex items-center justify-between rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 ring-1 ring-white/10 px-4 py-3"
+                  className="flex items-center justify-between rounded-xl t-surface hover:bg-white/20 ring-1 ring-white/10 px-4 py-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar name={m.name} src={m.avatarSrc} />
@@ -98,7 +98,7 @@ export default function TeamBoard({
             </ul>
           </div>
         ) : (
-          <div className="grid h-full place-items-center rounded-xl bg-black/20 px-4 py-6 text-slate-400 ring-1 ring-white/10">
+          <div className="grid place-items-center rounded-xl px-4 py-6 text-slate-400">
             В команде пока нет сотрудников
           </div>
         )}
@@ -118,7 +118,7 @@ export default function TeamBoard({
 function Avatar({ name, src }: { name: string; src?: string }) {
   const initials = useMemo(() => toInitials(name), [name]);
   return (
-    <div className="rounded-full p-[2px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80">
+    <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
       <div className="h-10 w-10 md:h-11 md:w-11 rounded-full grid place-items-center bg-[#0f1422] text-sm md:text-base font-semibold text-white overflow-hidden">
         {src ? <img src={src} alt={name} className="h-full w-full object-cover rounded-full" /> : initials}
       </div>

@@ -9,6 +9,8 @@ type AuthResp   = components['schemas']['response.AuthResponse'];
 type RefreshReq = components['schemas']['request.RefreshRequest'];
 type RefreshResp= components['schemas']['response.RefreshResponse'];
 export type UserInfo   = components['schemas']['response.UserInfo'];
+type OAuthReq  = components['schemas']['request.OAuthRequest'];
+export type TokenValidationResponse = components['schemas']['response.TokenValidationResponse'];
 
 export async function apiLogin(payload: LoginReq): Promise<AuthRespStrict> {
     const r = await http('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
@@ -34,6 +36,22 @@ export async function apiRefresh(payload: RefreshReq): Promise<RefreshResp> {
 export async function apiMe(): Promise<UserInfo> {
     const r = await http('/auth/me', { method: 'GET' });
     if (!r.ok) throw new Error('Unauthorized');
+    return r.json();
+}
+
+export async function apiOauth(payload: OAuthReq): Promise<AuthRespStrict> {
+    const r = await http('/auth/oauth', { method: 'POST', body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error('OAuth failed');
+    const data = (await r.json()) as AuthResp;
+    if (!data.access_token || !data.refresh_token) {
+        throw new Error('OAuth response is missing tokens');
+    }
+    return data as AuthRespStrict;
+}
+
+export async function apiValidate(): Promise<TokenValidationResponse> {
+    const r = await http('/auth/validate', { method: 'GET' });
+    if (!r.ok) throw new Error('Token invalid');
     return r.json();
 }
 

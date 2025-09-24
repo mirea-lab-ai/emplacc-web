@@ -37,7 +37,8 @@ export default function AddMemberModal({
       className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-2xl bg-emerald-950 p-6 ring-1 ring-white/10">
+        <div className="w-full max-w-md rounded-2xl bg-black">
+      <div className=" rounded-2xl t-accent-grad/20 p-6 ring-1 ring-white/10">
         <h2 className="text-xl font-semibold mb-4">Добавить сотрудника</h2>
 
         <label className="grid gap-2 mb-3">
@@ -68,12 +69,13 @@ export default function AddMemberModal({
           <button
             onClick={submit}
             disabled={!name.trim()}
-            className="rounded-lg bg-[#3452ff] px-5 py-2 font-semibold text-white hover:brightness-110 disabled:opacity-60"
+            className="rounded-lg bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 font-semibold text-black hover:brightness-110 disabled:opacity-60"
           >
             Добавить
           </button>
         </div>
       </div>
+        </div>
     </div>
   );
 }

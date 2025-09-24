@@ -21,7 +21,7 @@ export default function ProjectsSettingsPanel() {
   const saveInfo = () => localStorage.setItem('proj_settings', JSON.stringify(info));
 
   return (
-    <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-6 t-surface">
       <h2 className="text-xl font-semibold mb-4">Настройки проекта</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <label className="grid gap-2">
@@ -58,7 +58,7 @@ export default function ProjectsSettingsPanel() {
       <div className="mt-6 flex justify-end">
         <button
           onClick={saveInfo}
-          className="rounded-xl bg-[#3452ff] px-5 py-2 font-semibold text-white hover:brightness-110"
+          className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 font-semibold text-black hover:brightness-110"
         >
           Сохранить изменения
         </button>

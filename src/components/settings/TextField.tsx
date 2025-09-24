@@ -25,7 +25,7 @@ export default function TextField({
         placeholder={placeholder}
         className={[
           'h-12 w-full rounded-xl px-4',
-          'bg-emerald-950 text-slate-100 placeholder:text-slate-500',
+          't-surface text-slate-100 placeholder:text-slate-500',
           'ring-1 ring-white/10 focus:outline-none focus:ring-2',
           error
             ? 'focus:ring-rose-500/60 ring-rose-500/60'

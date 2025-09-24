@@ -35,10 +35,20 @@ async function refreshAccessToken() {
         clearTokens();
         return;
     }
-    const r = await fetch(BASE + '/auth/refresh', {
+    const KC_BASE = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL!.replace(/\/+$/, '');
+    const REALM = process.env.NEXT_PUBLIC_KEYCLOAK_REALM!;
+    const CLIENT_ID = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID!;
+
+    const tokenEndpoint = `${KC_BASE}/realms/${REALM}/protocol/openid-connect/token`;
+    const body = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refresh,
+        client_id: CLIENT_ID,
+    });
+    const r = await fetch(tokenEndpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: refresh }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
     });
 
     if (!r.ok) {
@@ -46,7 +56,7 @@ async function refreshAccessToken() {
         return;
     }
 
-    const j = (await r.json()) as RefreshResponse;
+    const j = (await r.json()) as RefreshResponse & { access_token?: string; refresh_token?: string };
 
     if (!j.access_token) {
         clearTokens();

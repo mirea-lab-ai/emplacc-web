@@ -33,7 +33,7 @@ export default function HelpSearchModal({
                     <input
                         autoFocus value={query} onChange={e=>setQuery(e.target.value)}
                         placeholder="Поиск по имени, email, роли…"
-                        className="w-full rounded-xl bg-[#0f172a] text-slate-100 placeholder:text-slate-400 px-4 py-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
+                        className="w-full rounded-xl t-surface text-slate-100 placeholder:text-slate-400 px-4 py-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
                     />
                     {query && (
                         <button onClick={()=>setQuery('')}
@@ -65,13 +65,13 @@ export default function HelpSearchModal({
                                     ? <div className="text-slate-400 text-sm">Ничего не найдено…</div>
                                     : results.map(emp => (
                                         <button key={emp.id} onClick={()=>onAdd(emp)}
-                                                className="flex items-center gap-3 rounded-lg bg-[#0b1324]/60 hover:bg-[#0b1324]/80 px-3 py-2 ring-1 ring-white/10 text-left">
+                                                className="flex items-center gap-3 rounded-lg t-surface px-3 py-2 ring-1 ring-white/10 text-left">
                                             <Avatar name={emp.name} url={emp.avatarUrl} />
                                             <div className="min-w-0">
                                                 <div className="text-slate-100 text-sm truncate">{emp.name}</div>
                                                 <div className="text-slate-400 text-xs truncate">{emp.email || emp.role || 'Сотрудник'}</div>
                                             </div>
-                                            <span className="ml-auto text-cyan-300 text-xs">Добавить</span>
+                                            <span className="ml-auto text-white text-xs">Добавить</span>
                                         </button>
                                     ))}
                             </div>

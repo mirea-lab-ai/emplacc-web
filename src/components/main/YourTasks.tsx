@@ -23,7 +23,7 @@ export default function YourTasks() {
   }, [tasks]);
     if (!isClient) {
         return (
-            <Panel className="p-6 h-[680px] overflow-hidden backdrop-blur-md bg-white/5 border border-white/10">
+            <Panel className="p-6 h-[680px] overflow-hidden t-surface">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-xl font-semibold">Ваши задачи</h2>
                 </div>
@@ -33,7 +33,7 @@ export default function YourTasks() {
         );
     }
   return (
-    <Panel className="p-6 h-[680px] overflow-hidden backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-6 h-[680px] overflow-hidden t-surface">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Ваши задачи</h2>
       </div>

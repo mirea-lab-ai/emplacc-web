@@ -35,7 +35,7 @@ export default function AvatarEditor({
       {/* аватар + градиентная окантовка */}
       <button
         onClick={() => setOpen(true)}
-        className="group relative inline-grid place-items-center rounded-full p-[3px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80"
+        className="group relative inline-grid place-items-center rounded-full p-[3px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400"
         aria-label="Сменить аватар"
       >
         <div className="rounded-full bg-[#0f1422] p-[3px]">

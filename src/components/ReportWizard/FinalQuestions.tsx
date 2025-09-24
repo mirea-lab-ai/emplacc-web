@@ -46,7 +46,7 @@ export default function FinalQuestions({
                         value={problem}
                         onChange={(e) => setProblem(e.target.value)}
                         placeholder="Опишите возникшие сложности…"
-                        className="w-full min-h-[140px] rounded-xl bg-emerald-950 text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                        className="w-full min-h-[140px] rounded-xl t-surface text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     />
                 </div>
 
@@ -102,7 +102,7 @@ export default function FinalQuestions({
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Любые дополнительные заметки…"
-                        className="w-full min-h-[120px] rounded-xl bg-emerald-950 text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                        className="w-full min-h-[120px] rounded-xl t-surface text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     />
                 </div>
             </div>

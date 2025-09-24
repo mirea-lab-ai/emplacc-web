@@ -12,7 +12,7 @@ export type ForumNote = {
 
 export default function ForumUpdates({ notes }: { notes: ForumNote[] }) {
   return (
-    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-5 h-full flex flex-col t-surface">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Форум</h2>
         <Link href="/forum" className="text-sm text-slate-300 hover:text-white">

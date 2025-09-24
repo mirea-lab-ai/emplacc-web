@@ -4,7 +4,6 @@ import Panel from '@/components/ui/Panel';
 import { useMyProblems } from '@/features/problems/hooks';
 import {getUserId, isAuthed} from "@/lib/auth";
 import { useIsClient } from '@/hooks/useIsClient';
-import {useMyTasks} from "@/features/tasks/hooks";
 import type {UIProblem} from "@/features/problems/api";
 
 export type Problem = {
@@ -18,10 +17,10 @@ export default function Problems({ items }: { items: Problem[] }) {
     const isClient = useIsClient();
 
     const hasCreds = isClient && isAuthed() && !!getUserId();
-    const { data, isLoading, error } = useMyTasks(1, 20, hasCreds);
+    const { data, isLoading, error } = useMyProblems(1, 20, hasCreds);
     const problems = (data ?? []) as UIProblem[];
   return (
-    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-5 h-full flex flex-col t-surface">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Проблемы</h2>
       </div>

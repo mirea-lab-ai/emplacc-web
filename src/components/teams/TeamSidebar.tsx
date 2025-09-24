@@ -17,30 +17,29 @@ export default function TeamSidebar({
   const hasTeams = teams.length > 0;
 
   return (
-    <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start max-h-[calc(100vh-7rem)] overflow-auto custom-scroll space-y-3 backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start max-h-[calc(100vh-7rem)] overflow-auto custom-scroll space-y-3 t-surface">
       <h2 className="text-lg font-semibold px-1">Мои команды</h2>
 
       {/* новая плитка «Добавить команду» */}
       <button
         onClick={onAddTeam}
         className={[
-          'group w-full rounded-2xl border border-dashed border-white/15 bg-emerald-800',
-          'hover:border-emerald-500/50 hover:bg-emerald-950 transition-colors p-4 text-left',
+          'group w-full rounded-2xl border-white/15 border border-dashed t-accent-grad/20',
+          ' hover:brightness-110 p-4 text-left',
         ].join(' ')}
       >
         <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-950 ring-1 ring-white/10 group-hover:ring-indigo-400/40">
+          <span className="grid h-9 w-9 place-items-center rounded-xl ring-1 ring-white/10 group-hover:ring-emerald-400/40">
             <span className="text-lg leading-none">＋</span>
           </span>
           <div>
             <div className="font-medium">Создать команду</div>
-            <div className="text-slate-400 text-sm">Добавить новую</div>
           </div>
         </div>
       </button>
 
       {!hasTeams ? (
-        <div className="rounded-2xl bg-[#141c2f] ring-1 ring-white/10 px-4 py-3 text-slate-400">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-lime-400 ring-1 ring-white/10 px-4 py-3 text-slate-400">
           Вы не состоите ни в одной команде
         </div>
       ) : (
@@ -53,7 +52,7 @@ export default function TeamSidebar({
                   onClick={() => onSelect(t.id)}
                   className={[
                     'relative w-full text-left rounded-2xl px-4 py-3 transition-colors',
-                    'ring-1 ring-white/10 bg-emerald-950 hover:bg-emerald-900',
+                    'ring-1 ring-white/10 t-surface',
                     active ? 'ring-2 ring-emerald-500/40' : '',
                   ].join(' ')}
                 >
@@ -61,13 +60,19 @@ export default function TeamSidebar({
                     className={[
                       'pointer-events-none absolute inset-0 rounded-2xl transition-opacity',
                       active
-                        ? 'opacity-80 bg-gradient-to-r to-[#FF7500]  from-[#8B5CF6]'
+                        ? 'bg-gradient-to-br from-emerald-500 to-lime-400'
                         : 'opacity-0',
                     ].join(' ')}
                   />
                   <div className="relative z-[1]">
-                    <div className="font-semibold">{t.name}</div>
-                    <div className="text-slate-400 text-sm">Тимлид: {t.lead.name}</div>
+                    <div className={['font-semibold',
+                                     active ? 'text-black' : 'text-white',].join(' ')}>
+                        {t.name}
+                    </div>
+                    <div className={['text-sm',
+                                    active ? 'text-slate-800' : 'text-slate-200',].join(' ')}>
+                        Тимлид: {t.lead.name}
+                    </div>
                   </div>
                 </button>
               </li>

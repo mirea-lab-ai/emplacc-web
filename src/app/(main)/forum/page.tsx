@@ -128,11 +128,11 @@ export default function ForumPage() {
   };
 
   return (
-    <main className="min-h-screen bg-emerald-950 text-white">
+    <main className="min-h-screen text-white">
       <div className="mx-auto max-w-6xl p-6 space-y-6">
         <div className="flex gap-6">
           {/* левая колонка — задачи */}
-          <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start min-h-[520px] backdrop-blur-md bg-white/5 border border-white/10">
+          <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start min-h-[520px] t-surface border border-white/10">
             <h2 className="text-lg font-semibold mb-3">Задачи</h2>
             <TaskSidebar tasks={sidebarTasks} activeId={activeId} onSelect={setActiveId}/>
           </Panel>

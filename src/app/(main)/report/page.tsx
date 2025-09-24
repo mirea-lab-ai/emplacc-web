@@ -131,7 +131,7 @@ export default function ReportsPage() {
     const i0 = idx;
     slides.push(
       <div key={`slide-${i0}`} className="flex flex-col justify-between">
-        <div className="rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
+        <div className="rounded-2xl t-surface bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
           <ReportTaskPicker
             tasks={demoTasks}
             selected={selectedDone}
@@ -172,7 +172,7 @@ export default function ReportsPage() {
     const i2 = idx;
     slides.push(
       <div key={`slide-${i2}`} className="flex flex-col justify-between">
-        <div className="rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
+        <div className="rounded-2xl t-surface bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
           <ReportTaskPicker
             tasks={demoTasks}
             selected={selectedPlan}
@@ -242,8 +242,8 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className="bg-emerald-950 text-white">
-      <div className="  mx-auto max-w-6xl p-6">
+    <main className="text-white">
+      <div className="mx-auto max-w-6xl p-6">
         <SlideTrack step={step}>{slides}</SlideTrack>
       </div>
     </main>

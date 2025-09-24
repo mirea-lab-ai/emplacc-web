@@ -15,20 +15,20 @@ export default function HelpRequests({ items }: { items: HelpReq[] }) {
   const has = items.length > 0;
 
   return (
-    <Panel className="p-5 h-full flex flex-col backdrop-blur-md bg-white/5 border border-white/10">
+    <Panel className="p-5 h-full flex flex-col t-surface">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Просьбы о помощи</h2>
         {has && (
           <div className="flex items-center gap-2">
             <button
-              className="rounded-xl bg-emerald-700 px-3 py-1.5 text-slate-200 hover:brightness-110"
+              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-3 py-1.5 font-bold text-black hover:brightness-110"
               onClick={() => setI((i - 1 + items.length) % items.length)}
               aria-label="Назад"
             >
               ←
             </button>
             <button
-              className="rounded-xl bg-emerald-700 px-3 py-1.5 text-slate-200 hover:brightness-110"
+              className="rounded-xl bg-gradient-to-br font-bold from-emerald-500 to-lime-400 px-3 py-1.5 text-black hover:brightness-110"
               onClick={() => setI((i + 1) % items.length)}
               aria-label="Вперёд"
             >

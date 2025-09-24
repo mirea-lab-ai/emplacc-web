@@ -1,24 +1,45 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Panel from '@/components/ui/Panel';
 
-export default function Modal({
-                                  title,
-                                  onClose,
-                                  children,
-                                  footer,
-                              }: {
+type Props = {
     title: string;
     onClose: () => void;
     children: React.ReactNode;
     footer?: React.ReactNode;
-}) {
-    return (
+};
+
+export default function Modal({ title, onClose, children, footer }: Props) {
+    // Блокируем скролл страницы при открытой модалке
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, []);
+
+    // В некоторых редких случаях document может быть ещё недоступен на сервере,
+    // но компонент помечен 'use client', так что это безопасно.
+    return createPortal(
         <div
-            className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
+            // fixed чтобы покрыть viewport; z-index высокий чтобы над всем
+            className="fixed inset-0 z-50 grid place-items-center p-4"
+            // клик по бэкдропу закрывает (проверка currentTarget)
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}
+            aria-modal="true"
+            role="dialog"
         >
-            <Panel className="w-full max-w-lg p-6 bg-emerald-950">
+            {/* затемняющий слой — отдельный элемент чтобы не мешать кликам на контейнер */}
+            <div
+                aria-hidden
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <div className="relative z-10 w-full max-w-lg bg-black rounded-2xl">
+            <Panel className="t-accent-grad/20 p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-xl font-semibold">{title}</h3>
                     <button
@@ -29,9 +50,14 @@ export default function Modal({
                         ✕
                     </button>
                 </div>
-                {children}
+
+                <div>{children}</div>
+
                 {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
             </Panel>
-        </div>
+            </div>
+        </div>,
+        // монтируем в body, чтобы избежать ограничивающих предков
+        document.body
     );
 }

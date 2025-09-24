@@ -2,8 +2,6 @@
 @import "tailwindcss";
 
 /* 1) ВКЛЮЧАЕМ TAILWIND */
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 /* 2) БАЗОВАЯ ТЕМНАЯ ТЕМА ПОД МАКЕТ */
@@ -11,22 +9,50 @@
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* --- Стилизованный скролл для темной темы сайта --- */
+/* Add Emerald (Lime) tokens and small utilities for the board */
+:root{
+    --page-bg: #06140f;
+    --bg-fx-1: radial-gradient(900px 500px at 20% -10%, rgba(34,197,94,0.18), transparent);
+    --bg-fx-2: radial-gradient(900px 500px at 100% 20%, rgba(132,204,22,0.12), transparent);
+
+    --accent-start: #10b981; /* emerald-500 */
+    --accent-end:   #a3e635; /* lime-400 */
+
+    --surface-bg: rgba(255,255,255,0.03);
+    --surface-border: rgba(255,255,255,0.06);
+}
+
+/* Page bg helper — body.app-bg */
+.app-bg {
+    background-color: var(--page-bg);
+    background-image: var(--bg-fx-1), var(--bg-fx-2);
+}
+
+/* Glassy surface */
+.t-surface {
+    background: linear-gradient(180deg, var(--surface-bg), rgba(255,255,255,0.01));
+    border: 1px solid var(--surface-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 30px rgba(2,6,5,0.6);
+}
+
+/* Accent gradient util */
+.t-accent-grad {
+    background-image: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+}
+
+/* Slightly translucent accent for card backgrounds (optional) */
+.t-accent-grad\/20 {
+    background-image: linear-gradient(90deg, rgba(16,185,129,0.14), rgba(163,230,53,0.10));
+}
+
+/* scrollbar */
 .custom-scroll {
-    scrollbar-width: thin;                     /* Firefox */
-    scrollbar-color: #2b3681 transparent;
-}
-.custom-scroll::-webkit-scrollbar {          /* Chrome/Edge */
-    width: 10px;
-}
-.custom-scroll::-webkit-scrollbar-track {
-    background: transparent;
+    scrollbar-color: var(--accent-start) transparent;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg,#2b3681,#3452ff);
+    background: linear-gradient(180deg,var(--accent-start),var(--accent-end));
     border-radius: 9999px;
-    border: 2px solid #0f1422;                 /* цвет фона страницы */
-}
-.custom-scroll::-webkit-scrollbar-thumb:hover {
-    background: #3452ff;
+    border: 2px solid var(--page-bg);
 }

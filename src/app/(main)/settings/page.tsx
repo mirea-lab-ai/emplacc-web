@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import AvatarEditor from '@/components/settings/AvatarEditor';
 import TextField from '@/components/settings/TextField';
+import {clearTokens, getRefreshToken} from "@/lib/auth";
+import {apiLogout} from "@/features/auth/api";
+import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 type ProfileData = {
   name: string;
@@ -51,6 +55,16 @@ export default function ProfilePage() {
     setErrors(e);
     return Object.keys(e).length === 0;
   };
+    const router = useRouter();
+    async function onLogout() {
+        try {
+            const rt = getRefreshToken();
+            if (rt) await apiLogout(rt); // по спецификации
+        } catch (_) {
+        }
+        clearTokens();
+        router.replace('/login');
+    }
 
   const submit = () => {
     if (!validate()) return;
@@ -64,7 +78,8 @@ export default function ProfilePage() {
   }, [data.name]);
 
   return (
-    <main className="min-h-screen bg-emerald-950 text-white">
+    <main className="min-h-screen text-white">
+      <button onClick={onLogout}>Выйти</button>
       <div className=" mx-auto max-w-5xl p-6 space-y-8">
         {/* верхняя панель */}
 
@@ -78,13 +93,14 @@ export default function ProfilePage() {
               src={data.avatarSrc}
               onChange={(src) => onChange('avatarSrc', src)}
             />
+            
             <div className="text-center">
               <div className="text-lg font-semibold">{data.name || 'Без имени'}</div>
               <div className="text-slate-400 text-sm">
                 {data.workEmail || 'email не указан'}
               </div>
             </div>
-
+            
             {/* маленькая карточка контактов */}
             <div className="mt-2 w-full rounded-xl bg-[#0f1422]/40 ring-1 ring-white/10 p-4">
               <div className="text-slate-300 text-sm">Контакты</div>
@@ -138,7 +154,7 @@ export default function ProfilePage() {
               <div className="flex justify-end">
                 <button
                   onClick={submit}
-                  className="rounded-xl bg-[#3452ff] px-8 py-3 font-semibold text-white hover:brightness-110 active:translate-y-px"
+                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-8 py-3 font-semibold text-black hover:brightness-110 active:translate-y-px"
                 >
                   Сохранить изменения
                 </button>

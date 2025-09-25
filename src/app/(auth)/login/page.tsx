@@ -7,6 +7,7 @@ import { apiLogin } from '@/features/auth/api';
 import { setTokens } from '@/lib/auth';
 import {getErrorMessage} from "@/lib/errors";
 import { setSession } from '@/lib/auth';
+import { generateCodeChallenge, generateCodeVerifier, generateState, saveAuthState } from '@/lib/pkce';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -81,10 +82,19 @@ function SSOButton() {
     const redirectUri = typeof window !== 'undefined' ? window.location.origin + '/callback' : '';
     const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM;
     if (!authUrl || !clientId || !realm) return null;
-    const url = `${authUrl}/realms/${realm}/protocol/openid-connect/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    async function goSSO() {
+        // Повторно проверим env внутри обработчика (для тайпчекера)
+        if (!authUrl || !clientId || !realm) return;
+        const verifier = generateCodeVerifier();
+        const challenge = await generateCodeChallenge(verifier);
+        const state = generateState();
+        saveAuthState(verifier, state);
+        const url = `${authUrl}/realms/${realm}/protocol/openid-connect/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256&state=${encodeURIComponent(state)}`;
+        window.location.href = url;
+    }
     return (
-        <a href={url} className="mt-3 inline-block w-full text-center rounded-md px-3 py-2 bg-indigo-600 hover:bg-indigo-500">
+        <button onClick={goSSO} className="mt-3 inline-block w-full text-center rounded-md px-3 py-2 bg-indigo-600 hover:bg-indigo-500">
             Войти через Keycloak
-        </a>
+        </button>
     );
 }

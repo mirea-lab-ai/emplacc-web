@@ -95,3 +95,11 @@ export async function httpJson<T>(path: string, init: RequestInit = {}): Promise
     }
     return res.json() as Promise<T>;
 }
+
+// Публичный помощник для ручного обновления access токена (используется в guard)
+export async function refreshAccessTokenPublic(): Promise<boolean> {
+    const before = getAccessToken();
+    await refreshAccessToken();
+    const after = getAccessToken();
+    return !!after && after !== before;
+}

@@ -33,7 +33,6 @@ export async function fetchMyProblems(page = 1, pageSize = 20): Promise<UIProble
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const json = (await res.json()) as ProblemListResponse;
-    console.log(json)
     const list: Problem[] = Array.isArray(json.problems) ? (json.problems as Problem[]) : [];
     return list.map(mapProblem);
 }

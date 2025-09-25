@@ -34,7 +34,7 @@ export default function Header({ items }: Props) {
       <div className="flex items-center justify-between">
         <div className="text-5xl font-semibold bg-gradient-to-r from-emerald-500 to-lime-400 bg-clip-text text-transparent">Emplacc</div>
         
-        <nav className="flex gap-10">
+        <nav className="flex gap-10 items-center">
           {items.map(({ label, href }) => {
             const active = isActive(href);
             return (
@@ -53,6 +53,9 @@ export default function Header({ items }: Props) {
               </Link>
             );
           })}
+          <button onClick={onLogout} className="rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white hover:bg-white/20 ring-1 ring-white/20">
+            Выйти
+          </button>
         </nav>
       </div>
     </header>

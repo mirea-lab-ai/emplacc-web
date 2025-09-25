@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiValidate } from '@/features/auth/api';
 import { setSession, clearTokens } from '@/lib/auth';
+import { readAndClearAuthState } from '@/lib/pkce';
 
 export default function OAuthCallbackPage() {
     const router = useRouter();
@@ -19,8 +20,17 @@ export default function OAuthCallbackPage() {
         }
         (async () => {
             try {
-                const { access_token, refresh_token } = await exchangeCodeForTokens(code, redirectUri);
+                const { verifier, state } = readAndClearAuthState();
+                const stateFromQuery = params.get('state');
+                if (!verifier || !state || stateFromQuery !== state) throw new Error('Invalid state');
+                const { access_token, refresh_token } = await exchangeCodeForTokens(code, redirectUri, verifier);
                 setSession({ access: access_token!, refresh: refresh_token! });
+
+                const t = access_token!;
+                const b64 = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+                const p = JSON.parse(atob(b64));
+                console.log('validate-check', { iss: p.iss, azp: p.azp, aud: p.aud, expISO: new Date(p.exp*1000).toISOString() });
+                
                 await apiValidate();
                 router.replace('/');
             } catch (e) {
@@ -37,7 +47,7 @@ export default function OAuthCallbackPage() {
     );
 }
 
-async function exchangeCodeForTokens(code: string, redirectUri: string): Promise<{ access_token: string; refresh_token: string }> {
+async function exchangeCodeForTokens(code: string, redirectUri: string, codeVerifier: string): Promise<{ access_token: string; refresh_token: string }> {
     const KC_BASE = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL!.replace(/\/+$/, '');
     const REALM = process.env.NEXT_PUBLIC_KEYCLOAK_REALM!;
     const CLIENT_ID = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID!;
@@ -48,7 +58,7 @@ async function exchangeCodeForTokens(code: string, redirectUri: string): Promise
         code,
         redirect_uri: redirectUri,
         client_id: CLIENT_ID,
-        // Если используется PKCE, добавь code_verifier
+        code_verifier: codeVerifier,
     });
 
     const r = await fetch(tokenEndpoint, {

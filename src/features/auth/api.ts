@@ -51,8 +51,6 @@ export async function apiOauth(payload: OAuthReq): Promise<AuthRespStrict> {
 
 export async function apiValidate(): Promise<TokenValidationResponse> {
     const r = await http('/auth/validate', { method: 'GET' });
-    console.log('apiValidate');
-    console.log(r);
     if (!r.ok) throw new Error('Token invalid');
     return r.json();
 }

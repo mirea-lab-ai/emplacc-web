@@ -29,7 +29,7 @@ export async function fetchMyTasks(page = 1, pageSize = 20): Promise<UITask[]> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const json = (await res.json()) as TaskListResponse;
-    console.log(json)
+    
     const list: TaskShort[] = Array.isArray(json.tasks) ? (json.tasks as TaskShort[]) : [];
     return list.map(mapTask);
 }

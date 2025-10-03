@@ -2372,6 +2372,178 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/project/team/{team_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение списка проектов команды
+         * @description Получает список всех проектов, связанных с командой, по team_id
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID команды */
+                    team_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список проектов успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ProjectByTeamResponse"];
+                    };
+                };
+                /** @description Некорректный team_id */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Команда или проекты не найдены */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении проектов */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/user/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение проектов пользователя
+         * @description Получает список проектов, в которых участвует пользователь через команды
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Идентификатор пользователя (UUID) */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список проектов успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ProjectResponse"][];
+                    };
+                };
+                /** @description Некорректный идентификатор пользователя */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Проекты не найдены */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении проектов */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/project/{id}": {
         parameters: {
             query?: never;
@@ -2906,6 +3078,81 @@ export interface paths {
         };
         trace?: never;
     };
+    "/report/help-requests-by-user-id/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение запросов на помощь по ID пользователя-помощника
+         * @description Возвращает список запросов на помощь, где указанный пользователь назначен в качестве помощника. В ответе также возвращаются имя и фамилия пользователя, создавшего запрос (автора ежедневного отчёта).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя-помощника (в формате UUID) */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список запросов на помощь успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.HelpRequestsForUser"];
+                    };
+                };
+                /** @description Некорректный ID пользователя */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении запросов на помощь */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/report/project/{id}": {
         parameters: {
             query?: never;
@@ -3158,6 +3405,85 @@ export interface paths {
         };
         trace?: never;
     };
+    "/report/user/{id}/{page}/{pagesize}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение списка отчетов по ID пользователя
+         * @description Получает список отчетов, созданных конкретным пользователем, с пагинацией и исключением удаленных записей
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя (UUID) */
+                    id: string;
+                    /** @description Номер страницы */
+                    page: number;
+                    /** @description Размер страницы */
+                    pagesize: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список отчетов успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ReportListResponse"];
+                    };
+                };
+                /** @description Некорректный ID пользователя */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении отчетов */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/report/{id}": {
         parameters: {
             query?: never;
@@ -3301,8 +3627,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Обновление отчета
-         * @description Обновляет данные отчета по его ID
+         * Обновление отчета и связанных данных, ЕСЛИ НЕ УКАЗЫВАТЬ ID ВО ВСПОМОГАТЕЛЬНЫХ СУЩНОСТЯХ, СОЗДАЕТ НОВЫЕ
+         * @description Обновляет поля отчета, а также связанные CompletedWork, TomorrowPlans, HelpRequests и ReportProblems, ЕСЛИ НЕ УКАЗЫВАТЬ ID ВО ВСПОМОГАТЕЛЬНЫХ СУЩНОСТЯХ, СОЗДАЕТ НОВЫЕ
          */
         patch: {
             parameters: {
@@ -3314,10 +3640,10 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            /** @description Данные для обновления отчета */
+            /** @description Данные для обновления отчета и связанных сущностей */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["request.ReportUpdateRequest"];
+                    "application/json": components["schemas"]["request.ReportReplaceRequest"];
                 };
             };
             responses: {
@@ -3343,6 +3669,17 @@ export interface paths {
                 };
                 /** @description Нет или неверный токен */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Отчет не найден */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -4038,6 +4375,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/status/delete-from-board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Удаление статуса с доски
+         * @description Удаление связи между статусом и доской (мягкое удаление)
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Данные для удаления статуса с доски */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.DeleteStatusFromBoardRequest"];
+                };
+            };
+            responses: {
+                /** @description Статус успешно удалён с доски */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.StatusUniversalResponse"];
+                    };
+                };
+                /** @description Ошибка при привязке данных или парсинге UUID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Связь не найдена или уже удалена */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при удалении статуса с доски */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/status/delete-from-task": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Удаление статуса из задачи
+         * @description Удаление связи между статусом и задачей (мягкое удаление)
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Данные для удаления статуса из задачи */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.DeleteStatusFromTaskRequest"];
+                };
+            };
+            responses: {
+                /** @description Статус успешно удалён из задачи */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.StatusUniversalResponse"];
+                    };
+                };
+                /** @description Ошибка при привязке данных или парсинге UUID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Связь не найдена или уже удалена */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при удалении статуса из задачи */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/status/project/{board_id}": {
         parameters: {
             query?: never;
@@ -4573,7 +5086,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/subscription/sub-object/{subId}/{typeId}/{page}/{pagesize}": {
+    "/subscription/sub-object/{id}/{type}/{page}/{pagesize}": {
         parameters: {
             query?: never;
             header?: never;
@@ -4594,9 +5107,9 @@ export interface paths {
                     /** @description Размер страницы */
                     pagesize: number;
                     /** @description UUID объекта подписки */
-                    subId: string;
+                    id: string;
                     /** @description Тип объекта подписки */
-                    typeId: number;
+                    type: number;
                 };
                 cookie?: never;
             };
@@ -6152,83 +6665,6 @@ export interface paths {
         };
         trace?: never;
     };
-    "/user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Создание нового пользователя
-         * @description Создает нового пользователя с указанными параметрами
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для создания пользователя */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.UserCreateRequest"];
-                };
-            };
-            responses: {
-                /** @description Пользователь успешно создан */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.UserUniversalResponse"];
-                    };
-                };
-                /** @description Ошибка в запросе или некорректные идентификаторы */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при создании пользователя */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/user/all/{page}/{pagesize}": {
         parameters: {
             query?: never;
@@ -6301,6 +6737,160 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Создание нового пользователя
+         * @description Создаёт пользователя с автоматически сгенерированным UUID
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Данные для создания пользователя */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.UserCreateRequest"];
+                };
+            };
+            responses: {
+                /** @description Пользователь успешно создан */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка при привязке данных */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка при создании пользователя */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/full-delete/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Удаление пользователя(НЕ ИСПОЛЬЗОВАТЬ, ДОБАВЛЕНО ВРЕМЕННО ДЛЯ ТЕСТА ОШИБКИ 502)
+         * @description Логическое удаление пользователя по ID, включая связанные данные (поле deleted = true)
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Пользователь успешно удален */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.UserUniversalResponse"];
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Пользователь не найден */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при удалении пользователя */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -6791,8 +7381,18 @@ export interface components {
             filter?: string;
             name?: string;
         };
+        "request.CompletedWorkCreateRequest": {
+            description?: string;
+            task_id?: string;
+        };
+        "request.CompletedWorkReplaceRequest": {
+            description?: string;
+            id?: string;
+            task_id?: string;
+        };
         "request.CompletedWorkUpdateRequest": {
             description?: string;
+            task_id?: string;
         };
         "request.CreateForumMessageRequest": {
             creator_id: string;
@@ -6800,10 +7400,12 @@ export interface components {
             problem_id: string;
         };
         "request.CreateProjectRequest": {
+            created_by: string;
             description?: string;
             gitlab_project_id: number;
             gitlab_url: string;
             name: string;
+            status?: string;
         };
         "request.CreateStatusRequest": {
             color: string;
@@ -6812,13 +7414,29 @@ export interface components {
             is_open?: boolean;
             name: string;
         };
+        "request.DeleteStatusFromBoardRequest": {
+            board_id?: string;
+            status_id?: string;
+        };
+        "request.DeleteStatusFromTaskRequest": {
+            status_id?: string;
+            task_id?: string;
+        };
         "request.HelpRequest": {
             description?: string;
             helper_id?: string;
+            status?: string;
+        };
+        "request.HelpRequestReplaceRequest": {
+            description?: string;
+            helper_id?: string;
+            id?: string;
+            status?: string;
         };
         "request.HelpRequestUpdateRequest": {
             description?: string;
             helper_id?: string;
+            status?: string;
         };
         "request.LoginRequest": {
             email: string;
@@ -6828,14 +7446,6 @@ export interface components {
             code?: string;
             redirect_uri?: string;
         };
-        "request.Problem": {
-            created_at?: string;
-            creator_id?: string;
-            description?: string[];
-            id?: string;
-            name?: string;
-            updated_at?: string;
-        };
         "request.ProblemCreateRequest": {
             creator_id?: string;
             description?: string[];
@@ -6843,9 +7453,6 @@ export interface components {
         };
         "request.ProblemUpdateRequest": {
             description?: string[];
-        };
-        "request.ProjectReport": {
-            description?: string;
         };
         "request.RefreshRequest": {
             refresh_token: string;
@@ -6862,16 +7469,19 @@ export interface components {
             user_id?: string;
         };
         "request.ReportCreateRequest": {
-            complete_work?: components["schemas"]["request.ProjectReport"][];
-            help?: components["schemas"]["request.HelpRequest"];
-            plan_tomorrow?: components["schemas"]["request.ProjectReport"][];
-            problems?: components["schemas"]["request.Problem"][];
+            complete_work?: components["schemas"]["request.CompletedWorkCreateRequest"][];
+            help?: components["schemas"]["request.HelpRequest"][];
+            plan_tomorrow?: components["schemas"]["request.TomorrowPlanCreateRequest"][];
+            problems?: string[];
             report_date?: string;
-            task_id?: string;
             user_id?: string;
         };
-        "request.ReportUpdateRequest": {
+        "request.ReportReplaceRequest": {
             checked?: number;
+            complete_work?: components["schemas"]["request.CompletedWorkReplaceRequest"][];
+            help?: components["schemas"]["request.HelpRequestReplaceRequest"][];
+            plan_tomorrow?: components["schemas"]["request.TomorrowPlanReplaceRequest"][];
+            problems?: string[];
             report_date?: string;
             user_id?: string;
         };
@@ -6942,6 +7552,13 @@ export interface components {
             description?: string;
             name?: string;
         };
+        "request.TomorrowPlanCreateRequest": {
+            description?: string;
+        };
+        "request.TomorrowPlanReplaceRequest": {
+            description?: string;
+            id?: string;
+        };
         "request.TomorrowPlansUpdateRequest": {
             description?: string;
         };
@@ -6955,6 +7572,7 @@ export interface components {
             gitlab_project_id?: number;
             gitlab_url?: string;
             name?: string;
+            status?: string;
         };
         "request.UpdateStatusRequest": {
             color?: string;
@@ -6964,7 +7582,6 @@ export interface components {
             name?: string;
         };
         "request.UpdateUserRequest": {
-            created_at?: string;
             email?: string;
             email_verified?: boolean;
             first_name?: string;
@@ -6976,12 +7593,10 @@ export interface components {
             tg_user_id?: number;
         };
         "request.UserCreateRequest": {
-            created_at?: string;
             email?: string;
             email_verified?: boolean;
             first_name?: string;
             is_active?: boolean;
-            last_login?: string;
             last_name?: string;
             profession?: string;
             tg_id?: string;
@@ -7068,6 +7683,11 @@ export interface components {
             id?: string;
             message?: string;
         };
+        "response.CompletedWork": {
+            description?: string;
+            id?: string;
+            task_id?: string;
+        };
         "response.ForumMessageListByProblemIdResponse": {
             messages?: components["schemas"]["response.ForumMessageResponse"][];
             page?: number;
@@ -7151,6 +7771,15 @@ export interface components {
             description?: string;
             helper_id?: string;
             id?: string;
+            status?: string;
+        };
+        "response.HelpRequestWithAssignerID": {
+            help_requests?: components["schemas"]["response.HelpRequestItem"];
+            user_first_name?: string;
+            user_last_name?: string;
+        };
+        "response.HelpRequestsForUser": {
+            help_requests?: components["schemas"]["response.HelpRequestWithAssignerID"][];
         };
         "response.ProblemListResponse": {
             page?: number;
@@ -7177,6 +7806,9 @@ export interface components {
             total_count?: number;
             user_id?: string;
         };
+        "response.ProjectByTeamResponse": {
+            projects?: components["schemas"]["response.ProjectResponse"][];
+        };
         "response.ProjectListResponse": {
             page?: number;
             page_size?: number;
@@ -7185,11 +7817,13 @@ export interface components {
         };
         "response.ProjectResponse": {
             created_at?: string;
-            descroption?: string;
+            created_by?: string;
+            description?: string;
             gitlab_project_id?: number;
             gitlab_url?: string;
             id?: string;
             name?: string;
+            status?: string;
             updated_at?: string;
         };
         "response.ProjectUniversalResponse": {
@@ -7225,14 +7859,13 @@ export interface components {
         };
         "response.ReportResponse": {
             checked?: number;
-            completed_work?: components["schemas"]["response.WorkItem"][];
+            completed_work?: components["schemas"]["response.CompletedWork"][];
             created_at?: string;
-            help_request?: components["schemas"]["response.HelpRequestItem"];
+            help_requests?: components["schemas"]["response.HelpRequestItem"][];
             id?: string;
-            plan_tomorrow?: components["schemas"]["response.WorkItem"][];
+            plan_tomorrow?: components["schemas"]["response.TomorrowPlans"][];
             problem?: components["schemas"]["response.ProblemResponse"][];
             report_date?: string;
-            task_id?: string;
             updated_at?: string;
             user_id?: string;
             user_info?: components["schemas"]["response.UserShort"];
@@ -7363,6 +7996,10 @@ export interface components {
             /** @description "Token is valid" или описание ошибки */
             message?: string;
         };
+        "response.TomorrowPlans": {
+            description?: string;
+            id?: string;
+        };
         /** @description Структура с информацией о пользователе из Keycloak */
         "response.UserInfo": {
             /** @description Email пользователя */
@@ -7388,10 +8025,6 @@ export interface components {
         "response.UserUniversalResponse": {
             id?: string;
             message?: string;
-        };
-        "response.WorkItem": {
-            description?: string;
-            id?: string;
         };
     };
     responses: never;

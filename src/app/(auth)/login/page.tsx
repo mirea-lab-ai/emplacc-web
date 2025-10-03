@@ -80,6 +80,7 @@ function SSOButton() {
     const authUrl = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL;
     const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
     const redirectUri = typeof window !== 'undefined' ? window.location.origin + '/callback' : '';
+    
     const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM;
     if (!authUrl || !clientId || !realm) return null;
     async function goSSO() {

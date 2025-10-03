@@ -16,7 +16,7 @@ export type Problem = {
 export default function Problems({ items }: { items: Problem[] }) {
     const isClient = useIsClient();
 
-    const hasCreds = isClient && isAuthed() && !!getUserId();
+    const hasCreds = isClient && isAuthed();
     const { data, isLoading, error } = useMyProblems(1, 20, hasCreds);
     const problems = (data ?? []) as UIProblem[];
   return (

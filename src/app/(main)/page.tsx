@@ -1,15 +1,11 @@
 'use client';
 
 import YourTasks from '@/components/main/YourTasks';
-import HelpRequests, { HelpReq } from '@/components/main/HelpRequests';
+import HelpRequests from '@/components/main/HelpRequests';
 import ForumUpdates, { ForumNote } from '@/components/main/ForumUpdates';
 import Problems, { Problem } from '@/components/main/Problems';
 import TodayPlan, { PlanItem } from '@/components/main/TodayPlan';
-// демо-данные — подставь реальные
-const demoHelps: HelpReq[] = [
-  { id: 'h1', from: 'Мария Иванова', task: 'API Docs — OAuth2', text: 'Нужна проверка последовательности обмена токенов' },
-  { id: 'h2', from: 'Илья Петров', task: 'Design System — Tooltip', text: 'Помоги с анимацией появления' },
-];
+// демо-данные удалены: блок использует только API
 
 const demoForum: ForumNote[] = [
   { id: 'f1', topic: 'Design System', text: 'Добавил варианты disabled для кнопок…', href: '/forum' },
@@ -36,7 +32,7 @@ export default function Home() {
           <YourTasks/>
 
           <div className="grid grid-cols-2 grid-rows-[1fr_1fr] gap-6 min-h-[680px]">
-            <HelpRequests items={demoHelps}/>
+            <HelpRequests/>
             <ForumUpdates notes={demoForum}/>
             <Problems items={demoProblems}/>
             <TodayPlan items={demoPlan}/>

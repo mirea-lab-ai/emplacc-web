@@ -1,7 +1,9 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchMyHelpRequests, UIHelpRequest } from '@/features/reports/api';
+import { isAuthed, getUserId } from '@/lib/auth';
 
 export type HelpReq = {
   id: string;
@@ -10,9 +12,17 @@ export type HelpReq = {
   text?: string;
 };
 
-export default function HelpRequests({ items }: { items: HelpReq[] }) {
+export default function HelpRequests() {
   const [i, setI] = useState(0);
-  const has = items.length > 0;
+  const [fetched, setFetched] = useState<UIHelpRequest[]>([]);
+  useEffect(() => {
+    if (!isAuthed() || !getUserId()) return;
+    fetchMyHelpRequests().then(setFetched).catch(() => setFetched([]));
+  }, []);
+  const list: HelpReq[] = useMemo(() => {
+    return fetched.map((r) => ({ id: r.id, from: r.authorName ?? 'Пользователь', task: r.task ?? 'Задача', text: r.description }));
+  }, [fetched]);
+  const has = list.length > 0;
 
   return (
     <Panel className="p-5 h-full flex flex-col t-surface">
@@ -22,14 +32,14 @@ export default function HelpRequests({ items }: { items: HelpReq[] }) {
           <div className="flex items-center gap-2">
             <button
               className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-3 py-1.5 font-bold text-black hover:brightness-110"
-              onClick={() => setI((i - 1 + items.length) % items.length)}
+              onClick={() => setI((i - 1 + list.length) % list.length)}
               aria-label="Назад"
             >
               ←
             </button>
             <button
               className="rounded-xl bg-gradient-to-br font-bold from-emerald-500 to-lime-400 px-3 py-1.5 text-black hover:brightness-110"
-              onClick={() => setI((i + 1) % items.length)}
+              onClick={() => setI((i + 1) % list.length)}
               aria-label="Вперёд"
             >
               →
@@ -46,11 +56,11 @@ export default function HelpRequests({ items }: { items: HelpReq[] }) {
         ) : (
           <div className="h-full rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 p-3 text-sm overflow-auto custom-scroll">
             <div className="text-slate-300">Просит:</div>
-            <div className="font-semibold">{items[i].from}</div>
+            <div className="font-semibold">{list[i].from}</div>
             <div className="mt-1 text-slate-300">По задаче:</div>
-            <div className="font-medium">{items[i].task}</div>
-            {items[i].text && (
-              <div className="mt-1 text-slate-400">{items[i].text}</div>
+            <div className="font-medium">{list[i].task}</div>
+            {list[i].text && (
+              <div className="mt-1 text-slate-400">{list[i].text}</div>
             )}
           </div>
         )}

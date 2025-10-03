@@ -24,16 +24,17 @@ export default function OAuthCallbackPage() {
                 const stateFromQuery = params.get('state');
                 if (!verifier || !state || stateFromQuery !== state) throw new Error('Invalid state');
                 const { access_token, refresh_token } = await exchangeCodeForTokens(code, redirectUri, verifier);
-                setSession({ access: access_token!, refresh: refresh_token! });
-
                 const t = access_token!;
                 const b64 = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
                 const p = JSON.parse(atob(b64));
-                console.log('validate-check', { iss: p.iss, azp: p.azp, aud: p.aud, expISO: new Date(p.exp*1000).toISOString() });
+                const uid = p && p.sub ? String(p.sub) : undefined;
+                setSession({ access: access_token!, refresh: refresh_token!, userId: uid });
+                console.log('validate-check', { iss: p.iss, azp: p.azp, aud: p.aud, sub: p.sub, expISO: new Date(p.exp*1000).toISOString() });
                 
                 await apiValidate();
                 router.replace('/');
             } catch (e) {
+                console.log("OAuth failed", e);
                 setError('OAuth failed');
                 clearTokens();
             }
@@ -69,6 +70,7 @@ async function exchangeCodeForTokens(code: string, redirectUri: string, codeVeri
     if (!r.ok) throw new Error('Token exchange failed');
     const json = await r.json();
     if (!json.access_token || !json.refresh_token) throw new Error('Missing tokens');
+    console.log(json.access_token);
     return { access_token: json.access_token as string, refresh_token: json.refresh_token as string };
 }
 

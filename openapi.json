@@ -2534,6 +2534,187 @@
                 }
             }
         },
+        "/project/team/{team_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получает список всех проектов, связанных с командой, по team_id",
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Получение списка проектов команды",
+                "parameters": [
+                    {
+                        "description": "ID команды",
+                        "name": "team_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список проектов успешно получен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.ProjectByTeamResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный team_id",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Команда или проекты не найдены",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении проектов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/project/user/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получает список проектов, в которых участвует пользователь через команды",
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Получение проектов пользователя",
+                "parameters": [
+                    {
+                        "description": "Идентификатор пользователя (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список проектов успешно получен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/response.ProjectResponse"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный идентификатор пользователя",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Проекты не найдены",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении проектов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/project/{id}": {
             "get": {
                 "security": [
@@ -3130,6 +3311,82 @@
                 }
             }
         },
+        "/report/help-requests-by-user-id/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список запросов на помощь, где указанный пользователь назначен в качестве помощника. В ответе также возвращаются имя и фамилия пользователя, создавшего запрос (автора ежедневного отчёта).",
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Получение запросов на помощь по ID пользователя-помощника",
+                "parameters": [
+                    {
+                        "description": "ID пользователя-помощника (в формате UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список запросов на помощь успешно получен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.HelpRequestsForUser"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID пользователя",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении запросов на помощь",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/report/project/{id}": {
             "get": {
                 "security": [
@@ -3395,6 +3652,100 @@
                 }
             }
         },
+        "/report/user/{id}/{page}/{pagesize}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получает список отчетов, созданных конкретным пользователем, с пагинацией и исключением удаленных записей",
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Получение списка отчетов по ID пользователя",
+                "parameters": [
+                    {
+                        "description": "ID пользователя (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Размер страницы",
+                        "name": "pagesize",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список отчетов успешно получен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.ReportListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID пользователя",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении отчетов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/report/{id}": {
             "get": {
                 "security": [
@@ -3563,11 +3914,11 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Обновляет данные отчета по его ID",
+                "description": "Обновляет поля отчета, а также связанные CompletedWork, TomorrowPlans, HelpRequests и ReportProblems, ЕСЛИ НЕ УКАЗЫВАТЬ ID ВО ВСПОМОГАТЕЛЬНЫХ СУЩНОСТЯХ, СОЗДАЕТ НОВЫЕ",
                 "tags": [
                     "Reports"
                 ],
-                "summary": "Обновление отчета",
+                "summary": "Обновление отчета и связанных данных, ЕСЛИ НЕ УКАЗЫВАТЬ ID ВО ВСПОМОГАТЕЛЬНЫХ СУЩНОСТЯХ, СОЗДАЕТ НОВЫЕ",
                 "parameters": [
                     {
                         "description": "ID отчета",
@@ -3583,11 +3934,11 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/request.ReportUpdateRequest"
+                                "$ref": "#/components/schemas/request.ReportReplaceRequest"
                             }
                         }
                     },
-                    "description": "Данные для обновления отчета",
+                    "description": "Данные для обновления отчета и связанных сущностей",
                     "required": true
                 },
                 "responses": {
@@ -3616,6 +3967,19 @@
                     },
                     "401": {
                         "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Отчет не найден",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4365,6 +4729,184 @@
                 }
             }
         },
+        "/status/delete-from-board": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаление связи между статусом и доской (мягкое удаление)",
+                "tags": [
+                    "Statuses"
+                ],
+                "summary": "Удаление статуса с доски",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/request.DeleteStatusFromBoardRequest"
+                            }
+                        }
+                    },
+                    "description": "Данные для удаления статуса с доски",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Статус успешно удалён с доски",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.StatusUniversalResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка при привязке данных или парсинге UUID",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Связь не найдена или уже удалена",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при удалении статуса с доски",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/delete-from-task": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаление связи между статусом и задачей (мягкое удаление)",
+                "tags": [
+                    "Statuses"
+                ],
+                "summary": "Удаление статуса из задачи",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/request.DeleteStatusFromTaskRequest"
+                            }
+                        }
+                    },
+                    "description": "Данные для удаления статуса из задачи",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Статус успешно удалён из задачи",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.StatusUniversalResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка при привязке данных или парсинге UUID",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Связь не найдена или уже удалена",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при удалении статуса из задачи",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/status/project/{board_id}": {
             "get": {
                 "security": [
@@ -4952,7 +5494,7 @@
                 }
             }
         },
-        "/subscription/sub-object/{subId}/{typeId}/{page}/{pagesize}": {
+        "/subscription/sub-object/{id}/{type}/{page}/{pagesize}": {
             "get": {
                 "security": [
                     {
@@ -4985,7 +5527,7 @@
                     },
                     {
                         "description": "UUID объекта подписки",
-                        "name": "subId",
+                        "name": "id",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -4994,7 +5536,7 @@
                     },
                     {
                         "description": "Тип объекта подписки",
-                        "name": "typeId",
+                        "name": "type",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -6726,82 +7268,6 @@
                 }
             }
         },
-        "/user": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Создает нового пользователя с указанными параметрами",
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Создание нового пользователя",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.UserCreateRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для создания пользователя",
-                    "required": true
-                },
-                "responses": {
-                    "201": {
-                        "description": "Пользователь успешно создан",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.UserUniversalResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе или некорректные идентификаторы",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при создании пользователя",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/user/all/{page}/{pagesize}": {
             "get": {
                 "security": [
@@ -6873,6 +7339,161 @@
                     },
                     "500": {
                         "description": "Ошибка сервера при получении пользователей",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создаёт пользователя с автоматически сгенерированным UUID",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Создание нового пользователя",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/request.UserCreateRequest"
+                            }
+                        }
+                    },
+                    "description": "Данные для создания пользователя",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Пользователь успешно создан",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка при привязке данных",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при создании пользователя",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/full-delete/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Логическое удаление пользователя по ID, включая связанные данные (поле deleted = true)",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Удаление пользователя(НЕ ИСПОЛЬЗОВАТЬ, ДОБАВЛЕНО ВРЕМЕННО ДЛЯ ТЕСТА ОШИБКИ 502)",
+                "parameters": [
+                    {
+                        "description": "ID пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователь успешно удален",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.UserUniversalResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при удалении пользователя",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7520,10 +8141,38 @@
                     }
                 }
             },
+            "request.CompletedWorkCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "task_id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "request.CompletedWorkReplaceRequest": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "task_id": {
+                        "type": "string"
+                    }
+                }
+            },
             "request.CompletedWorkUpdateRequest": {
                 "type": "object",
                 "properties": {
                     "description": {
+                        "type": "string"
+                    },
+                    "task_id": {
                         "type": "string"
                     }
                 }
@@ -7554,11 +8203,15 @@
             "request.CreateProjectRequest": {
                 "type": "object",
                 "required": [
+                    "created_by",
                     "gitlab_project_id",
                     "gitlab_url",
                     "name"
                 ],
                 "properties": {
+                    "created_by": {
+                        "type": "string"
+                    },
                     "description": {
                         "type": "string",
                         "maxLength": 500
@@ -7573,6 +8226,10 @@
                         "type": "string",
                         "maxLength": 100,
                         "minLength": 3
+                    },
+                    "status": {
+                        "type": "string",
+                        "maxLength": 50
                     }
                 }
             },
@@ -7600,6 +8257,28 @@
                     }
                 }
             },
+            "request.DeleteStatusFromBoardRequest": {
+                "type": "object",
+                "properties": {
+                    "board_id": {
+                        "type": "string"
+                    },
+                    "status_id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "request.DeleteStatusFromTaskRequest": {
+                "type": "object",
+                "properties": {
+                    "status_id": {
+                        "type": "string"
+                    },
+                    "task_id": {
+                        "type": "string"
+                    }
+                }
+            },
             "request.HelpRequest": {
                 "type": "object",
                 "properties": {
@@ -7607,6 +8286,26 @@
                         "type": "string"
                     },
                     "helper_id": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            },
+            "request.HelpRequestReplaceRequest": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "helper_id": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "status": {
                         "type": "string"
                     }
                 }
@@ -7618,6 +8317,9 @@
                         "type": "string"
                     },
                     "helper_id": {
+                        "type": "string"
+                    },
+                    "status": {
                         "type": "string"
                     }
                 }
@@ -7648,32 +8350,6 @@
                     }
                 }
             },
-            "request.Problem": {
-                "type": "object",
-                "properties": {
-                    "created_at": {
-                        "type": "string"
-                    },
-                    "creator_id": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "updated_at": {
-                        "type": "string"
-                    }
-                }
-            },
             "request.ProblemCreateRequest": {
                 "type": "object",
                 "properties": {
@@ -7699,14 +8375,6 @@
                         "items": {
                             "type": "string"
                         }
-                    }
-                }
-            },
-            "request.ProjectReport": {
-                "type": "object",
-                "properties": {
-                    "description": {
-                        "type": "string"
                     }
                 }
             },
@@ -7764,28 +8432,28 @@
                     "complete_work": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/request.ProjectReport"
+                            "$ref": "#/components/schemas/request.CompletedWorkCreateRequest"
                         }
                     },
                     "help": {
-                        "$ref": "#/components/schemas/request.HelpRequest"
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/request.HelpRequest"
+                        }
                     },
                     "plan_tomorrow": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/request.ProjectReport"
+                            "$ref": "#/components/schemas/request.TomorrowPlanCreateRequest"
                         }
                     },
                     "problems": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/request.Problem"
+                            "type": "string"
                         }
                     },
                     "report_date": {
-                        "type": "string"
-                    },
-                    "task_id": {
                         "type": "string"
                     },
                     "user_id": {
@@ -7793,11 +8461,35 @@
                     }
                 }
             },
-            "request.ReportUpdateRequest": {
+            "request.ReportReplaceRequest": {
                 "type": "object",
                 "properties": {
                     "checked": {
                         "type": "integer"
+                    },
+                    "complete_work": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/request.CompletedWorkReplaceRequest"
+                        }
+                    },
+                    "help": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/request.HelpRequestReplaceRequest"
+                        }
+                    },
+                    "plan_tomorrow": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/request.TomorrowPlanReplaceRequest"
+                        }
+                    },
+                    "problems": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "report_date": {
                         "type": "string"
@@ -8015,6 +8707,25 @@
                     }
                 }
             },
+            "request.TomorrowPlanCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "request.TomorrowPlanReplaceRequest": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
             "request.TomorrowPlansUpdateRequest": {
                 "type": "object",
                 "properties": {
@@ -8055,6 +8766,9 @@
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
                     }
                 }
             },
@@ -8081,9 +8795,6 @@
             "request.UpdateUserRequest": {
                 "type": "object",
                 "properties": {
-                    "created_at": {
-                        "type": "string"
-                    },
                     "email": {
                         "type": "string"
                     },
@@ -8116,9 +8827,6 @@
             "request.UserCreateRequest": {
                 "type": "object",
                 "properties": {
-                    "created_at": {
-                        "type": "string"
-                    },
                     "email": {
                         "type": "string"
                     },
@@ -8130,9 +8838,6 @@
                     },
                     "is_active": {
                         "type": "boolean"
-                    },
-                    "last_login": {
-                        "type": "string"
                     },
                     "last_name": {
                         "type": "string"
@@ -8384,6 +9089,20 @@
                         "type": "string"
                     },
                     "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "response.CompletedWork": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "task_id": {
                         "type": "string"
                     }
                 }
@@ -8643,6 +9362,34 @@
                     },
                     "id": {
                         "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            },
+            "response.HelpRequestWithAssignerID": {
+                "type": "object",
+                "properties": {
+                    "help_requests": {
+                        "$ref": "#/components/schemas/response.HelpRequestItem"
+                    },
+                    "user_first_name": {
+                        "type": "string"
+                    },
+                    "user_last_name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "response.HelpRequestsForUser": {
+                "type": "object",
+                "properties": {
+                    "help_requests": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/response.HelpRequestWithAssignerID"
+                        }
                     }
                 }
             },
@@ -8726,6 +9473,17 @@
                     }
                 }
             },
+            "response.ProjectByTeamResponse": {
+                "type": "object",
+                "properties": {
+                    "projects": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/response.ProjectResponse"
+                        }
+                    }
+                }
+            },
             "response.ProjectListResponse": {
                 "type": "object",
                 "properties": {
@@ -8752,7 +9510,10 @@
                     "created_at": {
                         "type": "string"
                     },
-                    "descroption": {
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "description": {
                         "type": "string"
                     },
                     "gitlab_project_id": {
@@ -8765,6 +9526,9 @@
                         "type": "string"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "status": {
                         "type": "string"
                     },
                     "updated_at": {
@@ -8877,14 +9641,17 @@
                     "completed_work": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/response.WorkItem"
+                            "$ref": "#/components/schemas/response.CompletedWork"
                         }
                     },
                     "created_at": {
                         "type": "string"
                     },
-                    "help_request": {
-                        "$ref": "#/components/schemas/response.HelpRequestItem"
+                    "help_requests": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/response.HelpRequestItem"
+                        }
                     },
                     "id": {
                         "type": "string"
@@ -8892,7 +9659,7 @@
                     "plan_tomorrow": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/response.WorkItem"
+                            "$ref": "#/components/schemas/response.TomorrowPlans"
                         }
                     },
                     "problem": {
@@ -8902,9 +9669,6 @@
                         }
                     },
                     "report_date": {
-                        "type": "string"
-                    },
-                    "task_id": {
                         "type": "string"
                     },
                     "updated_at": {
@@ -9302,6 +10066,17 @@
                     }
                 }
             },
+            "response.TomorrowPlans": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
             "response.UserInfo": {
                 "description": "Структура с информацией о пользователе из Keycloak",
                 "type": "object",
@@ -9357,17 +10132,6 @@
                         "type": "string"
                     },
                     "message": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.WorkItem": {
-                "type": "object",
-                "properties": {
-                    "description": {
-                        "type": "string"
-                    },
-                    "id": {
                         "type": "string"
                     }
                 }

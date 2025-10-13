@@ -1,23 +1,23 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
-import { useMyProblems } from '@/features/problems/hooks';
+import { useAllProblems } from '@/features/problems/hooks';
 import {getUserId, isAuthed} from "@/lib/auth";
 import { useIsClient } from '@/hooks/useIsClient';
 import type {UIProblem} from "@/features/problems/api";
 
 export type Problem = {
   id: string;
-  title: string;
+  name: string;
   when: string;
   status?: 'open' | 'inprogress' | 'done';
 };
 
-export default function Problems({ items }: { items: Problem[] }) {
+export default function Problems() {
     const isClient = useIsClient();
 
     const hasCreds = isClient && isAuthed();
-    const { data, isLoading, error } = useMyProblems(1, 20, hasCreds);
+    const { data, isLoading, error } = useAllProblems(1, 20, hasCreds);
     const problems = (data ?? []) as UIProblem[];
   return (
     <Panel className="p-5 h-full flex flex-col t-surface">
@@ -33,9 +33,12 @@ export default function Problems({ items }: { items: Problem[] }) {
                 key={p.id}
                 className="flex items-center justify-between rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 px-4 py-2"
               >
-                <div>
-                  <div className="font-medium">{p.title}</div>
-                  <div className="text-slate-400 text-sm">{p.updated}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{p.name}</div>
+                  {p.description && (
+                    <div className="text-slate-400 text-sm truncate">{p.description}</div>
+                  )}
+                  <div className="text-slate-400 text-xs">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div>
                 </div>
               </li>
             ))}

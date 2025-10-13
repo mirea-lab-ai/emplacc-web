@@ -5,6 +5,7 @@ import ProjectsNav, { Tab } from '@/components/projects/ProjectsNav';
 import ProjectsBoardPanel from '@/components/projects/ProjectsBoardPanel';
 import ProjectsTeamsPanel from '@/components/projects/ProjectsTeamsPanel';
 import ProjectsSettingsPanel from '@/components/projects/ProjectsSettingsPanel';
+import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import type { UIProject } from '@/features/projects/api';
 import Panel from '@/components/ui/Panel';
 import { useEffect } from 'react';
@@ -16,8 +17,9 @@ export default function ProjectsPage() {
   const [selected, setSelected] = useState<UIProject | null>(null);
   const [projects, setProjects] = useState<UIProject[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  useEffect(() => {
+  const loadProjects = () => {
     const uid = getUserId();
     if (!uid || !isAuthed()) return;
     setLoading(true);
@@ -25,6 +27,10 @@ export default function ProjectsPage() {
       .then(setProjects)
       .catch(() => setProjects([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProjects();
   }, []);
 
   return (
@@ -45,7 +51,15 @@ export default function ProjectsPage() {
           <section className="flex-1 min-w-0 space-y-6 ">
             {tab === 'my' && (
               <Panel className="p-4 t-surface">
-                <h2 className="text-lg font-semibold mb-3">Мои проекты</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold">Мои проекты</h2>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500 transition-colors"
+                  >
+                    + Создать проект
+                  </button>
+                </div>
                 {loading ? (
                   <div className="text-slate-400">Загрузка…</div>
                 ) : projects.length ? (
@@ -71,12 +85,22 @@ export default function ProjectsPage() {
                 )}
               </Panel>
             )}
-            {tab === 'board' && <ProjectsBoardPanel />}
-            {tab === 'teams' && <ProjectsTeamsPanel />}
-            {tab === 'settings' && <ProjectsSettingsPanel />}
+            {tab === 'board' && selected && <ProjectsBoardPanel projectId={selected.id} />}
+            {tab === 'teams' && selected && <ProjectsTeamsPanel projectId={selected.id} />}
+            {tab === 'settings' && selected && <ProjectsSettingsPanel />}
           </section>
         </div>
       </div>
+
+      {showCreateModal && (
+        <CreateProjectModal 
+          onClose={() => setShowCreateModal(false)} 
+          onSuccess={() => {
+            setShowCreateModal(false);
+            loadProjects();
+          }}
+        />
+      )}
     </main>
   );
 }

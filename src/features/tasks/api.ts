@@ -33,3 +33,82 @@ export async function fetchMyTasks(page = 1, pageSize = 20): Promise<UITask[]> {
     const list: TaskShort[] = Array.isArray(json.tasks) ? (json.tasks as TaskShort[]) : [];
     return list.map(mapTask);
 }
+
+export type CreateTaskRequest = {
+    name: string;
+    description?: string;
+    status_id: string;
+    creator_id: string;
+    priority: number;
+    start_date: string;
+    deadline: string;
+    assigned_to?: string;
+    category: number;
+};
+
+export type CreateTaskResponse = {
+    id: string;
+    title: string;
+    description?: string;
+    status_id: string;
+    created_at: string;
+    updated_at: string;
+};
+
+// Создание новой задачи
+export async function createTask(payload: CreateTaskRequest): Promise<CreateTaskResponse> {
+    const res = await http('/task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as any;
+    
+    return {
+        id: String(json.id ?? ''),
+        title: json.title ?? '',
+        description: json.description,
+        status_id: json.status_id ?? '',
+        created_at: json.created_at ?? '',
+        updated_at: json.updated_at ?? '',
+    };
+}
+
+// Удаление задачи
+export async function deleteTask(taskId: string): Promise<void> {
+    const res = await http(`/task/${encodeURIComponent(taskId)}`, {
+        method: 'DELETE',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+export type MoveTaskRequest = {
+    task_id: string;
+    status_id: string;
+};
+
+export type MoveTaskResponse = {
+    id: string;
+    status_id: string;
+    updated_at: string;
+};
+
+// Перемещение задачи в другой статус
+export async function moveTask(payload: MoveTaskRequest): Promise<MoveTaskResponse> {
+    const res = await http('/task/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as any;
+    
+    return {
+        id: String(json.id ?? ''),
+        status_id: json.status_id ?? '',
+        updated_at: json.updated_at ?? '',
+    };
+}

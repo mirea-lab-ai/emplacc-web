@@ -1,37 +1,61 @@
-// src/features/projects/api.ts
 import { http } from '@/lib/http';
-import type { components } from '@/types/openapi';
-
-// OpenAPI typedefs (best-effort)
-type ProjectListResponse = components['schemas']['response.ProjectListResponse'];
-type ProjectResponse = components['schemas']['response.ProjectResponse'];
 
 export type UIProject = {
-    id: string;
-    name: string;
-    description?: string;
+  id: string;
+  name: string;
+  description?: string;
+  status?: string;
+  createdAt?: string;
+  createdBy?: string;
 };
 
-export function mapProject(p: ProjectResponse): UIProject {
-    return {
-        id: String((p as unknown as { id?: string | number }).id ?? ''),
-        name: (p as unknown as { name?: string }).name ?? 'Без названия',
-        description: (p as unknown as { description?: string }).description ?? undefined,
-    };
-}
+export type CreateProjectRequest = {
+  name: string;
+  description?: string;
+  created_by: string;
+  gitlab_project_id: number;
+  gitlab_url: string;
+  status?: string;
+};
 
+// Получение проектов пользователя
 export async function fetchUserProjects(userId: string): Promise<UIProject[]> {
-    // According to backend contract for frontend: /project/user/{id}
-    const res = await http(`/project/all/1/20`, { method: 'GET' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = (await res.json()) as ProjectListResponse | { projects?: ProjectResponse[] } | ProjectResponse[];
-    // accept either wrapped or plain list
-    const list: ProjectResponse[] = Array.isArray(json)
-        ? (json as ProjectResponse[])
-        : Array.isArray((json as any).projects)
-            ? ((json as any).projects as ProjectResponse[])
-            : [];
-    return list.map(mapProject);
+  const res = await http(`/project/all/1/20`, { method: 'GET' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = (await res.json()) as any;
+  
+  // Обработка разных форматов ответа
+  const list: any[] = Array.isArray(json) 
+    ? json 
+    : json.projects ?? [];
+  
+  return list.map((p: any) => ({
+    id: String(p.id ?? ''),
+    name: p.name ?? 'Без названия',
+    description: p.description,
+    status: p.status,
+    createdAt: p.created_at ?? p.createdAt,
+    createdBy: p.created_by ?? p.createdBy,
+  }));
 }
 
-
+// Создание нового проекта
+export async function createProject(payload: CreateProjectRequest): Promise<UIProject> {
+  const res = await http('/project', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = (await res.json()) as any;
+  
+  return {
+    id: String(json.id ?? ''),
+    name: payload.name,
+    description: payload.description,
+    status: payload.status,
+    createdAt: json.created_at ?? new Date().toISOString(),
+    createdBy: payload.created_by,
+  };
+}

@@ -38,9 +38,9 @@ export default function Modal({ title, onClose, children, footer }: Props) {
                 aria-hidden
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            <div className="relative z-10 w-full max-w-lg bg-black rounded-2xl">
-            <Panel className="t-accent-grad/20 p-6">
-                <div className="mb-4 flex items-center justify-between">
+            <div className="relative z-10 w-full max-w-lg bg-black rounded-2xl max-h-[90vh] flex flex-col">
+            <Panel className="t-accent-grad/20 p-6 flex flex-col h-full">
+                <div className="mb-4 flex items-center justify-between flex-shrink-0">
                     <h3 className="text-xl font-semibold">{title}</h3>
                     <button
                         onClick={onClose}
@@ -51,9 +51,9 @@ export default function Modal({ title, onClose, children, footer }: Props) {
                     </button>
                 </div>
 
-                <div>{children}</div>
+                <div className="flex-1 overflow-y-auto custom-scroll">{children}</div>
 
-                {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
+                {footer && <div className="mt-6 flex justify-end gap-3 flex-shrink-0">{footer}</div>}
             </Panel>
             </div>
         </div>,

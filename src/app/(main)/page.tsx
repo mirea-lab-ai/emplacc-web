@@ -12,11 +12,7 @@ const demoForum: ForumNote[] = [
   { id: 'f2', topic: 'API Docs', text: 'Обновил описание refresh токенов…', href: '/forum' },
 ];
 
-const demoProblems: Problem[] = [
-  { id: 'p1', title: 'Сломался компьютер (не включается)', when: 'сегодня, 10:20', status: 'open' },
-  { id: 'p2', title: 'Не работает интернет (3 этаж)', when: 'сегодня, 09:05', status: 'inprogress' },
-  { id: 'p3', title: 'VPN отваливается каждые 15 минут', when: 'вчера, 16:40', status: 'open' },
-];
+
 
 
 const demoPlan: PlanItem[] = [
@@ -34,7 +30,7 @@ export default function Home() {
           <div className="grid grid-cols-2 grid-rows-[1fr_1fr] gap-6 min-h-[680px]">
             <HelpRequests/>
             <ForumUpdates notes={demoForum}/>
-            <Problems items={demoProblems}/>
+            <Problems/>
             <TodayPlan items={demoPlan}/>
           </div>
         </div>

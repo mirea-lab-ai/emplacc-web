@@ -4,25 +4,30 @@ import { useEffect, useMemo, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import AvatarEditor from '@/components/settings/AvatarEditor';
 import TextField from '@/components/settings/TextField';
-import {clearTokens, getRefreshToken} from "@/lib/auth";
+import {clearTokens, getRefreshToken, getUserId} from "@/lib/auth";
 import {apiLogout} from "@/features/auth/api";
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { useUser, useUpdateUser } from '@/features/user/hooks';
+import { useIsClient } from '@/hooks/useIsClient';
+import { isAuthed } from '@/lib/auth';
 
 type ProfileData = {
-  name: string;
-  phone: string;
-  telegram: string;
-  workEmail: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profession: string;
+  tgId: string;
   avatarSrc?: string;
 };
 
 export default function ProfilePage() {
   const [data, setData] = useState<ProfileData>({
-    name: '',
-    phone: '',
-    telegram: '',
-    workEmail: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    profession: '',
+    tgId: '',
     avatarSrc: undefined,
   });
 
@@ -30,56 +35,74 @@ export default function ProfilePage() {
     {}
   );
 
-  // демо-персист
+  const isClient = useIsClient();
+  const userId = getUserId();
+  const hasCreds = isClient && isAuthed() && !!userId;
+  
+  const { data: userData, isLoading, error } = useUser(userId, hasCreds);
+  const { mutate: updateUser, isPending: isSaving } = useUpdateUser();
+
+  // Загружаем данные пользователя из API
   useEffect(() => {
-    const raw = localStorage.getItem('profile');
-    if (raw) {
-      try {
-        setData(JSON.parse(raw));
-      } catch {}
+    if (userData) {
+      setData({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        profession: userData.profession || '',
+        tgId: userData.tgId || '',
+        avatarSrc: undefined, // Аватар пока не поддерживается API
+      });
     }
-  }, []);
-  useEffect(() => {
-    localStorage.setItem('profile', JSON.stringify(data));
-  }, [data]);
+  }, [userData]);
 
   const onChange = <K extends keyof ProfileData,>(k: K, v: ProfileData[K]) =>
     setData((d) => ({ ...d, [k]: v }));
 
   const validate = () => {
     const e: Partial<Record<keyof ProfileData, string>> = {};
-    if (data.workEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail))
-      e.workEmail = 'Некорректный email';
-    if (data.phone && !/^\+?\d{7,15}$/.test(data.phone))
-      e.phone = 'Только цифры, можно с начальным +';
+    if (!data.firstName.trim()) e.firstName = 'Имя обязательно';
+    if (!data.lastName.trim()) e.lastName = 'Фамилия обязательна';
+    if (!data.email.trim()) e.email = 'Email обязателен';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+      e.email = 'Некорректный email';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
     const router = useRouter();
-    async function onLogout() {
-        try {
-            const rt = getRefreshToken();
-            if (rt) await apiLogout(rt); // по спецификации
-        } catch (_) {
-        }
-        clearTokens();
-        router.replace('/login');
-    }
 
   const submit = () => {
-    if (!validate()) return;
-    console.log('PROFILE SAVE =>', data);
-    alert('Настройки сохранены (смотри консоль).');
+    if (!validate() || !userId) return;
+    
+    updateUser(
+      {
+        userId,
+        payload: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          profession: data.profession || undefined,
+          tg_id: data.tgId || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          alert('Настройки сохранены успешно!');
+        },
+        onError: (error) => {
+          alert(`Ошибка сохранения: ${error.message}`);
+        },
+      }
+    );
   };
 
   const greeting = useMemo(() => {
-    const first = data.name.trim().split(/\s+/)[0];
+    const first = data.firstName.trim();
     return first ? `Привет, ${first}!` : 'Профиль';
-  }, [data.name]);
+  }, [data.firstName]);
 
   return (
     <main className="min-h-screen text-white">
-      <button onClick={onLogout}>Выйти</button>
       <div className=" mx-auto max-w-5xl p-6 space-y-8">
         {/* верхняя панель */}
 
@@ -89,74 +112,85 @@ export default function ProfilePage() {
           {/* левая колонка — аватар и резюме */}
           <Panel className="p-6 flex flex-col items-center gap-4 backdrop-blur-md bg-white/5 border border-white/10">
             <AvatarEditor
-              name={data.name}
+              name={`${data.firstName} ${data.lastName}`.trim() || 'Пользователь'}
               src={data.avatarSrc}
               onChange={(src) => onChange('avatarSrc', src)}
             />
             
             <div className="text-center">
-              <div className="text-lg font-semibold">{data.name || 'Без имени'}</div>
+              <div className="text-lg font-semibold">
+                {data.firstName && data.lastName 
+                  ? `${data.firstName} ${data.lastName}` 
+                  : 'Без имени'
+                }
+              </div>
               <div className="text-slate-400 text-sm">
-                {data.workEmail || 'email не указан'}
+                {data.email || 'email не указан'}
               </div>
-            </div>
-            
-            {/* маленькая карточка контактов */}
-            <div className="mt-2 w-full rounded-xl bg-[#0f1422]/40 ring-1 ring-white/10 p-4">
-              <div className="text-slate-300 text-sm">Контакты</div>
-              <div className="mt-2 text-sm space-y-1">
-                <div className="text-slate-200">
-                  Телефон: <span className="text-slate-400">{data.phone || '—'}</span>
+              {data.profession && (
+                <div className="text-slate-300 text-sm mt-1">
+                  {data.profession}
                 </div>
-                <div className="text-slate-200">
-                  Telegram: <span className="text-slate-400">{data.telegram || '—'}</span>
-                </div>
-              </div>
+              )}
             </div>
           </Panel>
 
           <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
             <h2 className="text-xl font-semibold mb-4">Личные данные</h2>
-            <div className="grid gap-4">
-              <TextField
-                label="ФИО"
-                value={data.name}
-                onChange={(v) => onChange('name', v)}
-                placeholder="Иванов Иван Иванович"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {isLoading ? (
+              <div className="text-slate-400">Загрузка данных...</div>
+            ) : error ? (
+              <div className="text-red-400">Ошибка загрузки данных</div>
+            ) : (
+              <div className="grid gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <TextField
+                    label="Имя"
+                    value={data.firstName}
+                    onChange={(v) => onChange('firstName', v)}
+                    placeholder="Иван"
+                    error={errors.firstName}
+                  />
+                  <TextField
+                    label="Фамилия"
+                    value={data.lastName}
+                    onChange={(v) => onChange('lastName', v)}
+                    placeholder="Иванов"
+                    error={errors.lastName}
+                  />
+                </div>
                 <TextField
-                  label="Номер телефона"
-                  value={data.phone}
-                  onChange={(v) => onChange('phone', v)}
-                  placeholder="+79991234567"
-                  error={errors.phone}
+                  label="Email"
+                  value={data.email}
+                  onChange={(v) => onChange('email', v)}
+                  placeholder="ivan@company.com"
+                  error={errors.email}
+                  type="email"
+                />
+                <TextField
+                  label="Профессия"
+                  value={data.profession}
+                  onChange={(v) => onChange('profession', v)}
+                  placeholder="Frontend Developer"
                 />
                 <TextField
                   label="Telegram ID"
-                  value={data.telegram}
-                  onChange={(v) => onChange('telegram', v)}
-                  placeholder="@username"
+                  value={data.tgId}
+                  onChange={(v) => onChange('tgId', v)}
+                  placeholder="@username или user_id"
                 />
               </div>
-              <TextField
-                label="Рабочая почта"
-                value={data.workEmail}
-                onChange={(v) => onChange('workEmail', v)}
-                placeholder="you@company.com"
-                error={errors.workEmail}
-                type="email"
-              />
-            </div>
+            )}
 
             {/* липкая зона сохранения */}
             <div className="sticky bottom-0 pt-6 mt-8">
               <div className="flex justify-end">
                 <button
                   onClick={submit}
-                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-8 py-3 font-semibold text-black hover:brightness-110 active:translate-y-px"
+                  disabled={isSaving || isLoading}
+                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-8 py-3 font-semibold text-black hover:brightness-110 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Сохранить изменения
+                  {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
                 </button>
               </div>
             </div>

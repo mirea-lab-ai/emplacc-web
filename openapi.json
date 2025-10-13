@@ -1103,19 +1103,6 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Доска не найдена",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Ошибка сервера при получении досок",
                         "content": {
@@ -1226,7 +1213,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Логическое удаление доски по ID (поле deleted = true)",
+                "description": "Логическое удаление доски по ID (поле deleted = true), а также всех её статусов и задач",
                 "tags": [
                     "Boards"
                 ],
@@ -1353,6 +1340,19 @@
                     },
                     "401": {
                         "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Доска не найдена",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2380,7 +2380,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Создает новый проект с указанными параметрами",
+                "description": "Создает новый проект с указанными параметрами и автоматически создаёт главную доску с двумя статусами: начальным и конечным",
                 "tags": [
                     "Projects"
                 ],
@@ -2809,7 +2809,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Логическое удаление проекта по ID, включая связанные данные (поле deleted = true)",
+                "description": "Логическое удаление проекта по ID, включая все связанные доски, статусы и задачи (поле deleted = true)",
                 "tags": [
                     "Projects"
                 ],
@@ -3225,6 +3225,93 @@
             }
         },
         "/report/help-request/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Логическое удаление запроса на помощь по ID (установка поля deleted = true)",
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Удаление запроса на помощь",
+                "parameters": [
+                    {
+                        "description": "ID запроса на помощь",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Запрос на помощь успешно удален",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.ReportUniversalResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный идентификатор запроса на помощь",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Запрос на помощь не найден",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при удалении запроса на помощь",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "patch": {
                 "security": [
                     {
@@ -4492,158 +4579,6 @@
                 }
             }
         },
-        "/status/add-to-board": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Создание связи между статусом и доской",
-                "tags": [
-                    "Statuses"
-                ],
-                "summary": "Добавление статуса к доске",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.AddStatusToBoardRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для добавления статуса к доске",
-                    "required": true
-                },
-                "responses": {
-                    "201": {
-                        "description": "Статус успешно добавлен к доске",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.AddStatusToBoardResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка при привязке данных или парсинге UUID",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при добавлении статуса к доске",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/status/add-to-task": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Создание связи между статусом и задачей",
-                "tags": [
-                    "Statuses"
-                ],
-                "summary": "Добавление статуса к задаче",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.AddStatusToTaskRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для добавления статуса к задаче",
-                    "required": true
-                },
-                "responses": {
-                    "201": {
-                        "description": "Статус успешно добавлен к задаче",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.AddStatusToTaskResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка при привязке данных или парсинге UUID",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при добавлении статуса к задаче",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/status/all/{page}/{pagesize}": {
             "get": {
                 "security": [
@@ -4651,7 +4586,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получение списка всех статусов с пагинацией (только неудаленные)",
+                "description": "Получение списка всех статусов с пагинацией (только неудаленные), отсортированных по полю order",
                 "tags": [
                     "Statuses"
                 ],
@@ -4729,192 +4664,14 @@
                 }
             }
         },
-        "/status/delete-from-board": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Удаление связи между статусом и доской (мягкое удаление)",
-                "tags": [
-                    "Statuses"
-                ],
-                "summary": "Удаление статуса с доски",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.DeleteStatusFromBoardRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для удаления статуса с доски",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Статус успешно удалён с доски",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.StatusUniversalResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка при привязке данных или парсинге UUID",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Связь не найдена или уже удалена",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при удалении статуса с доски",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/status/delete-from-task": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Удаление связи между статусом и задачей (мягкое удаление)",
-                "tags": [
-                    "Statuses"
-                ],
-                "summary": "Удаление статуса из задачи",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.DeleteStatusFromTaskRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для удаления статуса из задачи",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Статус успешно удалён из задачи",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.StatusUniversalResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка при привязке данных или парсинге UUID",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Связь не найдена или уже удалена",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при удалении статуса из задачи",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/status/project/{board_id}": {
+        "/status/board/{board_id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получение списка статусов, связанных с доской по ее ID",
+                "description": "Получение списка статусов, связанных с доской по её ID, включая все задачи для каждого статуса",
                 "tags": [
                     "Statuses"
                 ],
@@ -4983,82 +4740,6 @@
                 }
             }
         },
-        "/status/task/{task_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Получение списка статусов, связанных с задачей по ее ID",
-                "tags": [
-                    "Statuses"
-                ],
-                "summary": "Получение статусов по ID задачи",
-                "parameters": [
-                    {
-                        "description": "ID задачи",
-                        "name": "task_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список статусов для задачи",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.StatusByTaskIdResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка при парсинге ID задачи",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при получении статусов",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/status/{id}": {
             "get": {
                 "security": [
@@ -5066,7 +4747,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получение информации о статусе по его ID",
+                "description": "Получение информации о статусе по его ID, включая все связанные задачи",
                 "tags": [
                     "Statuses"
                 ],
@@ -5153,7 +4834,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Логическое удаление статуса по ID, включая связанные данные (поле deleted = true)",
+                "description": "Логическое удаление статуса по ID, включая все связанные задачи (поле deleted = true)",
                 "tags": [
                     "Statuses"
                 ],
@@ -5915,7 +5596,7 @@
                         }
                     },
                     "404": {
-                        "description": "Исполнитель или поручитель не найден",
+                        "description": "Исполнитель, поручитель или статус не найдены",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6028,6 +5709,111 @@
                 }
             }
         },
+        "/task/move": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Перемещает задачу в указанный статус на той же доске",
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Переместить задачу в другой статус (столбец)",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/request.MoveTaskToAnotherStatus"
+                            }
+                        }
+                    },
+                    "description": "Данные для перемещения задачи",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Задача успешно перемещена",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Задача или статус не найдены",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Нельзя переместить задачу в статус с другой доски",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при перемещении задачи",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/task/project/{projectId}/{page}/{pagesize}": {
             "get": {
                 "security": [
@@ -6035,7 +5821,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получает список задач, связанных с указанным проектом",
+                "description": "Получает список задач, связанных с указанным проектом через доски и статусы",
                 "tags": [
                     "Tasks"
                 ],
@@ -6223,7 +6009,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получает данные задачи по её уникальному идентификатору",
+                "description": "Получает данные задачи по её уникальному идентификатору, включая статус и пользователей",
                 "tags": [
                     "Tasks"
                 ],
@@ -8024,28 +7810,6 @@
                     }
                 }
             },
-            "request.AddStatusToBoardRequest": {
-                "type": "object",
-                "properties": {
-                    "board_id": {
-                        "type": "string"
-                    },
-                    "status_id": {
-                        "type": "string"
-                    }
-                }
-            },
-            "request.AddStatusToTaskRequest": {
-                "type": "object",
-                "properties": {
-                    "status_id": {
-                        "type": "string"
-                    },
-                    "task_id": {
-                        "type": "string"
-                    }
-                }
-            },
             "request.AttendanceCreateRequest": {
                 "type": "object",
                 "properties": {
@@ -8131,9 +7895,6 @@
                 "type": "object",
                 "properties": {
                     "description": {
-                        "type": "string"
-                    },
-                    "filter": {
                         "type": "string"
                     },
                     "name": {
@@ -8240,6 +8001,9 @@
                     "name"
                 ],
                 "properties": {
+                    "board_id": {
+                        "type": "string"
+                    },
                     "color": {
                         "type": "string"
                     },
@@ -8254,28 +8018,9 @@
                     },
                     "name": {
                         "type": "string"
-                    }
-                }
-            },
-            "request.DeleteStatusFromBoardRequest": {
-                "type": "object",
-                "properties": {
-                    "board_id": {
-                        "type": "string"
                     },
-                    "status_id": {
-                        "type": "string"
-                    }
-                }
-            },
-            "request.DeleteStatusFromTaskRequest": {
-                "type": "object",
-                "properties": {
-                    "status_id": {
-                        "type": "string"
-                    },
-                    "task_id": {
-                        "type": "string"
+                    "order": {
+                        "type": "integer"
                     }
                 }
             },
@@ -8335,6 +8080,21 @@
                         "type": "string"
                     },
                     "password": {
+                        "type": "string"
+                    }
+                }
+            },
+            "request.MoveTaskToAnotherStatus": {
+                "type": "object",
+                "required": [
+                    "status_id",
+                    "task_id"
+                ],
+                "properties": {
+                    "status_id": {
+                        "type": "string"
+                    },
+                    "task_id": {
                         "type": "string"
                     }
                 }
@@ -8563,8 +8323,8 @@
                     "creator_id",
                     "name",
                     "priority",
-                    "project_id",
-                    "start_date"
+                    "start_date",
+                    "status_id"
                 ],
                 "properties": {
                     "assigned_to": {
@@ -8596,10 +8356,10 @@
                         "maximum": 10,
                         "minimum": 1
                     },
-                    "project_id": {
+                    "start_date": {
                         "type": "string"
                     },
-                    "start_date": {
+                    "status_id": {
                         "type": "string"
                     }
                 }
@@ -8775,6 +8535,9 @@
             "request.UpdateStatusRequest": {
                 "type": "object",
                 "properties": {
+                    "board_id": {
+                        "type": "string"
+                    },
                     "color": {
                         "type": "string"
                     },
@@ -8789,6 +8552,9 @@
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "order": {
+                        "type": "integer"
                     }
                 }
             },
@@ -8863,34 +8629,6 @@
                         "type": "string"
                     },
                     "user_id": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.AddStatusToBoardResponse": {
-                "type": "object",
-                "properties": {
-                    "board_id": {
-                        "type": "string"
-                    },
-                    "message": {
-                        "type": "string"
-                    },
-                    "status_id": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.AddStatusToTaskResponse": {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string"
-                    },
-                    "status_id": {
-                        "type": "string"
-                    },
-                    "task_id": {
                         "type": "string"
                     }
                 }
@@ -9022,7 +8760,7 @@
             "response.BoardForProjectResponse": {
                 "type": "object",
                 "properties": {
-                    "board": {
+                    "boards": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/response.BoardResponse"
@@ -9059,7 +8797,7 @@
                     "created_at": {
                         "type": "string"
                     },
-                    "descroption": {
+                    "description": {
                         "type": "string"
                     },
                     "id": {
@@ -9291,18 +9029,12 @@
                     "priority": {
                         "type": "integer"
                     },
-                    "project_id": {
-                        "type": "string"
-                    },
                     "start_date": {
                         "description": "DATE в БД",
                         "type": "string"
                     },
-                    "statuses": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/response.StatusResponse"
-                        }
+                    "status_id": {
+                        "type": "string"
                     },
                     "time_spent": {
                         "description": "INTERVAL в БД",
@@ -9371,7 +9103,7 @@
             "response.HelpRequestWithAssignerID": {
                 "type": "object",
                 "properties": {
-                    "help_requests": {
+                    "help_request": {
                         "$ref": "#/components/schemas/response.HelpRequestItem"
                     },
                     "user_first_name": {
@@ -9718,20 +9450,6 @@
                     }
                 }
             },
-            "response.StatusByTaskIdResponse": {
-                "type": "object",
-                "properties": {
-                    "statuses": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/response.StatusResponse"
-                        }
-                    },
-                    "task_id": {
-                        "type": "string"
-                    }
-                }
-            },
             "response.StatusListResponse": {
                 "type": "object",
                 "properties": {
@@ -9744,7 +9462,7 @@
                     "statuses": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/response.StatusResponse"
+                            "$ref": "#/components/schemas/response.StatusShort"
                         }
                     },
                     "total_count": {
@@ -9778,6 +9496,50 @@
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "order": {
+                        "type": "integer"
+                    },
+                    "tasks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/response.TaskShort"
+                        }
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                }
+            },
+            "response.StatusShort": {
+                "type": "object",
+                "properties": {
+                    "color": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "is_open": {
+                        "type": "boolean"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "order": {
+                        "type": "integer"
                     },
                     "updated_at": {
                         "type": "string"
@@ -9933,17 +9695,11 @@
                     "priority": {
                         "type": "integer"
                     },
-                    "project_id": {
-                        "type": "string"
-                    },
                     "start_date": {
                         "type": "string"
                     },
-                    "statuses": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/response.StatusResponse"
-                        }
+                    "status_id": {
+                        "type": "string"
                     },
                     "updated_at": {
                         "type": "string"

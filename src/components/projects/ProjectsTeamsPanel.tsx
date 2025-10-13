@@ -1,84 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
-import ProjectTeamsSimple, { SimpleGroup } from '@/components/projects/ProjectTeamsSimple';
-import AddTeamModal from '@/components/teams/AddTeamModal';
-import type { Team } from '@/components/teams/types';
+import { useProjectTeams } from '@/features/teams/hooks';
+import { useIsClient } from '@/hooks/useIsClient';
+import { isAuthed } from '@/lib/auth';
 
-const demoGroups: SimpleGroup[] = [
-  {
-    id: 'g-fe',
-    name: 'Фронтендеры',
-    members: [
-      { id: 'u1', name: 'Мария Иванова', role: 'React Developer' },
-      { id: 'u2', name: 'Илья Петров',   role: 'QA' },
-    ],
-  },
-  {
-    id: 'g-be',
-    name: 'Бэкендеры',
-    members: [
-      { id: 'u3', name: 'Дмитрий Соколов', role: 'Go Developer' },
-    ],
-  },
-];
+type Props = {
+  projectId: string;
+};
 
-export default function ProjectsTeamsPanel() {
-  const [groups, setGroups] = useState<SimpleGroup[]>([]);
-  const [openCreateTeam, setOpenCreateTeam] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('proj_groups');
-      const parsed = raw ? (JSON.parse(raw) as SimpleGroup[]) : [];
-      setGroups(Array.isArray(parsed) && parsed.length ? parsed : demoGroups);
-    } catch {
-      setGroups(demoGroups);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('proj_groups', JSON.stringify(groups));
-  }, [groups]);
-
-  const addTeamGroup = (team: Team) => {
-    const g: SimpleGroup = {
-      id: team.id,
-      name: team.name,
-      members: (team.members ?? []).map((m) => ({
-        id: m.id,
-        name: m.name,
-        role: m.role,
-      })),
-    };
-    setGroups((prev) => [g, ...prev]);
-  };
+export default function ProjectsTeamsPanel({ projectId }: Props) {
+  const isClient = useIsClient();
+  const hasCreds = isClient && isAuthed();
+  const { data: teams, isLoading, error } = useProjectTeams(projectId, hasCreds);
 
   return (
-    <>
-      <Panel className="p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Команды проекта</h2>
-          <button
-            onClick={() => setOpenCreateTeam(true)}
-            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-black hover:brightness-110"
-          >
-            + Добавить команду
-          </button>
+    <Panel className="p-6 t-surface">
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold">Команды проекта</h2>
+      </div>
+
+      {isLoading ? (
+        <div className="text-slate-400">Загрузка команд...</div>
+      ) : error ? (
+        <div className="text-red-400">Ошибка загрузки команд</div>
+      ) : !teams || teams.length === 0 ? (
+        <div className="text-slate-400">Нет команд для этого проекта</div>
+      ) : (
+        <div className="space-y-4">
+          {teams.map((team) => (
+            <div
+              key={team.id}
+              className="rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{team.name}</h3>
+                  {team.description && (
+                    <p className="text-sm text-slate-400 mt-1">{team.description}</p>
+                  )}
+                </div>
+                {team.members !== undefined && (
+                  <div className="text-sm text-slate-400">
+                    {team.members} {team.members === 1 ? 'участник' : 'участников'}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-
-        <ProjectTeamsSimple groups={groups} />
-      </Panel>
-
-      <AddTeamModal
-        open={openCreateTeam}
-        onClose={() => setOpenCreateTeam(false)}
-        onCreate={(team) => {
-          addTeamGroup(team);
-          setOpenCreateTeam(false);
-        }}
-      />
-    </>
+      )}
+    </Panel>
   );
 }

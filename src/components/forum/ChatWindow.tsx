@@ -14,10 +14,16 @@ export default function ChatWindow({
                                      taskTitle,
                                      messages,
                                      onSend,
+                                     isLoading = false,
+                                     error = null,
+                                     isSending = false,
                                    }: {
   taskTitle: string;
   messages: Message[];
   onSend: (text: string) => void;
+  isLoading?: boolean;
+  error?: Error | null;
+  isSending?: boolean;
 }) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -53,9 +59,17 @@ export default function ChatWindow({
 
       {/* messages */}
       <div ref={listRef} className="flex-1 overflow-y-auto p-5 space-y-3">
-        {messages.map((m) => (
-          <Bubble key={m.id} msg={m} />
-        ))}
+        {isLoading ? (
+          <div className="text-slate-400 text-center py-8">Загрузка сообщений...</div>
+        ) : error ? (
+          <div className="text-red-400 text-center py-8">Ошибка загрузки сообщений</div>
+        ) : messages.length === 0 ? (
+          <div className="text-slate-400 text-center py-8">Пока нет сообщений</div>
+        ) : (
+          messages.map((m) => (
+            <Bubble key={m.id} msg={m} />
+          ))
+        )}
       </div>
 
       {/* composer */}
@@ -71,9 +85,9 @@ export default function ChatWindow({
           <button
             onClick={send}
             className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-3 font-semibold text-black hover:brightness-110 active:translate-y-px disabled:opacity-60"
-            disabled={!draft.trim()}
+            disabled={!draft.trim() || isSending}
           >
-            Отправить
+            {isSending ? 'Отправка...' : 'Отправить'}
           </button>
         </div>
       </div>

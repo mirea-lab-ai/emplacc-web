@@ -3,20 +3,42 @@
 import { useEffect, useMemo, useState } from 'react';
 import KanbanHeader from './KanbanHeader';
 import Column from './Column';
-import AddColumnModal from './modals/AddColumnModal';
+import AddStatusModal from './modals/AddStatusModal';
 import RenameColumnModal from './modals/RenameColumnModal';
 import AddTaskModal from './modals/AddTaskModal';
 import { KBColumn } from './types';
 import { uid } from '@/lib/uid' // если путь иной, поправь импорт
+import { useCreateTask } from '@/features/tasks/hooks';
+import { type UITask } from '@/features/tasks/types';
 
 export default function KanbanBoard({
                                         columns,
                                         onChange,
                                         viewportOffset = 160,
+                                        onCreateStatus,
+                                        isCreatingStatus = false,
+                                        onDeleteStatus,
+                                        isDeletingStatus = false,
+                                        onCreateTask,
+                                        isCreatingTask = false,
+                                        onDeleteTask,
+                                        isDeletingTask = false,
+                                        onMoveTask,
+                                        isMovingTask = false,
                                     }: {
     columns: KBColumn[];
     onChange: (cols: KBColumn[]) => void;
     viewportOffset?: number;
+    onCreateStatus?: (betweenIndex: number, title: string, color: string) => void;
+    isCreatingStatus?: boolean;
+    onDeleteStatus?: (statusId: string) => void;
+    isDeletingStatus?: boolean;
+    onCreateTask?: (statusId: string, title: string, description?: string) => void;
+    isCreatingTask?: boolean;
+    onDeleteTask?: (taskId: string) => void;
+    isDeletingTask?: boolean;
+    onMoveTask?: (taskId: string, statusId: string) => void;
+    isMovingTask?: boolean;
 }) {
     const [local, setLocal] = useState<KBColumn[]>(columns);
     useEffect(() => setLocal(columns), [columns]);
@@ -29,14 +51,20 @@ export default function KanbanBoard({
 
     /* ---------- CRUD колонок ---------- */
     // вставка только между: index ∈ [1..len-1]
-    const insertBetween = (betweenIndex: number, title: string) => {
-        const t = title.trim(); if (!t || local.length < 2) return;
-        const at = Math.max(1, Math.min(betweenIndex, local.length - 1));
-        setLocal(prev => {
-            const copy = [...prev];
-            copy.splice(at, 0, { id: uid(), title: t, tasks: [] });
-            return copy;
-        });
+    const insertBetween = (betweenIndex: number, title: string, color: string) => {
+        if (onCreateStatus) {
+            // Используем API для создания статуса
+            onCreateStatus(betweenIndex, title, color);
+        } else {
+            // Fallback для локального создания (если API не передан)
+            const t = title.trim(); if (!t || local.length < 2) return;
+            const at = Math.max(1, Math.min(betweenIndex, local.length - 1));
+            setLocal(prev => {
+                const copy = [...prev];
+                copy.splice(at, 0, { id: uid(), title: t, tasks: [], color });
+                return copy;
+            });
+        }
     };
 
     const renameColumn = (id: string, title: string) => {
@@ -45,20 +73,45 @@ export default function KanbanBoard({
     };
 
     const removeColumn = (id: string) => {
-        setLocal(prev => prev.filter(c => c.id !== id));
+        if (onDeleteStatus) {
+            // Используем API для удаления статуса
+            onDeleteStatus(id);
+        } else {
+            // Fallback для локального удаления (если API не передан)
+            setLocal(prev => prev.filter(c => c.id !== id));
+        }
     };
 
     /* ---------- CRUD задач ---------- */
     const addTask = (colId: string, title: string, desc?: string) => {
-        const t = title.trim(); if (!t) return;
-        setLocal(prev =>
-            prev.map(c => (c.id === colId ? { ...c, tasks: [...c.tasks, { id: uid(), title: t, desc }] } : c))
-        );
+        if (onCreateTask) {
+            // Используем API для создания задачи
+            onCreateTask(colId, title, desc);
+        } else {
+            // Fallback для локального создания (если API не передан)
+            const t = title.trim(); if (!t) return;
+            const newTask: UITask = {
+                id: uid(),
+                title: t,
+                due: undefined,
+                priority: undefined,
+                statuses: undefined,
+            };
+            setLocal(prev =>
+                prev.map(c => (c.id === colId ? { ...c, tasks: [...c.tasks, newTask] } : c))
+            );
+        }
     };
     const removeTask = (colId: string, taskId: string) => {
-        setLocal(prev =>
-            prev.map(c => (c.id === colId ? { ...c, tasks: c.tasks.filter(t => t.id !== taskId) } : c))
-        );
+        if (onDeleteTask) {
+            // Используем API для удаления задачи
+            onDeleteTask(taskId);
+        } else {
+            // Fallback для локального удаления (если API не передан)
+            setLocal(prev =>
+                prev.map(c => (c.id === colId ? { ...c, tasks: c.tasks.filter(t => t.id !== taskId) } : c))
+            );
+        }
     };
 
     /* ---------- DnD (только в соседнюю) ---------- */
@@ -67,16 +120,23 @@ export default function KanbanBoard({
         const toI = colIndex[toColId];
         if (fromI == null || toI == null) return;
         if (Math.abs(fromI - toI) > 1) return;
-        setLocal(prev => {
-            const cols = prev.map(c => ({ ...c, tasks: [...c.tasks] }));
-            const from = cols.find(c => c.id === data.fromColId)!;
-            const to = cols.find(c => c.id === toColId)!;
-            const idx = from.tasks.findIndex(t => t.id === data.taskId);
-            if (idx === -1) return prev;
-            const [moved] = from.tasks.splice(idx, 1);
-            to.tasks.push(moved);
-            return cols;
-        });
+        
+        if (onMoveTask) {
+            // Используем API для перемещения задачи
+            onMoveTask(data.taskId, toColId);
+        } else {
+            // Fallback для локального перемещения (если API не передан)
+            setLocal(prev => {
+                const cols = prev.map(c => ({ ...c, tasks: [...c.tasks] }));
+                const from = cols.find(c => c.id === data.fromColId)!;
+                const to = cols.find(c => c.id === toColId)!;
+                const idx = from.tasks.findIndex(t => t.id === data.taskId);
+                if (idx === -1) return prev;
+                const [moved] = from.tasks.splice(idx, 1);
+                to.tasks.push(moved);
+                return cols;
+            });
+        }
     };
 
     /* ---------- Модалки ---------- */
@@ -86,7 +146,11 @@ export default function KanbanBoard({
 
     return (
         <div className="flex flex-col gap-4 " style={{ height: `calc(100dvh - ${viewportOffset}px)` }}>
-            <KanbanHeader canAdd={local.length >= 2} onAddColumn={() => setAddOpen(true)} />
+            <KanbanHeader 
+                canAdd={local.length >= 2} 
+                onAddColumn={() => setAddOpen(true)}
+                isCreating={isCreatingStatus}
+            />
 
             <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
                 <div className="flex h-full items-stretch gap-4 pb-2 min-h-0">
@@ -99,17 +163,20 @@ export default function KanbanBoard({
                             onRename={() => setRename({ id: col.id, title: col.title })}
                             onRemove={() => removeColumn(col.id)}
                             onRemoveTask={(taskId) => removeTask(col.id, taskId)}
+                            isDeleting={isDeletingStatus}
+                            isCreatingTask={isCreatingTask}
+                            isDeletingTask={isDeletingTask}
                         />
                     ))}
                 </div>
             </div>
 
             {/* модалки */}
-            <AddColumnModal
+            <AddStatusModal
                 open={addOpen}
                 onClose={() => setAddOpen(false)}
                 columns={local}
-                onSubmit={(betweenIndex, title) => insertBetween(betweenIndex, title)}
+                onSubmit={(betweenIndex, title, color) => insertBetween(betweenIndex, title, color)}
             />
 
             {rename && (

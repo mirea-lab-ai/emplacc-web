@@ -31,6 +31,12 @@ export type CreateTeamRequest = {
     user_ids?: string[];
 };
 
+export type UpdateTeamRequest = {
+    name?: string;
+    description?: string;
+    lead_user_id?: string | null;
+};
+
 // Получение команд проекта
 export async function fetchProjectTeams(projectId: string): Promise<UITeam[]> {
     const res = await http(`/team/project/${encodeURIComponent(projectId)}`, { method: 'GET' });
@@ -107,6 +113,27 @@ export async function createTeam(payload: CreateTeamRequest): Promise<UITeamFull
         createdAt: json.created_at ?? new Date().toISOString(),
         updatedAt: json.updated_at ?? new Date().toISOString(),
     };
+}
+
+// Обновление команды
+export async function updateTeam(teamId: string, payload: UpdateTeamRequest): Promise<void> {
+    const res = await http(`/team/${encodeURIComponent(teamId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Сервер может вернуть JSON с сообщением, поэтому учитываем это,
+    // но в UI сейчас данные не используются.
+    try {
+        if (res.headers.get('content-type')?.includes('application/json')) {
+            await res.json();
+        }
+    } catch (err) {
+        // Игнорируем ошибки парсинга, если тело пустое
+    }
 }
 
 // Удаление команды

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState, Suspense, useCallback } from 'react';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import Panel from '@/components/ui/Panel';
 import ChatWindow, { Message } from '@/components/forum/ChatWindow';
 import CreateProblemModal from '@/components/forum/CreateProblemModal';
 import { useAllProblems, useDeleteProblem } from '@/features/problems/hooks';
 import { useForumMessagesByProblem, useCreateForumMessage } from '@/features/forum-messages/hooks';
+import { useAllUsers } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import TrashIcon from '@/components/ui/icons/TrashIcon';
@@ -24,6 +25,8 @@ function ForumContent() {
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
+  const router = useRouter();
+  const pathname = usePathname();
   
   // Загружаем все проблемы
   const { data: problems, isLoading: problemsLoading, error: problemsError } = useAllProblems(1, 50, hasCreds);
@@ -35,30 +38,69 @@ function ForumContent() {
     50, 
     hasCreds
   );
+
+  const { data: users } = useAllUsers(1, 500, hasCreds);
+
+  const usersMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (users ?? []).forEach((u) => {
+      const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+      map.set(u.id, name.trim());
+    });
+    return map;
+  }, [users]);
   
   const { mutate: createMessage, isPending: isSending } = useCreateForumMessage();
   const { mutate: deleteProblem, isPending: isDeleting } = useDeleteProblem();
 
+  // Add refetch and query invalidation logic here if needed
+  const updateProblemInQuery = useCallback((problemId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (problemId) {
+      params.set('problem', problemId);
+    } else {
+      params.delete('problem');
+    }
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [router, pathname, searchParams]);
+
   // Устанавливаем активную проблему из URL или первую доступную
   useEffect(() => {
-    if (problems && problems.length > 0) {
-      const problemFromUrl = searchParams.get('problem');
-      
-      if (problemFromUrl) {
-        // Проверяем, существует ли проблема с таким ID
-        const problemExists = problems.find(p => p.id === problemFromUrl);
-        if (problemExists) {
-          setActiveProblemId(problemFromUrl);
-        } else {
-          // Если проблема не найдена, выбираем первую
-          setActiveProblemId(problems[0].id);
-        }
-      } else if (!activeProblemId) {
-        // Если нет параметра в URL и нет активной проблемы, выбираем первую
-        setActiveProblemId(problems[0].id);
+    if (!problems || problems.length === 0) {
+      if (activeProblemId) {
+        setActiveProblemId('');
+      }
+      updateProblemInQuery(null);
+      return;
+    }
+
+    const problemFromUrl = searchParams.get('problem');
+    if (problemFromUrl) {
+      const exists = problems.some((p) => p.id === problemFromUrl);
+      if (exists) {
+        setActiveProblemId((prev) => (prev === problemFromUrl ? prev : problemFromUrl));
+        return;
       }
     }
-  }, [problems, activeProblemId, searchParams]);
+
+    const fallback = activeProblemId && problems.some((p) => p.id === activeProblemId)
+      ? activeProblemId
+      : problems[0].id;
+
+    if (fallback !== activeProblemId) {
+      setActiveProblemId(fallback);
+    }
+
+    if (!problemFromUrl || problemFromUrl !== fallback) {
+      updateProblemInQuery(fallback);
+    }
+  }, [problems, searchParams, updateProblemInQuery, activeProblemId]);
+
+  const handleProblemSelect = (problemId: string) => {
+    setActiveProblemId(problemId);
+    updateProblemInQuery(problemId);
+  };
 
   const activeProblem = useMemo(
     () => problems?.find((p) => p.id === activeProblemId),
@@ -69,15 +111,21 @@ function ForumContent() {
   const messages: Message[] = useMemo(() => {
     if (!forumMessages) return [];
     const currentUserId = getUserId();
-    
-    return forumMessages.map((msg) => ({
-      id: msg.id,
-      author: { id: msg.authorId || '', name: msg.authorName || 'Аноним' },
-      text: msg.content,
-      ts: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
-      self: msg.authorId === currentUserId,
-    }));
-  }, [forumMessages]);
+
+    return forumMessages.map((msg) => {
+      const baseName = msg.authorName?.trim();
+      const lookupName = msg.authorId ? usersMap.get(msg.authorId) : undefined;
+      const resolvedName = baseName || lookupName || (msg.authorId === currentUserId ? 'Вы' : 'Аноним');
+
+      return {
+        id: msg.id,
+        author: { id: msg.authorId || '', name: resolvedName },
+        text: msg.content,
+        ts: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
+        self: msg.authorId === currentUserId,
+      };
+    });
+  }, [forumMessages, usersMap]);
 
   const sendMessage = (text: string) => {
     if (!activeProblemId || !text.trim()) return;
@@ -117,6 +165,7 @@ function ForumContent() {
         // Если удаляемая проблема была активной, сбрасываем активную проблему
         if (activeProblemId === problemId) {
           setActiveProblemId('');
+          updateProblemInQuery(null);
         }
         setDeleteModal({ open: false, problemId: '', problemName: '' });
       },
@@ -160,7 +209,7 @@ function ForumContent() {
                     className="group relative"
                   >
                     <button
-                      onClick={() => setActiveProblemId(problem.id)}
+                      onClick={() => handleProblemSelect(problem.id)}
                       className={[
                         'w-full text-left rounded-lg px-3 py-2 transition-colors',
                         activeProblemId === problem.id

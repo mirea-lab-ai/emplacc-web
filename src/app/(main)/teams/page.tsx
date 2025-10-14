@@ -6,13 +6,24 @@ import TeamBoard from '@/components/teams/TeamBoard';
 import AddTeamModal from '@/components/teams/AddTeamModal';
 import DeleteTeamModal from '@/components/teams/DeleteTeamModal';
 import type { Member, Team } from '@/components/teams/types';
+import EditTeamModal from '@/components/teams/EditTeamModal';
 import { useAllTeams, useDeleteTeam } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
 import { convertUITeamToTeam } from '@/lib/teamUtils';
-import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 export default function TeamsPage() {
+  return (
+    <Suspense fallback={<TeamsPageFallback />}
+    >
+      <TeamsPageContent />
+    </Suspense>
+  );
+}
+
+function TeamsPageContent() {
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
   const [openCreate, setOpenCreate] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; teamId: string; teamName: string }>({
@@ -20,7 +31,11 @@ export default function TeamsPage() {
     teamId: '',
     teamName: '',
   });
+  const [editTeam, setEditTeam] = useState<Team | null>(null);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
   
@@ -39,12 +54,50 @@ export default function TeamsPage() {
     [teams, activeId]
   );
 
-  // Устанавливаем первую команду как активную при загрузке
+  // Устанавливаем активную команду, синхронизуя с query параметром
   useEffect(() => {
-    if (teams.length > 0 && !activeId) {
+    if (!teams.length) {
+      if (activeId) {
+        setActiveId(undefined);
+      }
+      return;
+    }
+
+    if (activeId && !teams.some((t) => t.id === activeId)) {
+      setActiveId(teams[0].id);
+      return;
+    }
+
+    const teamFromUrl = searchParams.get('team');
+    if (teamFromUrl && teams.some((t) => t.id === teamFromUrl)) {
+      if (teamFromUrl !== activeId) {
+        setActiveId(teamFromUrl);
+      }
+      return;
+    }
+
+    if (!activeId) {
       setActiveId(teams[0].id);
     }
-  }, [teams, activeId]);
+  }, [teams, activeId, searchParams]);
+
+  useEffect(() => {
+    const current = searchParams.get('team');
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (!activeId) {
+      if (!current) return;
+      params.delete('team');
+    } else {
+      if (current === activeId) return;
+      params.set('team', activeId);
+    }
+
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+  }, [activeId, router, searchParams, pathname]);
 
   // Функции для работы с участниками (пока заглушки, так как API для этого нет)
   const addMember = (m: Member) => {
@@ -120,6 +173,7 @@ export default function TeamsPage() {
                 team={activeTeam}
                 onAddMember={addMember}
                 onRemoveMember={removeMember}
+                onEditTeam={(team) => setEditTeam(team)}
               />
             )}
           </div>
@@ -139,6 +193,22 @@ export default function TeamsPage() {
             teamName={deleteModal.teamName}
             isDeleting={deleteTeamMutation.isPending}
           />
+
+          <EditTeamModal
+            open={!!editTeam}
+            team={editTeam}
+            onClose={() => setEditTeam(null)}
+          />
         </main>
       );
     }
+
+function TeamsPageFallback() {
+  return (
+    <main className="min-h-screen text-white">
+      <div className="mx-auto p-6">
+        <Panel className="p-6 t-surface">Загрузка команд...</Panel>
+      </div>
+    </main>
+  );
+}

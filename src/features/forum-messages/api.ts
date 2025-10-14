@@ -32,10 +32,10 @@ export async function fetchForumMessagesByProblem(
   
   return list.map((m: any) => ({
     id: String(m.id ?? ''),
-    content: m.desctription ? m.desctription.join(' ') : '',
+    content: Array.isArray(m.description ?? m.desctription) ? (m.description ?? m.desctription).join(' ') : m.content ?? '',
     createdAt: m.created_at,
     authorId: m.creator_id,
-    authorName: 'Аноним', // API не возвращает имя автора
+    authorName: [m.creator_first_name, m.creator_last_name].filter(Boolean).join(' ') || m.creator_name || '',
     problemId: String(m.problem_id ?? problemId),
   }));
 }
@@ -53,10 +53,10 @@ export async function createForumMessage(payload: CreateForumMessageRequest): Pr
   
   return {
     id: String(json.id ?? ''),
-    content: payload.description.join(' '),
+  content: payload.description.join(' '),
     createdAt: json.created_at ?? new Date().toISOString(),
     authorId: payload.creator_id,
-    authorName: 'Вы', // Для собственных сообщений
+    authorName: [json.creator_first_name, json.creator_last_name].filter(Boolean).join(' ') || json.creator_name || '',
     problemId: payload.problem_id,
   };
 }

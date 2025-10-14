@@ -150,6 +150,7 @@ export default function ProfilePage() {
                     onChange={(v) => onChange('firstName', v)}
                     placeholder="Иван"
                     error={errors.firstName}
+                    disabled
                   />
                   <TextField
                     label="Фамилия"
@@ -157,6 +158,7 @@ export default function ProfilePage() {
                     onChange={(v) => onChange('lastName', v)}
                     placeholder="Иванов"
                     error={errors.lastName}
+                    disabled
                   />
                 </div>
                 <TextField
@@ -166,12 +168,14 @@ export default function ProfilePage() {
                   placeholder="ivan@company.com"
                   error={errors.email}
                   type="email"
+                  disabled
                 />
                 <TextField
                   label="Профессия"
                   value={data.profession}
                   onChange={(v) => onChange('profession', v)}
                   placeholder="Frontend Developer"
+                  disabled
                 />
                 <TextField
                   label="Telegram ID"

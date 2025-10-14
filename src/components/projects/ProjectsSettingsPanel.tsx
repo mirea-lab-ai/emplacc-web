@@ -123,11 +123,11 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate }: Prop
             <select
               value={settings.status}
               onChange={(e) => setSettings((p) => ({ ...p, status: e.target.value as any }))}
-              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 [color-scheme:dark]"
             >
-              <option value="active">Активный</option>
-              <option value="frozen">Замороженный</option>
-              <option value="support">В поддержке</option>
+              <option className="bg-slate-900 text-slate-100" value="active">Активный</option>
+              <option className="bg-slate-900 text-slate-100" value="frozen">Замороженный</option>
+              <option className="bg-slate-900 text-slate-100" value="support">В поддержке</option>
             </select>
           </label>
         </div>

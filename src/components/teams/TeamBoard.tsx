@@ -11,10 +11,12 @@ export default function TeamBoard({
                                     team,
                                     onAddMember,
                                     onRemoveMember,
+                                    onEditTeam,
                                   }: {
   team: Team;
   onAddMember: (m: Member) => void;
   onRemoveMember?: (memberId: string) => void;
+  onEditTeam?: (team: Team) => void;
 }) {
   const [openAdd, setOpenAdd] = useState(false);
   const removeMemberMutation = useRemoveTeamMember();
@@ -35,14 +37,29 @@ export default function TeamBoard({
     <div className="grid grid-cols-2 gap-6 min-h-[620px]">
       {/* Левый столбец - Состав команды */}
       <Panel className="p-6 min-h-0 h-full t-surface">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <h3 className="text-xl font-semibold">Состав команды</h3>
-          <button
-            onClick={() => setOpenAdd(true)}
-            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-black hover:brightness-110"
-          >
-            + Добавить сотрудника
-          </button>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xl font-semibold">Состав команды</h3>
+            <div className="text-sm text-slate-400">
+              Тимлид: {team.lead?.id === 'no-lead' ? 'не назначен' : team.lead.name}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {onEditTeam && (
+              <button
+                onClick={() => onEditTeam(team)}
+                className="rounded-xl px-4 py-2 ring-1 ring-white/10 text-slate-200 hover:bg-white/15"
+              >
+                Редактировать
+              </button>
+            )}
+            <button
+              onClick={() => setOpenAdd(true)}
+              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-black hover:brightness-110"
+            >
+              + Добавить сотрудника
+            </button>
+          </div>
         </div>
 
         {team.members.length ? (

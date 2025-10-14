@@ -7,6 +7,22 @@ import { useMyTasks } from '@/features/tasks/hooks';
 import type { UITask } from '@/features/tasks/types';
 import {getUserId, isAuthed} from "@/lib/auth";
 
+const formatDueDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const day = pad(date.getDate());
+  const month = pad(date.getMonth() + 1);
+  const year = date.getFullYear();
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+};
+
 export default function YourTasks() {
     const isClient = useIsClient();
 
@@ -54,7 +70,11 @@ function TaskRow({t}: { t: UITask }) {
       <div className="relative z-[1] flex items-start justify-between gap-3">
         <div>
           <div className="font-semibold">{t.title}</div>
-          {t.due && <div className="text-slate-400 text-sm mt-0.5">Срок: {t.due}</div>}
+          {t.due && (
+            <div className="text-slate-400 text-sm mt-0.5">
+              Срок: {formatDueDate(t.due)}
+            </div>
+          )}
         </div>
         <span className={`rounded-lg px-2 py-0.5 text-xs ring-1`}>
           {`Приоритет ${t.priority ?? 1}`}

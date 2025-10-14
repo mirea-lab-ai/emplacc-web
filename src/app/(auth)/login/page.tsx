@@ -1,100 +1,55 @@
 // src/app/(auth)/login/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { apiLogin } from '@/features/auth/api';
-import { setTokens } from '@/lib/auth';
-import {getErrorMessage} from "@/lib/errors";
-import { setSession } from '@/lib/auth';
 import { generateCodeChallenge, generateCodeVerifier, generateState, saveAuthState } from '@/lib/pkce';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [err, setErr] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
-
-
-
-
-
-
-    async function onSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        setErr(null); setLoading(true);
-        try {
-            const res = await apiLogin({ email, password });
-            const userId = res.userId;
-            setSession({
-                access: res.access_token!,
-                refresh: res.refresh_token!,
-                userId: userId ? String(userId) : undefined,
-            });
-            router.replace('/');
-        } catch (e) {
-            setErr(getErrorMessage(e));
-
-        } finally {
-            setLoading(false);
-        }
-    }
-
     return (
         <div className="min-h-dvh grid place-items-center p-6">
-            <form onSubmit={onSubmit} className="w-full max-w-sm space-y-3 rounded-xl border p-6 bg-white/5">
+            <div className="w-full max-w-sm space-y-4 rounded-xl border border-white/10 bg-white/5 p-6 text-slate-100 backdrop-blur">
                 <h1 className="text-2xl font-semibold">Вход в Emplacc</h1>
-                <input
-                    className="w-full rounded-md px-3 py-2 text-black"
-                    type="email"
-                    placeholder="email"
-                    value={email}
-                    onChange={(e)=>setEmail(e.target.value)}
-                    required
-                />
-                <input
-                    className="w-full rounded-md px-3 py-2 text-black"
-                    type="password"
-                    placeholder="пароль"
-                    value={password}
-                    onChange={(e)=>setPassword(e.target.value)}
-                    required
-                />
-                <button
-                    disabled={loading}
-                    className="w-full rounded-md px-3 py-2 bg-emerald-600 hover:bg-emerald-500"
-                    type="submit"
-                >
-                    {loading ? 'Входим…' : 'Войти'}
-                </button>
+                <p className="text-sm text-slate-300">
+                    Войти можно только через корпоративную учётную запись Keycloak.
+                </p>
                 <SSOButton/>
-                {err && <div className="text-red-300 text-sm">{err}</div>}
-            </form>
+            </div>
         </div>
     );
 }
 
 function SSOButton() {
-    // Сформируй значения из env по необходимости
     const authUrl = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL;
     const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
-    const redirectUri = typeof window !== 'undefined' ? window.location.origin + '/callback' : '';
-    
+    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/callback` : '';
     const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM;
-    if (!authUrl || !clientId || !realm) return null;
+
+    if (!authUrl || !clientId || !realm) {
+        return (
+            <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+                Настройте переменные окружения Keycloak, чтобы включить вход.
+            </div>
+        );
+    }
+
+    const safeAuthUrl = authUrl!;
+    const safeClientId = clientId!;
+    const safeRealm = realm!;
+
     async function goSSO() {
-        // Повторно проверим env внутри обработчика (для тайпчекера)
-        if (!authUrl || !clientId || !realm) return;
         const verifier = generateCodeVerifier();
         const challenge = await generateCodeChallenge(verifier);
         const state = generateState();
         saveAuthState(verifier, state);
-        const url = `${authUrl}/realms/${realm}/protocol/openid-connect/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256&state=${encodeURIComponent(state)}`;
+        const url = `${safeAuthUrl}/realms/${safeRealm}/protocol/openid-connect/auth?response_type=code&client_id=${encodeURIComponent(safeClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256&state=${encodeURIComponent(state)}`;
         window.location.href = url;
     }
+
     return (
-        <button onClick={goSSO} className="mt-3 inline-block w-full text-center rounded-md px-3 py-2 bg-indigo-600 hover:bg-indigo-500">
+        <button
+            type="button"
+            onClick={goSSO}
+            className="mt-3 inline-block w-full rounded-md bg-indigo-600 px-3 py-2 text-center hover:bg-indigo-500"
+        >
             Войти через Keycloak
         </button>
     );

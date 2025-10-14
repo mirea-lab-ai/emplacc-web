@@ -7,6 +7,7 @@ import { isAuthed } from '@/lib/auth';
 import { useState } from 'react';
 import AddTeamToProjectModal from './AddTeamToProjectModal';
 import TrashIcon from '@/components/ui/icons/TrashIcon';
+import Link from 'next/link';
 
 type Props = {
   projectId: string;
@@ -51,25 +52,34 @@ export default function ProjectsTeamsPanel({ projectId }: Props) {
           {teams.map((team) => (
             <div
               key={team.id}
-              className="group relative rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-colors"
+              className="group relative rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 transition-colors"
             >
-              <div className="flex items-center justify-between pr-8">
-                <div>
-                  <h3 className="text-lg font-semibold text-white">{team.name}</h3>
-                  {team.description && (
-                    <p className="text-sm text-slate-400 mt-1">{team.description}</p>
+              <Link
+                href={`/teams?team=${encodeURIComponent(team.id)}`}
+                className="block p-4 pr-12"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{team.name}</h3>
+                    {team.description && (
+                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">{team.description}</p>
+                    )}
+                  </div>
+                  {team.members !== undefined && (
+                    <div className="text-sm text-slate-400">
+                      {team.members} {team.members === 1 ? 'участник' : 'участников'}
+                    </div>
                   )}
                 </div>
-                {team.members !== undefined && (
-                  <div className="text-sm text-slate-400">
-                    {team.members} {team.members === 1 ? 'участник' : 'участников'}
-                  </div>
-                )}
-              </div>
+              </Link>
               
               {/* Иконка мусорки при наведении */}
               <button
-                onClick={() => handleRemoveTeam(team.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRemoveTeam(team.id);
+                }}
                 disabled={removeTeamMutation.isPending}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded transition-all opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50"
                 title="Удалить команду из проекта"

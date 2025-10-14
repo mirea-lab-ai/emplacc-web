@@ -6,7 +6,8 @@ export function useForumMessagesByProblem(problemId: string | null, page = 1, pa
     queryKey: ['forumMessages', problemId, page, pageSize],
     queryFn: () => fetchForumMessagesByProblem(problemId!, page, pageSize),
     enabled: enabled && !!problemId,
-    staleTime: 30_000,
+    staleTime: 10_000,
+    refetchInterval: enabled && !!problemId ? 10_000 : false,
   });
 }
 

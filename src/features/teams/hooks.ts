@@ -1,6 +1,6 @@
 // src/features/teams/hooks.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchProjectTeams, fetchAllTeams, createTeam, deleteTeam, fetchTeamProjects, removeTeamMember, fetchAllProjects, addProjectToTeam, addUsersToTeam, addTeamToProject, removeTeamFromProject, type CreateTeamRequest } from './api';
+import { fetchProjectTeams, fetchAllTeams, createTeam, deleteTeam, fetchTeamProjects, removeTeamMember, fetchAllProjects, addProjectToTeam, addUsersToTeam, addTeamToProject, removeTeamFromProject, updateTeam, type CreateTeamRequest, type UpdateTeamRequest } from './api';
 
 export function useProjectTeams(projectId: string | null, enabled = true) {
   return useQuery({
@@ -40,6 +40,18 @@ export function useDeleteTeam() {
     mutationFn: (teamId: string) => deleteTeam(teamId),
     onSuccess: () => {
       // Инвалидировать кеш для всех команд
+      queryClient.invalidateQueries({ queryKey: ['allTeams'] });
+    },
+  });
+}
+
+export function useUpdateTeam() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ teamId, payload }: { teamId: string; payload: UpdateTeamRequest }) =>
+      updateTeam(teamId, payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allTeams'] });
     },
   });

@@ -7,6 +7,8 @@ export default function TextField({
                                     placeholder,
                                     error,
                                     type = 'text',
+                                    disabled = false,
+                                    readOnly = false,
                                   }: {
   label: string;
   value: string;
@@ -14,6 +16,8 @@ export default function TextField({
   placeholder?: string;
   error?: string;
   type?: string;
+  disabled?: boolean;
+  readOnly?: boolean;
 }) {
   return (
     <label className="grid gap-2">
@@ -23,10 +27,13 @@ export default function TextField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        disabled={disabled}
+        readOnly={readOnly}
         className={[
           'h-12 w-full rounded-xl px-4',
           't-surface text-slate-100 placeholder:text-slate-500',
           'ring-1 ring-white/10 focus:outline-none focus:ring-2',
+          'disabled:opacity-60 disabled:cursor-not-allowed',
           error
             ? 'focus:ring-rose-500/60 ring-rose-500/60'
             : 'focus:ring-emerald-500/50',

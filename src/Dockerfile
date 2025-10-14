@@ -1,8 +1,7 @@
-FROM node:20-alpine AS base
+FROM node:trixie-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -18,7 +17,11 @@ COPY . .
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_PUBLIC_API_BASE_URL="https://api.emplacc.g-309.ru"
+ENV NEXT_PUBLIC_KEYCLOAK_AUTH_URL="https://sso.g-309.ru"
+ENV NEXT_PUBLIC_KEYCLOAK_REALM="master-users"
+ENV NEXT_PUBLIC_KEYCLOAK_CLIENT_ID="emplacc-web"
+
 
 RUN npm run build
 
@@ -26,8 +29,8 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -46,7 +49,12 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+ENV NEXT_PUBLIC_API_BASE_URL="https://api.emplacc.g-309.ru"
+ENV NEXT_PUBLIC_KEYCLOAK_AUTH_URL="https://sso.g-309.ru"
+ENV NEXT_PUBLIC_KEYCLOAK_REALM="master-users"
+ENV NEXT_PUBLIC_KEYCLOAK_CLIENT_ID="emplacc-web"
 
 CMD ["node", "server.js"]

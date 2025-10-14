@@ -9,10 +9,9 @@ import { getUserId, isAuthed } from '@/lib/auth';
 type TaskListResponse = components['schemas']['response.TaskListResponse'];
 
 const TASKS_PATH_TEMPLATE = '/task/user/{userId}/{page}/{pageSize}';
-const TASKS_PATH_TEMPLATE_BAD = '/task/all/{page}/{pageSize}';
 
 function buildPath(userId: string, page = 1, pageSize = 20) {
-    return TASKS_PATH_TEMPLATE_BAD
+    return TASKS_PATH_TEMPLATE
         .replace('{userId}', encodeURIComponent(userId))
         .replace('{page}', String(page))
         .replace('{pageSize}', String(pageSize));

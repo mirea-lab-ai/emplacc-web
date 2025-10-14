@@ -34,7 +34,7 @@ export type CreateTeamRequest = {
 export type UpdateTeamRequest = {
     name?: string;
     description?: string;
-    lead_user_id?: string | null;
+    lead_user_id?: number | null;
 };
 
 // Получение команд проекта

@@ -115,6 +115,7 @@ export default function ProfilePage() {
               name={`${data.firstName} ${data.lastName}`.trim() || 'Пользователь'}
               src={data.avatarSrc}
               onChange={(src) => onChange('avatarSrc', src)}
+              readOnly
             />
             
             <div className="text-center">

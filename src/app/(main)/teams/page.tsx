@@ -24,7 +24,6 @@ export default function TeamsPage() {
 }
 
 function TeamsPageContent() {
-  const [activeId, setActiveId] = useState<string | undefined>(undefined);
   const [openCreate, setOpenCreate] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; teamId: string; teamName: string }>({
     open: false,
@@ -49,55 +48,59 @@ function TeamsPageContent() {
     return apiTeams.map(convertUITeamToTeam);
   }, [apiTeams]);
 
+  const teamFromUrl = searchParams.get('team');
+
+  const activeTeamId = useMemo(() => {
+    if (!teams.length) return undefined;
+    if (teamFromUrl && teams.some((t) => t.id === teamFromUrl)) {
+      return teamFromUrl;
+    }
+    return teams[0]?.id;
+  }, [teamFromUrl, teams]);
+
   const activeTeam = useMemo(
-    () => teams.find((t) => t.id === activeId),
-    [teams, activeId]
+    () => teams.find((t) => t.id === activeTeamId),
+    [teams, activeTeamId]
   );
 
-  // Устанавливаем активную команду, синхронизуя с query параметром
+  // Если параметр не задан или указывает на удаленную команду — ставим первый доступный
   useEffect(() => {
     if (!teams.length) {
-      if (activeId) {
-        setActiveId(undefined);
-      }
       return;
     }
 
-    if (activeId && !teams.some((t) => t.id === activeId)) {
-      setActiveId(teams[0].id);
-      return;
-    }
-
-    const teamFromUrl = searchParams.get('team');
     if (teamFromUrl && teams.some((t) => t.id === teamFromUrl)) {
-      if (teamFromUrl !== activeId) {
-        setActiveId(teamFromUrl);
-      }
       return;
     }
 
-    if (!activeId) {
-      setActiveId(teams[0].id);
-    }
-  }, [teams, activeId, searchParams]);
+    const fallbackId = teams[0]?.id;
+    if (!fallbackId) return;
 
-  useEffect(() => {
-    const current = searchParams.get('team');
     const params = new URLSearchParams(searchParams.toString());
-
-    if (!activeId) {
-      if (!current) return;
-      params.delete('team');
-    } else {
-      if (current === activeId) return;
-      params.set('team', activeId);
-    }
-
+    params.set('team', fallbackId);
     const queryString = params.toString();
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
       scroll: false,
     });
-  }, [activeId, router, searchParams, pathname]);
+  }, [teams, teamFromUrl, searchParams, router, pathname]);
+
+  const selectTeam = (teamId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('team', teamId);
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+  };
+
+  const clearTeamSelection = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('team');
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+  };
 
   // Функции для работы с участниками (пока заглушки, так как API для этого нет)
   const addMember = (m: Member) => {
@@ -112,7 +115,7 @@ function TeamsPageContent() {
 
   const addTeam = (team: Team) => {
     // Команда уже добавлена через API, просто выбираем её
-    setActiveId(team.id);
+    selectTeam(team.id);
   };
 
   const handleDeleteTeam = (teamId: string, teamName: string) => {
@@ -123,9 +126,13 @@ function TeamsPageContent() {
     try {
       await deleteTeamMutation.mutateAsync(deleteModal.teamId);
       // Если удаляемая команда была активной, выбираем первую доступную
-      if (activeId === deleteModal.teamId) {
+      if (activeTeamId === deleteModal.teamId) {
         const remainingTeams = teams.filter(t => t.id !== deleteModal.teamId);
-        setActiveId(remainingTeams.length > 0 ? remainingTeams[0].id : undefined);
+        if (remainingTeams.length > 0) {
+          selectTeam(remainingTeams[0].id);
+        } else {
+          clearTeamSelection();
+        }
       }
       setDeleteModal({ open: false, teamId: '', teamName: '' });
     } catch (error) {
@@ -142,8 +149,8 @@ function TeamsPageContent() {
           {/* левая колонка */}
               <TeamSidebar
                 teams={teams}
-                activeId={activeId}
-                onSelect={setActiveId}
+                activeId={activeTeamId}
+                onSelect={selectTeam}
                 onAddTeam={() => setOpenCreate(true)}
                 onDeleteTeam={handleDeleteTeam}
               />

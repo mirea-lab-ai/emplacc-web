@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import type { Team } from './types';
 import { useUpdateTeam } from '@/features/teams/hooks';
+import type { UpdateTeamRequest } from '@/features/teams/api';
 
 const EMPTY_LEAD_ID = '';
 
@@ -66,14 +67,23 @@ export default function EditTeamModal({ open, team, onClose }: Props) {
       return;
     }
 
-    const payload: { name?: string; lead_user_id?: string | null } = {};
+    const payload: UpdateTeamRequest = {};
 
     if (trimmedName !== team.name) {
       payload.name = trimmedName;
     }
 
     if (leadId !== currentLeadId) {
-      payload.lead_user_id = leadId ? leadId : null;
+      if (leadId) {
+        const numericLead = Number(leadId);
+        if (Number.isNaN(numericLead)) {
+          setFormError('Не удалось определить выбранного тимлида');
+          return;
+        }
+        payload.lead_user_id = numericLead;
+      } else {
+        payload.lead_user_id = null;
+      }
     }
 
     if (!payload.name && payload.lead_user_id === undefined) {

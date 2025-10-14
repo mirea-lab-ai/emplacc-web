@@ -6,10 +6,12 @@ export default function AvatarEditor({
                                        name,
                                        src,
                                        onChange,
+                                       readOnly = false,
                                      }: {
   name: string;
   src?: string;
   onChange: (next?: string) => void; // undefined = убрать
+  readOnly?: boolean;
 }) {
   const initials = useMemo(() => {
     const parts = name.trim().split(/\s+/).slice(0, 2);
@@ -30,6 +32,33 @@ export default function AvatarEditor({
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
+  const avatarCore = (
+    <div className="rounded-full bg-[#0f1422] p-[3px]">
+      {src ? (
+        <img
+          src={src}
+          alt="avatar"
+          className="h-32 w-32 rounded-full object-cover"
+        />
+      ) : (
+        <div className="h-32 w-32 rounded-full grid place-items-center bg-[#141c2f] text-3xl font-semibold text-white">
+          {initials || '🙂'}
+        </div>
+      )}
+    </div>
+  );
+
+  if (readOnly) {
+    return (
+      <div className="inline-grid place-items-center">
+        <div className="relative inline-grid place-items-center rounded-full p-[3px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
+          {avatarCore}
+        </div>
+        <span className="mt-3 text-xs text-slate-400">Изменение аватара недоступно</span>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* аватар + градиентная окантовка */}
@@ -38,19 +67,7 @@ export default function AvatarEditor({
         className="group relative inline-grid place-items-center rounded-full p-[3px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400"
         aria-label="Сменить аватар"
       >
-        <div className="rounded-full bg-[#0f1422] p-[3px]">
-          {src ? (
-            <img
-              src={src}
-              alt="avatar"
-              className="h-32 w-32 rounded-full object-cover"
-            />
-          ) : (
-            <div className="h-32 w-32 rounded-full grid place-items-center bg-[#141c2f] text-3xl font-semibold text-white">
-              {initials || '🙂'}
-            </div>
-          )}
-        </div>
+        {avatarCore}
         <span className="pointer-events-none absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition grid place-items-center text-sm">
           Изменить
         </span>

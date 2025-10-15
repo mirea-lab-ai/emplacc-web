@@ -153,7 +153,7 @@ export default function KanbanBoard({
             />
 
             <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
-                <div className="flex h-full items-stretch gap-4 pb-2 min-h-0 min-w-max">
+                <div className="flex h-full items-stretch gap-4 pb-2 min-h-0">
                     {local.map((col) => (
                         <Column
                             key={col.id}

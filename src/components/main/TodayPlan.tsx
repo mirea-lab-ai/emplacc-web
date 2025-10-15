@@ -147,9 +147,9 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
                 onClick={handleTaskClick}
               />
             ))}
-          </ul>
+          </ul> 
         ) : (
-          <div className="grid h-full place-items-center rounded-xl bg-[#141c2f] ring-1 ring-white/10 text-slate-400">
+          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 ring-1 ring-white/10 text-slate-400">
             {reportsData ? 'Вы не составили план в прошлом отчете' : 'Нет данных отчетов'}
           </div>
         )}

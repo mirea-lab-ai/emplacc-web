@@ -36,7 +36,7 @@ export default function Column({
     };
 
     return (
-        <div className="group flex flex-col h-full min-h-0 w-80 flex-shrink-0">
+        <div className="group flex flex-col h-full min-h-0 flex-1 min-w-[320px]">
             <div className="mb-2 flex items-center justify-between px-3">
                 <div className="font-semibold flex items-center gap-2">
                     {column.color && (

@@ -1,0 +1,44 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-https://api.emplacc.g-309.ru}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - emplacc-network
+
+  # Nginx reverse proxy (опционально)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # для SSL сертификатов
+    depends_on:
+      - frontend
+    restart: unless-stopped
+    networks:
+      - emplacc-network
+    profiles:
+      - proxy  # запускается только с профилем proxy
+
+networks:
+  emplacc-network:
+    driver: bridge
+
+volumes:
+  ssl_certs:
+    driver: local

@@ -33,7 +33,7 @@ export default function YourTasks() {
     const sorted = useMemo(() => {
     const arr = [...tasks];
     arr.sort((a, b) => {
-      return (b.priority ?? 0) - (a.priority ?? 0);
+      return (a.priority ?? 10) - (b.priority ?? 10);
     });
     return arr;
   }, [tasks]);
@@ -55,9 +55,17 @@ export default function YourTasks() {
       </div>
 
       <div className="h-[calc(100%-2.5rem)] overflow-y-auto pr-2 custom-scroll space-y-3">
-        {sorted.map((t) => (
-          <TaskRow key={t.id} t={t}/>
-        ))}
+        {isLoading ? (
+          <div className="text-center text-slate-400 py-8">Загрузка задач...</div>
+        ) : error ? (
+          <div className="text-center text-red-400 py-8">Ошибка загрузки задач</div>
+        ) : sorted.length === 0 ? (
+          <div className="text-center text-slate-400 py-8">У вас пока нет задач</div>
+        ) : (
+          sorted.map((t) => (
+            <TaskRow key={t.id} t={t}/>
+          ))
+        )}
       </div>
     </Panel>
   );

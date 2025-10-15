@@ -29,15 +29,13 @@ export default function AddMemberModal({
   const { data: users, isLoading } = useAllUsers(1, 100, hasCreds);
   const addUsersMutation = useAddUsersToTeam();
 
-  // Исключаем текущего пользователя, уже выбранных и существующих участников команды
+  // Исключаем уже выбранных и существующих участников команды (включая текущего пользователя)
   const availableUsers = useMemo(() => {
     if (!users) return [];
-    const currentUserId = getUserId();
     const selectedIds = selectedMembers.map(s => s.id);
     
     return users
       .filter(user => 
-        user.id !== currentUserId && 
         !selectedIds.includes(user.id) && 
         !existingMemberIds.includes(user.id)
       )

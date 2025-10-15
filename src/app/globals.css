@@ -37,6 +37,15 @@
     box-shadow: 0 8px 30px rgba(2,6,5,0.6);
 }
 
+/* Glassy surface without shadow for reports page */
+.t-surface-no-shadow {
+    background: linear-gradient(180deg, var(--surface-bg), rgba(255,255,255,0.01));
+    border: 1px solid var(--surface-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: none;
+}
+
 /* Accent gradient util */
 .t-accent-grad {
     background-image: linear-gradient(90deg, var(--accent-start), var(--accent-end));

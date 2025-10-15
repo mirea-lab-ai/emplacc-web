@@ -8,13 +8,13 @@ import { getUserId, isAuthed } from '@/lib/auth';
 
 type TaskListResponse = components['schemas']['response.TaskListResponse'];
 
-const TASKS_PATH_TEMPLATE = '/task/user/{userId}/{page}/{pageSize}';
+const TASKS_PATH_TEMPLATE = '/task/user/{id}/{page}/{pagesize}';
 
 function buildPath(userId: string, page = 1, pageSize = 20) {
     return TASKS_PATH_TEMPLATE
-        .replace('{userId}', encodeURIComponent(userId))
+        .replace('{id}', encodeURIComponent(userId))
         .replace('{page}', String(page))
-        .replace('{pageSize}', String(pageSize));
+        .replace('{pagesize}', String(pageSize));
 }
 
 export async function fetchMyTasks(page = 1, pageSize = 20): Promise<UITask[]> {
@@ -175,6 +175,34 @@ export async function fetchBoardTasksByProjectAndBoard(projectId: string, boardI
 // Получение задачи по ID
 export async function fetchTaskById(taskId: string): Promise<any> {
     const res = await http(`/task/${encodeURIComponent(taskId)}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+}
+
+export type UpdateTaskRequest = {
+    name?: string;
+    description?: string;
+    assigned_to?: string;
+    priority?: number;
+    deadline?: string;
+    status_id?: string;
+    start_date?: string;
+    category?: number;
+};
+
+// Обновление задачи
+export async function updateTask(taskId: string, payload: UpdateTaskRequest): Promise<any> {
+    // Фильтруем пустые значения
+    const filteredPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+    );
+
+    const res = await http(`/task/${encodeURIComponent(taskId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filteredPayload),
+    });
+    
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
 }

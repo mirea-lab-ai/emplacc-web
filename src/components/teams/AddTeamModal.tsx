@@ -33,14 +33,13 @@ export default function AddTeamModal({
   const hasCreds = isClient && isAuthed();
   const { data: users, isLoading: usersLoading } = useAllUsers(1, 100, hasCreds);
 
-  // Исключаем текущего пользователя и уже выбранных
+  // Исключаем только уже выбранных (включая текущего пользователя)
   const availableUsers = useMemo(() => {
     if (!users) return [];
-    const currentUserId = getUserId();
     const selectedIds = selectedMembers.map(s => s.id);
     
     return users
-      .filter(user => user.id !== currentUserId && !selectedIds.includes(user.id))
+      .filter(user => !selectedIds.includes(user.id))
       .map(user => ({
         id: user.id,
         name: `${user.firstName} ${user.lastName}`.trim(),

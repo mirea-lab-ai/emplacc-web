@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import { ButtonGhost, ButtonPrimary } from '../ui/Buttons';
 import Avatar from '@/components/ui/Avatar';
@@ -9,13 +9,15 @@ import { useAllUsers } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { Employee } from '@/lib/types';
+import { type UITask } from '@/features/tasks/types';
 
-export default function AddTaskModal({
-                                        open, onClose, onCreate,
+export default function EditTaskModal({
+                                        open, onClose, onUpdate, task,
                                     }: {
     open: boolean;
     onClose: () => void;
-    onCreate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    onUpdate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    task: UITask | null;
 }) {
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
@@ -28,6 +30,24 @@ export default function AddTaskModal({
     const hasCreds = isClient && isAuthed();
     const { data: users, isLoading } = useAllUsers(1, 100, hasCreds);
     const [query, setQuery] = useState('');
+    
+    // Заполняем поля при открытии модалки
+    useEffect(() => {
+        if (task && open) {
+            setTitle(task.title || '');
+            setDesc(''); // У нас нет описания в UITask, оставляем пустым
+            setPriority(task.priority || 5);
+            setDeadline(task.due ? task.due.split('T')[0] : ''); // Преобразуем ISO дату в формат YYYY-MM-DD
+            setAssignedTo(null); // У нас нет информации о назначенном пользователе в UITask
+        } else if (!open) {
+            // Сбрасываем состояние при закрытии
+            setTitle('');
+            setDesc('');
+            setAssignedTo(null);
+            setDeadline('');
+            setPriority(5);
+        }
+    }, [task, open]);
     
     // Включаем всех пользователей (включая текущего) для назначения на задачи
     const availableUsers = useMemo(() => {
@@ -69,14 +89,14 @@ export default function AddTaskModal({
     return (
         <>
             <Modal
-                title="Новая задача"
+                title="Редактировать задачу"
                 onClose={onClose}
                 footer={
                     <>
                         <ButtonGhost onClick={onClose}>Отмена</ButtonGhost>
                         <ButtonPrimary
                             onClick={() => { 
-                                onCreate(
+                                onUpdate(
                                     title.trim(), 
                                     desc.trim() || undefined, 
                                     assignedTo?.id, 
@@ -87,7 +107,7 @@ export default function AddTaskModal({
                             }}
                             disabled={!title.trim()}
                         >
-                            Добавить
+                            Сохранить
                         </ButtonPrimary>
                     </>
                 }
@@ -217,3 +237,4 @@ export default function AddTaskModal({
         </>
     );
 }
+

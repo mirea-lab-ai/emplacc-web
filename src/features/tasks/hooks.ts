@@ -1,6 +1,6 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, type CreateTaskRequest, type MoveTaskRequest } from './api';
+import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, updateTask, type CreateTaskRequest, type MoveTaskRequest, type UpdateTaskRequest } from './api';
 
 export function useMyTasks(page = 1, pageSize = 20, enabled = false) {
     return useQuery({
@@ -80,5 +80,19 @@ export function useTaskById(taskId: string | null, enabled = true) {
         enabled: enabled && !!taskId,
         staleTime: 5 * 60 * 1000, // 5 минут
         gcTime: 10 * 60 * 1000, // 10 минут
+    });
+}
+
+export function useUpdateTask() {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: ({ taskId, payload }: { taskId: string; payload: UpdateTaskRequest }) => updateTask(taskId, payload),
+        onSuccess: () => {
+            // Инвалидировать кеш для задач
+            queryClient.invalidateQueries({ queryKey: ['myTasks'] });
+            // Также инвалидировать кеш для статусов, так как задачи могут отображаться в колонках
+            queryClient.invalidateQueries({ queryKey: ['boardStatus'] });
+        },
     });
 }

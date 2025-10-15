@@ -6,6 +6,7 @@ import Column from './Column';
 import AddStatusModal from './modals/AddStatusModal';
 import RenameColumnModal from './modals/RenameColumnModal';
 import AddTaskModal from './modals/AddTaskModal';
+import EditTaskModal from './modals/EditTaskModal';
 import { KBColumn } from './types';
 import { uid } from '@/lib/uid' // если путь иной, поправь импорт
 import { useCreateTask } from '@/features/tasks/hooks';
@@ -21,6 +22,8 @@ export default function KanbanBoard({
                                         isDeletingStatus = false,
                                         onCreateTask,
                                         isCreatingTask = false,
+                                        onUpdateTask,
+                                        isUpdatingTask = false,
                                         onDeleteTask,
                                         isDeletingTask = false,
                                         onMoveTask,
@@ -33,8 +36,10 @@ export default function KanbanBoard({
     isCreatingStatus?: boolean;
     onDeleteStatus?: (statusId: string) => void;
     isDeletingStatus?: boolean;
-    onCreateTask?: (statusId: string, title: string, description?: string) => void;
+    onCreateTask?: (statusId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
     isCreatingTask?: boolean;
+    onUpdateTask?: (taskId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    isUpdatingTask?: boolean;
     onDeleteTask?: (taskId: string) => void;
     isDeletingTask?: boolean;
     onMoveTask?: (taskId: string, statusId: string) => void;
@@ -83,18 +88,18 @@ export default function KanbanBoard({
     };
 
     /* ---------- CRUD задач ---------- */
-    const addTask = (colId: string, title: string, desc?: string) => {
+    const addTask = (colId: string, title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => {
         if (onCreateTask) {
             // Используем API для создания задачи
-            onCreateTask(colId, title, desc);
+            onCreateTask(colId, title, desc, assignedTo, deadline, priority);
         } else {
             // Fallback для локального создания (если API не передан)
             const t = title.trim(); if (!t) return;
             const newTask: UITask = {
                 id: uid(),
                 title: t,
-                due: undefined,
-                priority: undefined,
+                due: deadline,
+                priority: priority,
                 statuses: undefined,
             };
             setLocal(prev =>
@@ -143,6 +148,7 @@ export default function KanbanBoard({
     const [addOpen, setAddOpen] = useState(false);
     const [rename, setRename] = useState<null | { id: string; title: string }>(null);
     const [addTaskFor, setAddTaskFor] = useState<null | string>(null);
+    const [editTask, setEditTask] = useState<null | { taskId: string; colId: string }>(null);
 
     return (
         <div className="flex flex-col gap-4 " style={{ height: `calc(100dvh - ${viewportOffset}px)` }}>
@@ -154,7 +160,7 @@ export default function KanbanBoard({
 
             <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
                 <div className="flex h-full items-stretch gap-4 pb-2 min-h-0">
-                    {local.map((col) => (
+                    {local.map((col, index) => (
                         <Column
                             key={col.id}
                             column={col}
@@ -163,9 +169,11 @@ export default function KanbanBoard({
                             onRename={() => setRename({ id: col.id, title: col.title })}
                             onRemove={() => removeColumn(col.id)}
                             onRemoveTask={(taskId) => removeTask(col.id, taskId)}
+                            onEditTask={(taskId) => setEditTask({ taskId, colId: col.id })}
                             isDeleting={isDeletingStatus}
                             isCreatingTask={isCreatingTask}
                             isDeletingTask={isDeletingTask}
+                            canEdit={index > 0 && index < local.length - 1}
                         />
                     ))}
                 </div>
@@ -191,7 +199,18 @@ export default function KanbanBoard({
             <AddTaskModal
                 open={!!addTaskFor}
                 onClose={() => setAddTaskFor(null)}
-                onCreate={(title, desc) => addTask(addTaskFor!, title, desc)}
+                onCreate={(title, desc, assignedTo, deadline, priority) => addTask(addTaskFor!, title, desc, assignedTo, deadline, priority)}
+            />
+
+            <EditTaskModal
+                open={!!editTask}
+                onClose={() => setEditTask(null)}
+                task={editTask ? local.find(col => col.id === editTask.colId)?.tasks.find(t => t.id === editTask.taskId) || null : null}
+                onUpdate={(title, desc, assignedTo, deadline, priority) => {
+                    if (editTask && onUpdateTask) {
+                        onUpdateTask(editTask.taskId, title, desc, assignedTo, deadline, priority);
+                    }
+                }}
             />
         </div>
     );

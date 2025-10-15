@@ -5,7 +5,8 @@ import Panel from '@/components/ui/Panel';
 import KanbanBoard, { KBColumn } from '@/components/projects/kanban';
 import { useProjectBoards, useDeleteBoard } from '@/features/boards/hooks';
 import { useBoardStatus, useCreateStatus, useDeleteStatus } from '@/features/status/hooks';
-import { useCreateTask, useDeleteTask, useMoveTask } from '@/features/tasks/hooks';
+import { useCreateTask, useDeleteTask, useMoveTask, useUpdateTask } from '@/features/tasks/hooks';
+import { useAllUserProjects } from '@/features/projects/hooks';
 import { getUserId } from '@/lib/auth';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
@@ -29,13 +30,16 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
   const { data: boards, isLoading, error } = useProjectBoards(projectId, hasCreds);
+  const { data: allProjects } = useAllUserProjects(hasCreds);
   const { mutate: deleteBoard, isPending: isDeleting } = useDeleteBoard();
   const { mutate: createStatus, isPending: isCreatingStatus } = useCreateStatus();
   const { mutate: deleteStatus, isPending: isDeletingStatus } = useDeleteStatus();
   const { mutate: createTask, isPending: isCreatingTask } = useCreateTask();
   const { mutate: deleteTask, isPending: isDeletingTask } = useDeleteTask();
   const { mutate: moveTask, isPending: isMovingTask } = useMoveTask();
+  const { mutate: updateTask, isPending: isUpdatingTask } = useUpdateTask();
   const currentBoard = boards?.[currentBoardIndex];
+  const currentProject = allProjects?.find(p => p.id === projectId);
   
   // Загружаем статусы/колонки для текущей доски
   const { data: boardStatus, isLoading: statusLoading, error: statusError } = useBoardStatus(
@@ -113,7 +117,7 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
   };
 
   // Функция для создания задачи
-  const handleCreateTask = (statusId: string, title: string, description?: string) => {
+  const handleCreateTask = (statusId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => {
     const userId = getUserId();
     if (!userId) {
       console.error('User ID not found');
@@ -126,10 +130,7 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
       name: title,
       status_id: statusId,
       creator_id: userId,
-      assigned_to: userId, // Исполнитель = создатель
-      priority: 1,
       start_date: currentTime,
-      deadline: currentTime, // Дедлайн = время старта
       category: 0,
     };
 
@@ -137,8 +138,52 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
     if (description && description.trim()) {
       taskData.description = description;
     }
+    
+    if (assignedTo) {
+      taskData.assigned_to = assignedTo;
+    }
+    
+    if (priority) {
+      taskData.priority = priority;
+    }
+    
+    if (deadline) {
+      taskData.deadline = new Date(deadline).toISOString();
+    }
 
     createTask(taskData);
+  };
+
+  // Функция для обновления задачи
+  const handleUpdateTask = (taskId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => {
+    const userId = getUserId();
+    if (!userId) {
+      console.error('User ID not found');
+      return;
+    }
+    
+    const taskData: any = {
+      name: title,
+    };
+
+    // Добавляем только непустые поля
+    if (description && description.trim()) {
+      taskData.description = description;
+    }
+    
+    if (assignedTo) {
+      taskData.assigned_to = assignedTo;
+    }
+    
+    if (priority) {
+      taskData.priority = priority;
+    }
+    
+    if (deadline) {
+      taskData.deadline = new Date(deadline).toISOString();
+    }
+
+    updateTask({ taskId, payload: taskData });
   };
 
   // Функция для удаления задачи
@@ -211,7 +256,10 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
                     <div className="flex-1 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <h2 className="text-xl font-semibold text-white">
-                          {currentBoard?.name ?? 'Без названия'}
+                          {currentProject?.name && currentBoard?.name 
+                            ? `${currentProject.name} - ${currentBoard.name}`
+                            : currentBoard?.name ?? 'Без названия'
+                          }
                         </h2>
                         {currentBoard && (
                           <button
@@ -269,6 +317,8 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
           isDeletingStatus={isDeletingStatus}
           onCreateTask={handleCreateTask}
           isCreatingTask={isCreatingTask}
+          onUpdateTask={handleUpdateTask}
+          isUpdatingTask={isUpdatingTask}
           onDeleteTask={handleDeleteTask}
           isDeletingTask={isDeletingTask}
           onMoveTask={handleMoveTask}

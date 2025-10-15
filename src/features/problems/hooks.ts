@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchAllProblems, createProblem, type CreateProblemRequest } from './api';
+import { fetchAllProblems, createProblem, deleteProblem, type CreateProblemRequest } from './api';
 
 export function useAllProblems(page = 1, pageSize = 20, enabled = true) {
   return useQuery({
@@ -15,6 +15,18 @@ export function useCreateProblem() {
   
   return useMutation({
     mutationFn: (payload: CreateProblemRequest) => createProblem(payload),
+    onSuccess: () => {
+      // Инвалидировать кеш для всех проблем
+      queryClient.invalidateQueries({ queryKey: ['allProblems'] });
+    },
+  });
+}
+
+export function useDeleteProblem() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (problemId: string) => deleteProblem(problemId),
     onSuccess: () => {
       // Инвалидировать кеш для всех проблем
       queryClient.invalidateQueries({ queryKey: ['allProblems'] });

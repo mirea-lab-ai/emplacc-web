@@ -56,3 +56,12 @@ export async function createProblem(payload: CreateProblemRequest): Promise<UIPr
     authorName: json.author_name,
   };
 }
+
+// Удаление проблемы
+export async function deleteProblem(problemId: string): Promise<void> {
+  const res = await http(`/problem/${encodeURIComponent(problemId)}`, {
+    method: 'DELETE',
+  });
+  
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}

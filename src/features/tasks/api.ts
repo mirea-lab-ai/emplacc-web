@@ -112,3 +112,70 @@ export async function moveTask(payload: MoveTaskRequest): Promise<MoveTaskRespon
         updated_at: json.updated_at ?? '',
     };
 }
+
+// Получение задач конкретной доски
+export async function fetchBoardTasks(boardId: string): Promise<UITask[]> {
+    // Получаем все доски проекта, чтобы найти нужную доску
+    const res = await http(`/boards/project/${encodeURIComponent(boardId)}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as any;
+    
+    
+    // Обработка структуры ответа: boards -> statuses -> tasks
+    if (json.boards && Array.isArray(json.boards)) {
+        const allTasks: UITask[] = [];
+        for (const board of json.boards) {
+            if (board.statuses && Array.isArray(board.statuses)) {
+                for (const status of board.statuses) {
+                    if (status.tasks && Array.isArray(status.tasks)) {
+                        allTasks.push(...status.tasks.map(mapTask));
+                    }
+                }
+            }
+        }
+        return allTasks;
+    }
+    
+    // Fallback для других форматов
+    const list: any[] = Array.isArray(json) 
+        ? json 
+        : json.tasks ?? [];
+    
+    return list.map(mapTask);
+}
+
+// Получение задач конкретной доски по projectId и boardId
+export async function fetchBoardTasksByProjectAndBoard(projectId: string, boardId: string): Promise<UITask[]> {
+    const res = await http(`/boards/project/${encodeURIComponent(projectId)}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as any;
+    
+    
+    // Обработка структуры ответа: boards -> statuses -> tasks
+    if (json.boards && Array.isArray(json.boards)) {
+        // Находим конкретную доску
+        const targetBoard = json.boards.find((board: any) => board.id === boardId);
+        if (!targetBoard) {
+            return [];
+        }
+        
+        const allTasks: UITask[] = [];
+        if (targetBoard.statuses && Array.isArray(targetBoard.statuses)) {
+            for (const status of targetBoard.statuses) {
+                if (status.tasks && Array.isArray(status.tasks)) {
+                    allTasks.push(...status.tasks.map(mapTask));
+                }
+            }
+        }
+        return allTasks;
+    }
+    
+    return [];
+}
+
+// Получение задачи по ID
+export async function fetchTaskById(taskId: string): Promise<any> {
+    const res = await http(`/task/${encodeURIComponent(taskId)}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+}

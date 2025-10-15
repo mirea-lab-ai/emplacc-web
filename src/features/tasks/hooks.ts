@@ -1,6 +1,6 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMyTasks, createTask, deleteTask, moveTask, type CreateTaskRequest, type MoveTaskRequest } from './api';
+import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, type CreateTaskRequest, type MoveTaskRequest } from './api';
 
 export function useMyTasks(page = 1, pageSize = 20, enabled = false) {
     return useQuery({
@@ -50,5 +50,35 @@ export function useMoveTask() {
             // Также инвалидировать кеш для статусов, так как задачи могут отображаться в колонках
             queryClient.invalidateQueries({ queryKey: ['boardStatus'] });
         },
+    });
+}
+
+export function useBoardTasks(boardId: string | null, enabled = true) {
+    return useQuery({
+        queryKey: ['boardTasks', boardId],
+        queryFn: () => fetchBoardTasks(boardId!),
+        enabled: enabled && !!boardId,
+        staleTime: 2 * 60 * 1000, // 2 минуты
+        gcTime: 5 * 60 * 1000, // 5 минут
+    });
+}
+
+export function useBoardTasksByProjectAndBoard(projectId: string | null, boardId: string | null, enabled = true) {
+    return useQuery({
+        queryKey: ['boardTasksByProjectAndBoard', projectId, boardId],
+        queryFn: () => fetchBoardTasksByProjectAndBoard(projectId!, boardId!),
+        enabled: enabled && !!projectId && !!boardId,
+        staleTime: 2 * 60 * 1000, // 2 минуты
+        gcTime: 5 * 60 * 1000, // 5 минут
+    });
+}
+
+export function useTaskById(taskId: string | null, enabled = true) {
+    return useQuery({
+        queryKey: ['taskById', taskId],
+        queryFn: () => fetchTaskById(taskId!),
+        enabled: enabled && !!taskId,
+        staleTime: 5 * 60 * 1000, // 5 минут
+        gcTime: 10 * 60 * 1000, // 10 минут
     });
 }

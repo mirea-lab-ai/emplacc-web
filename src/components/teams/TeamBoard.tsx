@@ -4,6 +4,8 @@ import Panel from '@/components/ui/Panel';
 import type { Member, Team } from './types';
 import { useMemo, useState } from 'react';
 import AddMemberModal from './AddMemberModal';
+import TeamProjects from './TeamProjects';
+import { useRemoveTeamMember } from '@/features/teams/hooks';
 
 export default function TeamBoard({
                                     team,
@@ -15,34 +17,26 @@ export default function TeamBoard({
   onRemoveMember?: (memberId: string) => void;
 }) {
   const [openAdd, setOpenAdd] = useState(false);
-  const initials = useMemo(() => toInitials(team.lead.name), [team.lead.name]);
+  const removeMemberMutation = useRemoveTeamMember();
+
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      await removeMemberMutation.mutateAsync({ teamId: team.id, userId: memberId });
+      if (onRemoveMember) {
+        onRemoveMember(memberId);
+      }
+    } catch (error) {
+      console.error('Ошибка при удалении участника:', error);
+      alert('Ошибка при удалении участника. Попробуйте еще раз.');
+    }
+  };
 
   return (
-    // компактный блок тимлида + список сотрудников
-    <div className="grid grid-rows-[auto_1fr] gap-6 min-h-[620px]">
-      {/* Тимлид */}
-      <Panel className="p-4 t-surface">
-        <div className="flex items-center gap-4">
-          <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
-            <div className="h-14 w-14 rounded-full overflow-hidden bg-[#0f1422] grid place-items-center text-lg font-semibold">
-              {team.lead.avatarSrc ? (
-                <img src={team.lead.avatarSrc} alt={team.lead.name} className="h-full w-full object-cover" />
-              ) : (
-                <span>{initials}</span>
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="font-semibold">{team.lead.name}</div>
-            <div className="text-slate-400 text-sm">Тимлид</div>
-          </div>
-        </div>
-      </Panel>
-
-      {/* Сотрудники */}
+    <div className="grid grid-cols-2 gap-6 min-h-[620px]">
+      {/* Левый столбец - Состав команды */}
       <Panel className="p-6 min-h-0 h-full t-surface">
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h3 className="text-xl font-semibold">{team.name}</h3>
+          <h3 className="text-xl font-semibold">Состав команды</h3>
           <button
             onClick={() => setOpenAdd(true)}
             className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-black hover:brightness-110"
@@ -51,11 +45,9 @@ export default function TeamBoard({
           </button>
         </div>
 
-        {/* ВАЖНО: контейнер — колонка с flex-1, а грид без h-full,
-            с items-start чтобы карточки НЕ растягивались по высоте */}
         {team.members.length ? (
           <div className="flex h-full min-h-0 flex-col">
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-1 custom-scroll items-start content-start">
+            <ul className="space-y-3 pr-1 custom-scroll">
               {team.members.map((m) => (
                 <li
                   key={m.id}
@@ -64,19 +56,21 @@ export default function TeamBoard({
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar name={m.name} src={m.avatarSrc} />
                     <div className="min-w-0">
-                      <div className="truncate text-base md:text-lg font-semibold">{m.name}</div>
-                      <div className="truncate text-slate-400 text-sm md:text-base">{m.role}</div>
+                      <div className="truncate text-base font-semibold">{m.name}</div>
+                      <div className="truncate text-slate-400 text-sm">{m.role}</div>
                     </div>
                   </div>
 
-                  {onRemoveMember && (
-                    <button
-                      onClick={() => onRemoveMember(m.id)}
-                      className="rounded-lg p-2 ring-1 ring-white/10 text-slate-300 hover:text-white hover:bg-[#ef4657]/25 hover:ring-[#ef4657]/40 transition"
-                      aria-label="Удалить"
-                      title="Удалить"
-                    >
-                      {/* иконка мусорки */}
+                  <button
+                    onClick={() => handleRemoveMember(m.id)}
+                    disabled={removeMemberMutation.isPending}
+                    className="rounded-lg p-2 ring-1 ring-white/10 text-slate-300 hover:text-white hover:bg-[#ef4657]/25 hover:ring-[#ef4657]/40 transition disabled:opacity-50"
+                    aria-label="Удалить"
+                    title="Удалить"
+                  >
+                    {removeMemberMutation.isPending ? (
+                      <div className="w-5 h-5 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" />
+                    ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -91,8 +85,8 @@ export default function TeamBoard({
                         <path d="M10 11v6" />
                         <path d="M14 11v6" />
                       </svg>
-                    </button>
-                  )}
+                    )}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -104,10 +98,14 @@ export default function TeamBoard({
         )}
       </Panel>
 
+      {/* Правый столбец - Проекты команды */}
+      <TeamProjects teamId={team.id} />
+
       <AddMemberModal
         open={openAdd}
         onClose={() => setOpenAdd(false)}
-        onCreate={(m) => onAddMember(m)}
+        teamId={team.id}
+        existingMemberIds={team.members.map(member => member.id)}
       />
     </div>
   );

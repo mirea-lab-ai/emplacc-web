@@ -1,13 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import ReportTaskPicker, { Task } from '@/components/ReportTaskPicker';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import ReportProjectPicker from '@/components/ReportProjectPicker';
 import SlideTrack from '@/components/ReportWizard/SlideTrack';
 import WizardNav from '@/components/ReportWizard/WizardNav';
 import NotesForm from '@/components/ReportWizard/NotesForm';
 import FinalQuestions from '@/components/ReportWizard/FinalQuestions';
+import SuccessModal from '@/components/ReportWizard/SuccessModal';
+import { useCreateReport } from '@/features/reports/hooks';
+import { Employee } from '@/lib/types';
+import { useIsClient } from '@/hooks/useIsClient';
+import { isAuthed, getUserId } from '@/lib/auth';
+import { TaskInfo } from '@/components/ReportProjectPicker';
 
-type Notes = Record<string, string>; // key `${taskId}:${subId}` -> text
+type Notes = Record<string, string>; // key `${boardId}:${taskId}` -> text
 
 
 const employees = [
@@ -20,38 +26,11 @@ const employees = [
     { id: 'u7', name: 'Илья Смирнов', email: 'i.smirnov@emplacc.io', role: 'DevOps' },
 ];
 
-const demoTasks: Task[] = [
-  {
-    id: 't1',
-    title: 'Дрон Гараж',
-    subtitle: '',
-    subtasks: [
-      { id: 's11', title: 'Buttons & Inputs' },
-      { id: 's12', title: 'Modals & Alerts' },
-      { id: 's13', title: 'Cards & Lists' },
-    ],
-  },
-  {
-    id: 't2',
-    title: 'Emplacc',
-    subtitle: '',
-    subtasks: [
-      { id: 's21', title: 'Фронт' },
-      { id: 's22', title: 'Бэк' },
-    ],
-  },
-  {
-    id: 't3',
-    title: 'Team Meeting',
-    subtitle: '',
-    subtasks: [
-      { id: 's31', title: 'Agenda Prep' },
-      { id: 's32', title: 'Notes & Action Items' },
-    ],
-  },
-];
 
 export default function ReportsPage() {
+  const isClient = useIsClient();
+  const hasCreds = isClient && isAuthed();
+
   // выборы
   const [selectedDone, setSelectedDone] = useState<Set<string>>(new Set());
   const [selectedPlan, setSelectedPlan] = useState<Set<string>>(new Set());
@@ -60,25 +39,40 @@ export default function ReportsPage() {
   const [doneNotes, setDoneNotes] = useState<Notes>({});
   const [planNotes, setPlanNotes] = useState<Notes>({});
 
-  // финальные поля
-  const [problem, setProblem] = useState('');
-  const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>(null);
-  const [comment, setComment] = useState('');
+    // финальные поля
+    const [selectedProblems, setSelectedProblems] = useState<Set<string>>(new Set());
+    const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>(null);
+    const [helpComments, setHelpComments] = useState<Record<string, string>>({});
+    const [selectedHelpers, setSelectedHelpers] = useState<Employee[]>([]);
+    const [reportDate, setReportDate] = useState<string>(() => {
+        // Устанавливаем текущую дату по умолчанию
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Формат YYYY-MM-DD
+    });
 
   // текущий индекс слайда
   const [step, setStep] = useState(0);
+  
+  // состояние модалки успеха
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // сортировка выбранных ключей в порядке задач
+  // Карта задач для получения названий
+  const [taskMap, setTaskMap] = useState<Map<string, TaskInfo>>(new Map());
+  
+  // Функция для обновления карты задач
+  const updateTaskMap = useCallback((newTaskMap: Map<string, TaskInfo>) => {
+    setTaskMap(prev => {
+      const combined = new Map(prev);
+      newTaskMap.forEach((value, key) => {
+        combined.set(key, value);
+      });
+      return combined;
+    });
+  }, []);
+
+  // Получаем выбранные ключи в порядке выбора
   const orderedKeys = (set: Set<string>) => {
-    const keys = Array.from(set);
-    const order: string[] = [];
-    for (const t of demoTasks) {
-      for (const s of t.subtasks) {
-        const k = `${t.id}:${s.id}`;
-        if (keys.includes(k)) order.push(k);
-      }
-    }
-    return order;
+    return Array.from(set);
   };
 
   const doneKeys = useMemo(() => orderedKeys(selectedDone), [selectedDone]);
@@ -97,29 +91,41 @@ export default function ReportsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepsCount]);
 
-  const toggleDone = (taskId: string, subId: string) => {
+  const toggleDone = (boardId: string, taskId: string) => {
     setSelectedDone((prev) => {
       const n = new Set(prev);
-      const key = `${taskId}:${subId}`;
+      const key = `${boardId}:${taskId}`;
       n.has(key) ? n.delete(key) : n.add(key);
       return n;
     });
   };
 
-  const togglePlan = (taskId: string, subId: string) => {
+  const togglePlan = (boardId: string, taskId: string) => {
     setSelectedPlan((prev) => {
       const n = new Set(prev);
-      const key = `${taskId}:${subId}`;
+      const key = `${boardId}:${taskId}`;
       n.has(key) ? n.delete(key) : n.add(key);
+      return n;
+    });
+  };
+
+  const toggleProblem = (problemId: string) => {
+    setSelectedProblems((prev) => {
+      const n = new Set(prev);
+      n.has(problemId) ? n.delete(problemId) : n.add(problemId);
       return n;
     });
   };
 
   const renderTaskLabel = (key: string) => {
-    const [tid, sid] = key.split(':');
-    const t = demoTasks.find((x) => x.id === tid);
-    const s = t?.subtasks.find((y) => y.id === sid);
-    return t && s ? `${t.title} — ${s.title}` : key;
+    const taskInfo = taskMap.get(key);
+    
+    if (taskInfo) {
+      return `${taskInfo.projectName} — ${taskInfo.boardName} — ${taskInfo.taskTitle}`;
+    }
+    
+    // Fallback если данные еще не загружены
+    return "Загрузка информации о задаче...";
   };
 
   // Слайды
@@ -132,12 +138,12 @@ export default function ReportsPage() {
     slides.push(
       <div key={`slide-${i0}`} className="flex flex-col justify-between">
         <div className="rounded-2xl t-surface bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
-          <ReportTaskPicker
-            tasks={demoTasks}
+          <ReportProjectPicker
             selected={selectedDone}
             onToggle={toggleDone}
+            onTaskInfoUpdate={updateTaskMap}
             title="Выберите задачи, по которым вы сегодня работали"
-            description="Можно выбрать несколько подзадач в разных задачах."
+            description="Выберите задачи из ваших проектов и досок."
           />
         </div>
         <WizardNav
@@ -173,12 +179,12 @@ export default function ReportsPage() {
     slides.push(
       <div key={`slide-${i2}`} className="flex flex-col justify-between">
         <div className="rounded-2xl t-surface bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
-          <ReportTaskPicker
-            tasks={demoTasks}
+          <ReportProjectPicker
             selected={selectedPlan}
             onToggle={togglePlan}
+            onTaskInfoUpdate={updateTaskMap}
             title="Выберите задачи для плана на завтра"
-            description="Можно выбрать несколько подзадач."
+            description="Выберите задачи из ваших проектов и досок."
           />
         </div>
         <WizardNav
@@ -213,39 +219,94 @@ export default function ReportsPage() {
   // финал
   {
     const i4 = idx;
-    const handleSubmit = () => {
-      const payload = {
-        done: doneKeys.map((k) => ({ key: k, text: doneNotes[k] || '' })),
-        plan: planKeys.map((k) => ({ key: k, text: planNotes[k] || '' })),
-        problem,
-        needHelp,
-        comment,
-      };
-      console.log('REPORT SUBMIT =>', payload);
-      alert('Отчёт собран в консоли. Подключи отправку на сервер.');
+    const createReportMutation = useCreateReport();
+    
+    const handleSubmit = async () => {
+        try {
+            const userId = getUserId();
+            if (!userId) {
+                alert('Ошибка: пользователь не авторизован');
+                return;
+            }
+
+            // Формируем данные для API
+            const completeWork = doneKeys.map((key) => {
+                // Извлекаем taskId из составного ключа "boardId:taskId"
+                const taskId = key.includes(':') ? key.split(':')[1] : key;
+                return {
+                    task_id: taskId,
+                    description: doneNotes[key] || '',
+                };
+            });
+
+            const planTomorrow = planKeys.map((key) => {
+                // Извлекаем taskId из составного ключа "boardId:taskId"
+                const taskId = key.includes(':') ? key.split(':')[1] : key;
+                return {
+                    id: key, // Используем составной ключ как id
+                    task_id: taskId,
+                    description: planNotes[key] || '',
+                };
+            });
+
+            const helpRequests = selectedHelpers.map((helper) => ({
+                helper_id: helper.id,
+                description: helpComments[helper.id] || '',
+                status: 'pending', // Статус по умолчанию
+            }));
+
+            // Преобразуем выбранную дату в формат ISO
+            const reportDateISO = new Date(reportDate + 'T00:00:00').toISOString();
+
+            const payload = {
+                complete_work: completeWork,
+                help: helpRequests,
+                plan_tomorrow: planTomorrow,
+                problems: Array.from(selectedProblems),
+                report_date: reportDateISO,
+                user_id: userId,
+            };
+
+            await createReportMutation.mutateAsync(payload);
+            setShowSuccessModal(true);
+        } catch (error) {
+            console.error('Ошибка при создании отчета:', error);
+            alert('Ошибка при создании отчета. Попробуйте еще раз.');
+        }
     };
 
     slides.push(
       <div key={`slide-${i4}`} className="flex flex-col justify-between">
         <FinalQuestions
-          problem={problem}
-          setProblem={setProblem}
+          selectedProblems={selectedProblems}
+          onToggleProblem={toggleProblem}
           needHelp={needHelp}
           setNeedHelp={setNeedHelp}
-          comment={comment}
-          setComment={setComment}
-          employees={employees}
+          helpComments={helpComments}
+          setHelpComments={setHelpComments}
+          onHelpersChange={setSelectedHelpers}
+          reportDate={reportDate}
+          setReportDate={setReportDate}
         />
-        <WizardNav onPrev={() => goTo(i4 - 1)} onFinish={handleSubmit} />
+        <WizardNav 
+          onPrev={() => goTo(i4 - 1)} 
+          onFinish={handleSubmit}
+          isLoading={createReportMutation.isPending}
+        />
       </div>
     );
   }
 
   return (
-    <main className="text-white">
+    <main className="min-h-screen text-white">
       <div className="mx-auto max-w-6xl p-6">
         <SlideTrack step={step}>{slides}</SlideTrack>
       </div>
+      
+      <SuccessModal 
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </main>
   );
 }

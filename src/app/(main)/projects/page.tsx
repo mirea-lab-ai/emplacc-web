@@ -75,7 +75,19 @@ export default function ProjectsPage() {
                               : 'text-slate-300 hover:text-white',
                           ].join(' ')}
                         >
-                          {p.name}
+                          <div className="flex items-center justify-between">
+                            <span>{p.name}</span>
+                            {p.status && p.status.trim() !== '' && (
+                              <span className={[
+                                'text-xs px-2 py-1 rounded-full',
+                                selected?.id === p.id 
+                                  ? 'bg-black/20 text-black' 
+                                  : 'bg-white/10 text-slate-400'
+                              ].join(' ')}>
+                                {p.status}
+                              </span>
+                            )}
+                          </div>
                         </button>
                       </li>
                     ))}
@@ -87,7 +99,17 @@ export default function ProjectsPage() {
             )}
             {tab === 'board' && selected && <ProjectsBoardPanel projectId={selected.id} />}
             {tab === 'teams' && selected && <ProjectsTeamsPanel projectId={selected.id} />}
-            {tab === 'settings' && selected && <ProjectsSettingsPanel />}
+            {tab === 'settings' && selected && (
+              <ProjectsSettingsPanel 
+                project={selected} 
+                onProjectUpdate={(updatedProject) => {
+                  // Обновляем выбранный проект
+                  setSelected(updatedProject);
+                  // Обновляем список проектов
+                  setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+                }}
+              />
+            )}
           </section>
         </div>
       </div>

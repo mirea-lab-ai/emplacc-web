@@ -84,7 +84,7 @@ export default function ProjectTeamsSimple({ groups: initial }: { groups: Simple
       <AddMemberModal
         open={!!addFor}
         onClose={() => setAddFor(null)}
-        onCreate={m => { if (addFor) addMember(addFor, m as any); }}
+        teamId={addFor || ''}
       />
     </div>
   );

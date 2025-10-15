@@ -17,7 +17,7 @@ export default function DeleteBoardModal({ boardName, onConfirm, onCancel, isDel
         
         <div className="mb-6">
           <p className="text-slate-300 mb-2">
-            Вы уверены, что хотите удалить доску <span className="font-semibold text-white">"{boardName}"</span>?
+            Вы уверены, что хотите удалить доску <span className="font-semibold text-white">&ldquo;{boardName}&rdquo;</span>?
           </p>
           <p className="text-sm text-slate-400">
             Это действие нельзя отменить. Все данные доски будут потеряны.

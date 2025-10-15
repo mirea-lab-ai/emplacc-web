@@ -1,0 +1,26 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createReport, fetchUserReports, type CreateReportRequest } from './api';
+
+// Удален useMyHelpRequests - функция не существует в API
+
+export function useCreateReport() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (payload: CreateReportRequest) => createReport(payload),
+    onSuccess: () => {
+      // Инвалидировать кеш для отчетов
+      queryClient.invalidateQueries({ queryKey: ['userReports'] });
+    },
+  });
+}
+
+export function useUserReports(userId: string | null, page = 1, pageSize = 1, enabled = true) {
+  return useQuery({
+    queryKey: ['userReports', userId, page, pageSize],
+    queryFn: () => fetchUserReports(userId!, page, pageSize),
+    enabled: enabled && !!userId,
+    staleTime: 5 * 60 * 1000, // 5 минут
+    gcTime: 10 * 60 * 1000, // 10 минут
+  });
+}

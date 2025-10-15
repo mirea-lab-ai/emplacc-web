@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createProject, type CreateProjectRequest } from './api';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { createProject, fetchAllUserProjects, type CreateProjectRequest } from './api';
 
 export function useCreateProject() {
   const queryClient = useQueryClient();
@@ -10,5 +10,15 @@ export function useCreateProject() {
       // Инвалидировать кеш для всех проектов
       queryClient.invalidateQueries({ queryKey: ['userProjects'] });
     },
+  });
+}
+
+export function useAllUserProjects(enabled = true) {
+  return useQuery({
+    queryKey: ['allUserProjects'],
+    queryFn: () => fetchAllUserProjects(),
+    enabled,
+    staleTime: 5 * 60 * 1000, // 5 минут
+    gcTime: 10 * 60 * 1000, // 10 минут
   });
 }

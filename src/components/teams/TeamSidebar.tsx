@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import TrashIcon from '@/components/ui/icons/TrashIcon';
 import { Team } from './types';
 
 export default function TeamSidebar({
@@ -8,11 +9,13 @@ export default function TeamSidebar({
                                       activeId,
                                       onSelect,
                                       onAddTeam,
+                                      onDeleteTeam,
                                     }: {
   teams: Team[];
   activeId?: string;
   onSelect: (id: string) => void;
   onAddTeam: () => void;
+  onDeleteTeam: (id: string, name: string) => void;
 }) {
   const hasTeams = teams.length > 0;
 
@@ -39,7 +42,7 @@ export default function TeamSidebar({
       </button>
 
       {!hasTeams ? (
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-lime-400 ring-1 ring-white/10 px-4 py-3 text-slate-400">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-lime-400 ring-1 ring-white/10 px-4 py-3 text-slate-900">
           Вы не состоите ни в одной команде
         </div>
       ) : (
@@ -47,7 +50,7 @@ export default function TeamSidebar({
           {teams.map((t) => {
             const active = t.id === activeId;
             return (
-              <li key={t.id}>
+              <li key={t.id} className="group relative">
                 <button
                   onClick={() => onSelect(t.id)}
                   className={[
@@ -64,7 +67,7 @@ export default function TeamSidebar({
                         : 'opacity-0',
                     ].join(' ')}
                   />
-                  <div className="relative z-[1]">
+                  <div className="relative z-[1] pr-8">
                     <div className={['font-semibold',
                                      active ? 'text-black' : 'text-white',].join(' ')}>
                         {t.name}
@@ -74,6 +77,22 @@ export default function TeamSidebar({
                         Тимлид: {t.lead.name}
                     </div>
                   </div>
+                </button>
+                
+                {/* Иконка мусорки при наведении */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTeam(t.id, t.name);
+                  }}
+                  className={[
+                    'absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded transition-all opacity-0 group-hover:opacity-100',
+                    'text-slate-400 hover:text-red-400 hover:bg-red-400/10',
+                    active ? 'text-slate-600 hover:text-red-500' : ''
+                  ].join(' ')}
+                  title="Удалить команду"
+                >
+                  <TrashIcon className="w-4 h-4" />
                 </button>
               </li>
             );

@@ -1,27 +1,55 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Modal from '@/components/ui/ModalForHelp';
 import Avatar from '@/components/ui/Avatar';
 import SelectedChip from '@/components/ReportWizard/SelectedChip';
-import { useEmployeeSearch } from '@/hooks/useEmployeeSearch';
+import { useAllUsers } from '@/features/user/hooks';
+import { useIsClient } from '@/hooks/useIsClient';
+import { isAuthed, getUserId } from '@/lib/auth';
 import { Employee } from '@/lib/types';
 
 export default function HelpSearchModal({
-                                            open, onClose, employees, selected, onAdd, onRemove,
+                                            open, onClose, selected, onAdd, onRemove,
                                         }: {
     open: boolean;
     onClose: () => void;
-    employees: Employee[];
     selected: Employee[];
     onAdd: (e: Employee) => void;
     onRemove: (id: string) => void;
 }) {
+    const isClient = useIsClient();
+    const hasCreds = isClient && isAuthed();
+    const { data: users, isLoading } = useAllUsers(1, 100, hasCreds);
     const [query, setQuery] = useState('');
-    const results = useEmployeeSearch(
-        employees ?? [],
-        query ?? '',
-        (selected ?? []).map((s) => s.id)
-    );
+    
+    // Исключаем текущего пользователя и уже выбранных
+    const availableUsers = useMemo(() => {
+        if (!users) return [];
+        const currentUserId = getUserId();
+        const selectedIds = selected.map(s => s.id);
+        
+        return users
+            .filter(user => user.id !== currentUserId && !selectedIds.includes(user.id))
+            .map(user => ({
+                id: user.id,
+                name: `${user.firstName} ${user.lastName}`.trim(),
+                email: user.email,
+                avatarUrl: undefined,
+                role: user.profession,
+            }));
+    }, [users, selected]);
+    
+    // Фильтруем по поисковому запросу
+    const results = useMemo(() => {
+        if (!query.trim()) return availableUsers;
+        
+        const searchTerm = query.toLowerCase();
+        return availableUsers.filter(user => 
+            user.name.toLowerCase().includes(searchTerm) ||
+            user.email?.toLowerCase().includes(searchTerm) ||
+            user.role?.toLowerCase().includes(searchTerm)
+        );
+    }, [availableUsers, query]);
     if (!open) return null;
 
     return (
@@ -61,7 +89,9 @@ export default function HelpSearchModal({
                         <div className="rounded-xl bg-white/5 ring-1 ring-white/10 p-3">
                             <div className="text-sm text-slate-300 mb-2">Результаты</div>
                             <div className="flex flex-col gap-2 max-h-56 overflow-auto">
-                                {results.length === 0
+                                {isLoading
+                                    ? <div className="text-slate-400 text-sm">Загрузка пользователей...</div>
+                                    : results.length === 0
                                     ? <div className="text-slate-400 text-sm">Ничего не найдено…</div>
                                     : results.map(emp => (
                                         <button key={emp.id} onClick={()=>onAdd(emp)}

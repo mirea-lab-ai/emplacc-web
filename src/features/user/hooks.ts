@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchUser, updateUser, type UpdateUserRequest } from './api';
+import { fetchUser, fetchAllUsers, updateUser, type UpdateUserRequest } from './api';
 
 export function useUser(userId: string | null, enabled = true) {
   return useQuery({
@@ -7,6 +7,16 @@ export function useUser(userId: string | null, enabled = true) {
     queryFn: () => fetchUser(userId!),
     enabled: enabled && !!userId,
     staleTime: 30_000,
+  });
+}
+
+export function useAllUsers(page = 1, pageSize = 100, enabled = true) {
+  return useQuery({
+    queryKey: ['allUsers', page, pageSize],
+    queryFn: () => fetchAllUsers(page, pageSize),
+    enabled,
+    staleTime: 5 * 60 * 1000, // 5 минут
+    gcTime: 10 * 60 * 1000, // 10 минут
   });
 }
 

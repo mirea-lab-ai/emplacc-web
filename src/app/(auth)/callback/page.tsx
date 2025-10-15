@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiValidate } from '@/features/auth/api';
 import { setSession, clearTokens } from '@/lib/auth';
 import { readAndClearAuthState } from '@/lib/pkce';
 
-export default function OAuthCallbackPage() {
+function CallbackContent() {
     const router = useRouter();
     const params = useSearchParams();
     const [error, setError] = useState<string | null>(null);
@@ -29,12 +29,10 @@ export default function OAuthCallbackPage() {
                 const p = JSON.parse(atob(b64));
                 const uid = p && p.sub ? String(p.sub) : undefined;
                 setSession({ access: access_token!, refresh: refresh_token!, userId: uid });
-                console.log('validate-check', { iss: p.iss, azp: p.azp, aud: p.aud, sub: p.sub, expISO: new Date(p.exp*1000).toISOString() });
                 
                 await apiValidate();
                 router.replace('/');
             } catch (e) {
-                console.log("OAuth failed", e);
                 setError('OAuth failed');
                 clearTokens();
             }
@@ -70,8 +68,13 @@ async function exchangeCodeForTokens(code: string, redirectUri: string, codeVeri
     if (!r.ok) throw new Error('Token exchange failed');
     const json = await r.json();
     if (!json.access_token || !json.refresh_token) throw new Error('Missing tokens');
-    console.log(json.access_token);
     return { access_token: json.access_token as string, refresh_token: json.refresh_token as string };
 }
 
-
+export default function OAuthCallbackPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CallbackContent />
+        </Suspense>
+    );
+}

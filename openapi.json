@@ -605,64 +605,6 @@
                 }
             }
         },
-        "/auth/oauth": {
-            "post": {
-                "description": "Выполняет аутентификацию с использованием OAuth кода авторизации",
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Аутентификация через OAuth",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.OAuthRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для OAuth аутентификации",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Успешная OAuth аутентификация",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.AuthResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Ошибка OAuth аутентификации",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/auth/refresh": {
             "post": {
                 "description": "Получение нового access_token и refresh_token на основе существующего refresh_token",
@@ -707,125 +649,6 @@
                     },
                     "401": {
                         "description": "Неверный или истёкший refresh_token",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/register": {
-            "post": {
-                "description": "Создает нового пользователя в Keycloak с указанным email",
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Регистрация нового пользователя",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.RegisterRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для регистрации",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Пользователь успешно зарегистрирован",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при создании пользователя",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/totp": {
-            "post": {
-                "description": "Выполняет аутентификацию с использованием email, пароля и TOTP кода",
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Аутентификация с двухфакторной аутентификацией",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.TOTPRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для TOTP аутентификации",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Успешная TOTP аутентификация",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.AuthResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в запросе",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Неверные учетные данные или TOTP код",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5814,100 +5637,6 @@
                 }
             }
         },
-        "/task/project/{projectId}/{page}/{pagesize}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Получает список задач, связанных с указанным проектом через доски и статусы",
-                "tags": [
-                    "Tasks"
-                ],
-                "summary": "Получение задач по ID проекта",
-                "parameters": [
-                    {
-                        "description": "ID проекта",
-                        "name": "projectId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "description": "Размер страницы",
-                        "name": "pagesize",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список задач успешно получен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.TaskListResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный идентификатор проекта",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при получении задач",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/task/user/{id}/{page}/{pagesize}": {
             "get": {
                 "security": [
@@ -6659,7 +6388,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/request.TeamAddUserRequest"
+                                "$ref": "#/components/schemas/request.TeamAddUsersRequest"
                             }
                         }
                     },
@@ -6792,6 +6521,95 @@
                     },
                     "500": {
                         "description": "Ошибка сервера при удалении пользователя из команды",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/team/user/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получает список всех активных команд, в которых состоит пользователь",
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Получение команд пользователя",
+                "parameters": [
+                    {
+                        "description": "ID пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список команд успешно получен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/response.TeamsListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный идентификатор пользователя",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Команды для пользователя не найдены",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении команд",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7054,6 +6872,85 @@
                 }
             }
         },
+        "/user": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создаёт пользователя с автоматически сгенерированным UUID",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Создание нового пользователя",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/request.UserCreateRequest"
+                            }
+                        }
+                    },
+                    "description": "Данные для создания пользователя",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Пользователь успешно создан",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка при привязке данных",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при создании пользователя",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/user/all/{page}/{pagesize}": {
             "get": {
                 "security": [
@@ -7125,85 +7022,6 @@
                     },
                     "500": {
                         "description": "Ошибка сервера при получении пользователей",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/user/create": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Создаёт пользователя с автоматически сгенерированным UUID",
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Создание нового пользователя",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/request.UserCreateRequest"
-                            }
-                        }
-                    },
-                    "description": "Данные для создания пользователя",
-                    "required": true
-                },
-                "responses": {
-                    "201": {
-                        "description": "Пользователь успешно создан",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка при привязке данных",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Нет или неверный токен",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка при создании пользователя",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8099,17 +7917,6 @@
                     }
                 }
             },
-            "request.OAuthRequest": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "string"
-                    },
-                    "redirect_uri": {
-                        "type": "string"
-                    }
-                }
-            },
             "request.ProblemCreateRequest": {
                 "type": "object",
                 "properties": {
@@ -8145,32 +7952,6 @@
                 ],
                 "properties": {
                     "refresh_token": {
-                        "type": "string"
-                    }
-                }
-            },
-            "request.RegisterRequest": {
-                "type": "object",
-                "required": [
-                    "email",
-                    "first_name",
-                    "last_name",
-                    "password"
-                ],
-                "properties": {
-                    "email": {
-                        "type": "string"
-                    },
-                    "first_name": {
-                        "type": "string"
-                    },
-                    "last_name": {
-                        "type": "string"
-                    },
-                    "password": {
-                        "type": "string"
-                    },
-                    "profession": {
                         "type": "string"
                     }
                 }
@@ -8303,20 +8084,6 @@
                     }
                 }
             },
-            "request.TOTPRequest": {
-                "type": "object",
-                "properties": {
-                    "email": {
-                        "type": "string"
-                    },
-                    "password": {
-                        "type": "string"
-                    },
-                    "totp": {
-                        "type": "string"
-                    }
-                }
-            },
             "request.TaskCreateRequest": {
                 "type": "object",
                 "required": [
@@ -8409,14 +8176,17 @@
                     }
                 }
             },
-            "request.TeamAddUserRequest": {
+            "request.TeamAddUsersRequest": {
                 "type": "object",
                 "properties": {
                     "team_id": {
                         "type": "string"
                     },
-                    "user_id": {
-                        "type": "string"
+                    "user_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -8431,6 +8201,12 @@
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "user_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -8471,6 +8247,9 @@
                 "type": "object",
                 "properties": {
                     "description": {
+                        "type": "string"
+                    },
+                    "task_id": {
                         "type": "string"
                     }
                 }
@@ -9439,7 +9218,7 @@
             "response.StatusByBoardIdResponse": {
                 "type": "object",
                 "properties": {
-                    "project_id": {
+                    "board_id": {
                         "type": "string"
                     },
                     "statuses": {
@@ -9829,6 +9608,9 @@
                         "type": "string"
                     },
                     "id": {
+                        "type": "string"
+                    },
+                    "task_id": {
                         "type": "string"
                     }
                 }

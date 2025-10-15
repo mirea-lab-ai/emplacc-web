@@ -5,6 +5,7 @@ type WizardNavProps = {
   onNext?: () => void;
   onFinish?: () => void;
   nextDisabled?: boolean;
+  isLoading?: boolean;
 };
 
 export default function WizardNav({
@@ -12,6 +13,7 @@ export default function WizardNav({
                                     onNext,
                                     onFinish,
                                     nextDisabled,
+                                    isLoading = false,
                                   }: WizardNavProps) {
   return (
     <div className="flex justify-between mt-6">
@@ -29,9 +31,15 @@ export default function WizardNav({
       {onFinish ? (
         <button
           onClick={onFinish}
-          className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-8 py-3 font-semibold text-black hover:brightness-110 active:translate-y-px"
+          disabled={isLoading}
+          className={[
+            'rounded-xl px-8 py-3 font-semibold',
+            isLoading
+              ? 'bg-gradient-to-br from-emerald-700 to-lime-600 text-black/60 cursor-not-allowed'
+              : 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black hover:brightness-110 active:translate-y-px',
+          ].join(' ')}
         >
-          Завершить
+          {isLoading ? 'Создание отчета...' : 'Завершить'}
         </button>
       ) : (
         <button

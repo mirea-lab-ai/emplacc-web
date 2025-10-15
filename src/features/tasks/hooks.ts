@@ -1,5 +1,5 @@
 'use client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useQueries, type UseQueryResult } from '@tanstack/react-query';
 import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, updateTask, type CreateTaskRequest, type MoveTaskRequest, type UpdateTaskRequest } from './api';
 
 export function useMyTasks(page = 1, pageSize = 20, enabled = false) {
@@ -80,6 +80,18 @@ export function useTaskById(taskId: string | null, enabled = true) {
         enabled: enabled && !!taskId,
         staleTime: 5 * 60 * 1000, // 5 минут
         gcTime: 10 * 60 * 1000, // 10 минут
+    });
+}
+
+export function useTasksByIds(taskIds: string[], enabled = true): UseQueryResult<any, unknown>[] {
+    return useQueries({
+        queries: taskIds.map((taskId) => ({
+            queryKey: ['taskById', taskId],
+            queryFn: () => fetchTaskById(taskId),
+            enabled: enabled && !!taskId,
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
+        })),
     });
 }
 

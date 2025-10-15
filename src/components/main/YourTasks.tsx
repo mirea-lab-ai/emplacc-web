@@ -6,7 +6,22 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
 import type { UITask } from '@/features/tasks/types';
 import { getTaskPriorityMeta } from '@/features/tasks/types';
-import {getUserId, isAuthed} from "@/lib/auth";
+import { getUserId, isAuthed } from '@/lib/auth';
+
+const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
+
+const isTaskClosed = (task: UITask) => {
+  if (!Array.isArray(task.statuses) || task.statuses.length === 0) {
+    return false;
+  }
+
+  return task.statuses.some((statusName) => {
+    if (typeof statusName !== 'string') return false;
+    const normalized = statusName.trim().toLowerCase();
+    if (!normalized) return false;
+    return CLOSED_STATUS_KEYWORDS.some((keyword) => normalized.includes(keyword));
+  });
+};
 
 const formatDueDate = (value: string) => {
   const date = new Date(value);
@@ -31,13 +46,24 @@ export default function YourTasks() {
     const { data, isLoading, error } = useMyTasks(1, 20, hasCreds);
     const tasks = (data ?? []) as UITask[];
 
-    const sorted = useMemo(() => {
-    const arr = [...tasks];
-    arr.sort((a, b) => {
-      return getTaskPriorityMeta(a.priority).order - getTaskPriorityMeta(b.priority).order;
-    });
-    return arr;
-  }, [tasks]);
+    const { sortedTasks, hiddenCount } = useMemo(() => {
+      const openTasks: UITask[] = [];
+      let hidden = 0;
+
+      for (const task of tasks) {
+        if (isTaskClosed(task)) {
+          hidden += 1;
+          continue;
+        }
+        openTasks.push(task);
+      }
+
+      openTasks.sort((a, b) => {
+        return getTaskPriorityMeta(a.priority).order - getTaskPriorityMeta(b.priority).order;
+      });
+
+      return { sortedTasks: openTasks, hiddenCount: hidden };
+    }, [tasks]);
     if (!isClient) {
         return (
             <Panel className="p-6 h-[680px] overflow-hidden t-surface">
@@ -60,12 +86,23 @@ export default function YourTasks() {
           <div className="text-center text-slate-400 py-8">Загрузка задач...</div>
         ) : error ? (
           <div className="text-center text-red-400 py-8">Ошибка загрузки задач</div>
-        ) : sorted.length === 0 ? (
-          <div className="text-center text-slate-400 py-8">У вас пока нет задач</div>
+        ) : sortedTasks.length === 0 ? (
+          <div className="text-center text-slate-400 py-8">
+            {tasks.length > 0
+              ? 'Все ваши задачи уже в завершённых статусах — отличный результат!'
+              : 'У вас пока нет задач'}
+          </div>
         ) : (
-          sorted.map((t) => (
-            <TaskRow key={t.id} t={t}/>
-          ))
+          <>
+            {hiddenCount > 0 && (
+              <div className="text-xs text-emerald-200/80 px-1">
+                Скрыто {hiddenCount} завершённых задач из списка «Ваши задачи»
+              </div>
+            )}
+            {sortedTasks.map((t) => (
+              <TaskRow key={t.id} t={t} />
+            ))}
+          </>
         )}
       </div>
     </Panel>

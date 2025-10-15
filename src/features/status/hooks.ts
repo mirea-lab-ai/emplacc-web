@@ -1,6 +1,6 @@
 // src/features/status/hooks.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchBoardStatus, createStatus, deleteStatus, type CreateStatusRequest } from './api';
+import { useQuery, useMutation, useQueryClient, useQueries, type UseQueryResult } from '@tanstack/react-query';
+import { fetchBoardStatus, createStatus, deleteStatus, type CreateStatusRequest, type BoardStatus } from './api';
 
 export function useBoardStatus(boardId: string | null, enabled = true) {
     return useQuery({
@@ -35,6 +35,18 @@ export function useDeleteStatus() {
             // Инвалидировать все кеши статусов, так как мы не знаем board_id
             queryClient.invalidateQueries({ queryKey: ['boardStatus'] });
         },
+    });
+}
+
+export function useBoardStatusesByIds(boardIds: string[], enabled = true): UseQueryResult<BoardStatus, unknown>[] {
+    return useQueries({
+        queries: boardIds.map((boardId) => ({
+            queryKey: ['boardStatus', boardId],
+            queryFn: () => fetchBoardStatus(boardId),
+            enabled: enabled && !!boardId,
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
+        })),
     });
 }
 

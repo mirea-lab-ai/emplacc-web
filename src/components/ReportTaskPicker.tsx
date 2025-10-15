@@ -82,10 +82,11 @@ export default function ReportTaskPicker({
                   className={[
                     'mt-4 overflow-hidden transition-all duration-300',
                     'max-h-0 opacity-0 translate-y-2',
-                    'data-[open=true]:max-h-56 data-[open=true]:opacity-100 data-[open=true]:translate-y-0',
+                    'data-[open=true]:max-h-[60vh] data-[open=true]:overflow-y-auto data-[open=true]:pr-2 data-[open=true]:-mr-2',
+                    'data-[open=true]:opacity-100 data-[open=true]:translate-y-0',
                   ].join(' ')}
                 >
-                  <ul className="space-y-2">
+                  <ul className="space-y-2 pr-2">
                     {t.subtasks.map((s) => {
                       const key = `${t.id}:${s.id}`;
                       const isPicked = selected.has(key);

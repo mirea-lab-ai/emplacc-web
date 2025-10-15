@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Panel from '@/components/ui/Panel';
 import TaskDetailModal from './TaskDetailModal';
 import PlanItem from './PlanItem';
 import { useUserReports } from '@/features/reports/hooks';
+import { useTasksByIds } from '@/features/tasks/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 
@@ -16,10 +17,26 @@ export type PlanItem = {
 };
 
 type TaskPlanItem = {
+  planId: string;
+  boardId: string | null;
   taskId: string;
-  taskName: string;
   description: string;
 };
+
+const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
+
+function isStatusClosed(status: any): boolean {
+  if (!status) return false;
+  if (typeof status.is_open === 'boolean') {
+    return status.is_open === false;
+  }
+  if (typeof status.is_active === 'boolean') {
+    return status.is_active === false;
+  }
+  const raw = String(status.name ?? status.key ?? '').trim().toLowerCase();
+  if (!raw) return false;
+  return CLOSED_STATUS_KEYWORDS.some((keyword) => raw.includes(keyword));
+}
 
 export default function TodayPlan({ items }: { items: PlanItem[] }) {
   const [selectedTask, setSelectedTask] = useState<{ name: string; description: string } | null>(null);
@@ -33,24 +50,106 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
   const { data: reportsData, isLoading: reportsLoading, error: reportsError } = useUserReports(userId, 1, 1, hasCreds);
 
   // Извлекаем plan_tomorrow из первого отчета
-  const planItems = useMemo(() => {
+  const planItems = useMemo((): Array<{ raw: unknown }> => {
     if (!reportsData?.reports?.[0]?.plan_tomorrow) return [];
-    return reportsData.reports[0].plan_tomorrow.map((item: any) => ({
-      taskId: item.task_id,
-      description: item.description || '',
+    return reportsData.reports[0].plan_tomorrow.map((item: unknown) => ({
+      raw: item,
     }));
   }, [reportsData]);
 
   // Объединяем данные задач с планами
   const taskPlanItems: TaskPlanItem[] = useMemo(() => {
     if (!planItems.length) return [];
-    
-    return planItems.map((planItem: any) => ({
-      taskId: planItem.taskId,
-      taskName: 'Загрузка...', // Будем обновлять через отдельные запросы
-      description: planItem.description,
-    }));
+
+    const result: TaskPlanItem[] = [];
+    planItems.forEach((planItem) => {
+      const raw: any = planItem.raw;
+      const rawId = typeof raw?.id === 'string' ? raw.id : '';
+      const taskIdFromRaw = typeof raw?.task_id === 'string' ? raw.task_id : undefined;
+      const parts = rawId.includes(':') ? rawId.split(':') : [];
+      const boardIdFromId = parts.length === 2 ? parts[0] : undefined;
+      const taskIdFromId = parts.length === 2 ? parts[1] : undefined;
+      const boardId = typeof raw?.board_id === 'string' && raw.board_id ? raw.board_id : boardIdFromId ?? null;
+      const taskId = taskIdFromRaw ?? taskIdFromId;
+
+      if (!taskId) {
+        return;
+      }
+
+      result.push({
+        planId: rawId || `${boardId ?? 'plan'}:${taskId}`,
+        boardId,
+        taskId: String(taskId),
+        description: typeof raw?.description === 'string' ? raw.description : '',
+      });
+    });
+
+    return result;
   }, [planItems]);
+
+  const taskIds = useMemo(() => taskPlanItems.map((item) => item.taskId), [taskPlanItems]);
+  const taskQueries = useTasksByIds(taskIds, hasCreds && taskIds.length > 0);
+
+  let closedTasksCount = 0;
+  const combinedPlan = taskPlanItems.map((planItem, index) => {
+    const query = taskQueries[index];
+    const data = query?.data as any | undefined;
+    const statuses: any[] = Array.isArray(data?.statuses) ? data.statuses : [];
+    const statusIdFromTask = data?.status_id ?? data?.statusId ?? data?.status?.id ?? null;
+    let statusContainingTask = statuses.find((status) =>
+      Array.isArray(status?.tasks) && status.tasks.some((task: any) => String(task?.id) === planItem.taskId)
+    );
+    if (!statusContainingTask && statusIdFromTask != null) {
+      statusContainingTask = statuses.find((status) => String(status?.id) === String(statusIdFromTask));
+    }
+    const taskIsClosed = statusContainingTask ? isStatusClosed(statusContainingTask) : false;
+    const loading = !data && query?.isLoading;
+    const resolvedName = typeof data?.name === 'string' && data.name.trim().length > 0
+      ? data.name
+      : loading
+        ? 'Загрузка...'
+        : query?.isError
+          ? 'Не удалось загрузить задачу'
+          : 'Задача не найдена';
+    let isClosed = taskIsClosed;
+
+    if (!isClosed && statusContainingTask == null) {
+      isClosed = statuses.some((status) => isStatusClosed(status));
+    }
+
+    if (isClosed) {
+      closedTasksCount += 1;
+    }
+
+    const helperText = query?.isError
+      ? 'Не удалось получить информацию о задаче'
+      : isClosed
+        ? 'Задача уже в завершенном статусе'
+        : null;
+
+    return {
+      taskId: planItem.taskId,
+      boardId: planItem.boardId,
+      description: planItem.description,
+      taskName: resolvedName,
+      loading: Boolean(loading),
+      isClosed,
+      helperText,
+      planId: planItem.planId,
+    };
+  });
+
+  const visibleTasks = combinedPlan.filter((item) => {
+    if (!item.taskId) {
+      return true;
+    }
+    if (item.loading) {
+      return true;
+    }
+    return !item.isClosed;
+  });
+
+  const allTasksClosed = taskPlanItems.length > 0 && visibleTasks.length === 0;
 
   const handleTaskClick = (taskName: string, description: string) => {
     setSelectedTask({ name: taskName, description });
@@ -137,20 +236,34 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
       </div>
 
       <div className="flex-1 min-h-0">
-        {taskPlanItems.length ? (
-          <ul className="space-y-2 h-full overflow-auto pr-1 custom-scroll">
-            {taskPlanItems.map((item) => (
-              <PlanItem
-                key={item.taskId}
-                taskId={item.taskId}
-                description={item.description}
-                onClick={handleTaskClick}
-              />
-            ))}
-          </ul> 
+        {visibleTasks.length ? (
+          <>
+            {closedTasksCount > 0 && (
+              <div className="text-xs text-emerald-200/80 px-1 mb-2">
+                Скрыто {closedTasksCount} завершенных задач из плана
+              </div>
+            )}
+            <ul className="space-y-2 h-full overflow-auto pr-1 custom-scroll">
+              {visibleTasks.map((item) => (
+                <PlanItem
+                  key={item.planId}
+                  taskName={item.taskName}
+                  description={item.description}
+                  loading={item.loading}
+                  disabled={item.isClosed}
+                  helperText={item.helperText}
+                  onClick={handleTaskClick}
+                />
+              ))}
+            </ul>
+          </>
         ) : (
           <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 ring-1 ring-white/10 text-slate-400">
-            {reportsData ? 'Вы не составили план в прошлом отчете' : 'Нет данных отчетов'}
+            {allTasksClosed
+              ? 'Все задачи из плана уже завершены — отлично! Составьте новый план в свежем отчете.'
+              : reportsData
+                ? 'Вы не составили план в прошлом отчете'
+                : 'Нет данных отчетов'}
           </div>
         )}
       </div>

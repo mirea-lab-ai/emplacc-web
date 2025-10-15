@@ -9,6 +9,9 @@ export type UIStatus = {
     description?: string;
     order?: number;
     color?: string;
+    key?: string;
+    isOpen?: boolean;
+    isActive?: boolean;
     tasks?: UITask[];
 };
 
@@ -60,6 +63,9 @@ export async function fetchBoardStatus(boardId: string): Promise<BoardStatus> {
             description: s.description,
             order: s.order ?? s.position ?? 0,
             color: s.color ?? '#3B82F6',
+            key: typeof s.key === 'string' ? s.key : undefined,
+            isOpen: typeof s.is_open === 'boolean' ? s.is_open : undefined,
+            isActive: typeof s.is_active === 'boolean' ? s.is_active : undefined,
             tasks: Array.isArray(s.tasks) ? await Promise.all(s.tasks.map(resolveAssignees)) : [],
         }))
     );

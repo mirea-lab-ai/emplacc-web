@@ -1,33 +1,39 @@
 'use client';
 
-import { useTaskById } from '@/features/tasks/hooks';
-import { useIsClient } from '@/hooks/useIsClient';
-import { isAuthed } from '@/lib/auth';
-
 type Props = {
-  taskId: string;
+  taskName: string;
   description: string;
+  loading?: boolean;
   onClick: (taskName: string, description: string) => void;
+  disabled?: boolean;
+  helperText?: string | null;
 };
 
-export default function PlanItem({ taskId, description, onClick }: Props) {
-  const isClient = useIsClient();
-  const hasCreds = isClient && isAuthed();
-  
-  const { data: taskData, isLoading } = useTaskById(taskId, hasCreds);
-
-  const taskName = taskData?.name || (isLoading ? 'Загрузка...' : 'Задача не найдена');
+export default function PlanItem({ taskName, description, loading, onClick, disabled, helperText }: Props) {
+  const displayName = loading ? 'Загрузка...' : taskName || 'Задача не найдена';
+  const isInactive = loading || disabled;
+  const baseClasses = 'rounded-xl px-4 py-2 backdrop-blur-sm border border-white/20 text-white ring-1 ring-white/10 transition-colors';
+  const stateClasses = isInactive
+    ? 'bg-white/5 cursor-not-allowed opacity-60'
+    : 'bg-white/10 hover:bg-white/20 cursor-pointer';
 
   return (
     <li
-      onClick={() => onClick(taskName, description)}
-      className="rounded-xl px-4 py-2 backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 cursor-pointer transition-colors"
+      onClick={() => {
+        if (!isInactive) {
+          onClick(displayName, description);
+        }
+      }}
+      className={`${baseClasses} ${stateClasses}`}
     >
-      <div className="font-medium mb-1">{taskName}</div>
+      <div className="font-medium mb-1">{displayName}</div>
       {description && (
         <div className="text-slate-400 text-sm truncate">
           {description}
         </div>
+      )}
+      {helperText && (
+        <div className="text-slate-500 text-xs mt-1">{helperText}</div>
       )}
     </li>
   );

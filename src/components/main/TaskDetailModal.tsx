@@ -1,5 +1,6 @@
 'use client';
 
+import { Box, Button, Heading, Text } from '@chakra-ui/react';
 import Modal from '@/components/ui/Modal';
 
 type Props = {
@@ -14,28 +15,39 @@ export default function TaskDetailModal({ open, onClose, taskName, taskDescripti
 
   return (
     <Modal open onClose={onClose}>
-      <div className="w-full max-w-lg rounded-xl border border-white/20 bg-white/5 p-6 shadow-lg backdrop-blur-sm">
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white mb-2">{taskName}</h2>
-          <div className="h-px bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
-        </div>
+      <Box
+        w="full"
+        maxW="lg"
+        borderWidth="1px"
+        borderColor="whiteAlpha.200"
+        bg="whiteAlpha.100"
+        p={6}
+        borderRadius="xl"
+        boxShadow="lg"
+        backdropFilter="blur(12px)"
+      >
+        <Box mb={4}>
+          <Heading size="md" color="white" mb={2}>
+            {taskName}
+          </Heading>
+          <Box h="1px" bgGradient="linear(to-r, green.300, transparent)" opacity={0.6} />
+        </Box>
 
-        <div className="mb-6">
-          <h3 className="text-slate-200 text-sm font-medium mb-2">Описание</h3>
-          <div className="text-slate-300 leading-relaxed whitespace-pre-wrap">
+        <Box mb={6} color="gray.200">
+          <Text fontSize="sm" fontWeight="medium" mb={2}>
+            Описание
+          </Text>
+          <Text color="gray.300" whiteSpace="pre-wrap" lineHeight="tall">
             {taskDescription || 'Описание отсутствует'}
-          </div>
-        </div>
+          </Text>
+        </Box>
 
-        <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            className="rounded-lg bg-gradient-to-br from-emerald-500 to-lime-400 px-6 py-2 font-semibold text-black hover:brightness-110 active:translate-y-px transition-all"
-          >
+        <Box display="flex" justifyContent="flex-end">
+          <Button colorScheme="green" fontWeight="semibold" onClick={onClose}>
             Закрыть
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
     </Modal>
   );
 }

@@ -62,7 +62,15 @@ export default function Card({
             <div className="font-medium">{task.title}</div>
             {task.due && <div className="text-slate-400 text-sm mt-1">До: {new Date(task.due).toLocaleDateString()}</div>}
             <div className="mt-2">
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${priorityMeta.badgeClass}`}>
+                <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={{
+                        backgroundColor: priorityMeta.badgeStyles.bg,
+                        color: priorityMeta.badgeStyles.color,
+                        border: `1px solid ${priorityMeta.badgeStyles.borderColor}`,
+                        boxShadow: priorityMeta.badgeStyles.boxShadow,
+                    }}
+                >
                     {priorityMeta.label}
                 </span>
             </div>

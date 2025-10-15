@@ -1,33 +1,38 @@
 {
-  "name": "emplacc2",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "gen:api": "openapi-typescript https://api.emplacc.g-309.ru/swagger/doc.json -o src/types/openapi.d.ts",
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@tanstack/react-query": "^5.89.0",
-    "lucide-react": "^0.544.0",
-    "next": "15.4.7",
-    "openapi-fetch": "^0.14.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.7",
-    "openapi-typescript": "^7.9.1",
-    "swagger2openapi": "^7.0.8",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+	"name": "emplacc-web",
+	"version": "b0.1.7",
+	"private": true,
+	"scripts": {
+		"gen:api": "openapi-typescript https://api.emplacc.g-309.ru/swagger/doc.json -o src/types/openapi.d.ts",
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"@chakra-ui/next-js": "2.4.4",
+		"@chakra-ui/react": "3.27.1",
+		"@tanstack/react-query": "^5.90.3",
+		"@emotion/react": "^11.14.0",
+		"@emotion/styled": "^11.14.0",
+		"framer-motion": "12.23.24",
+		"lucide-react": "^0.545.0",
+		"next": "15.5.5",
+		"openapi-fetch": "^0.15.0",
+		"react": "19.2.0",
+		"react-dom": "19.2.0"
+	},
+	"devDependencies": {
+		"@eslint/eslintrc": "^3",
+		"@tailwindcss/postcss": "^4.1.14",
+		"@types/node": "^24.7.2",
+		"@types/react": "^19.2.2",
+		"@types/react-dom": "^19.2.2",
+		"eslint": "^9.37.0",
+		"eslint-config-next": "15.5.5",
+		"openapi-typescript": "^7.10.1",
+		"swagger2openapi": "^7.0.8",
+		"tailwindcss": "^4.1.14",
+		"typescript": "^5.9.3"
+	}
 }

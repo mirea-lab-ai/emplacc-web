@@ -1,5 +1,6 @@
 'use client';
 
+import { Box, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import { useState, useEffect, useMemo } from 'react';
 import Panel from '@/components/ui/Panel';
 import TaskDetailModal from './TaskDetailModal';
@@ -65,13 +66,13 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
   // Если загружаемся, показываем индикатор загрузки
   if (reportsLoading) {
     return (
-      <Panel className="p-5 h-full flex flex-col t-surface">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">План из вашего прошлого отчета</h2>
-        </div>
-        <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div className="text-slate-400">Загрузка планов...</div>
-        </div>
+      <Panel p={5} h="full" display="flex" flexDirection="column">
+        <Flex mb={2} align="center" justify="space-between">
+          <Heading size="md">План из вашего прошлого отчета</Heading>
+        </Flex>
+        <Flex flex="1" minH={0} align="center" justify="center" color="gray.300">
+          Загрузка планов...
+        </Flex>
       </Panel>
     );
   }
@@ -79,13 +80,13 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
   // Если есть ошибка, показываем её
   if (reportsError) {
     return (
-      <Panel className="p-5 h-full flex flex-col t-surface">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">План из вашего прошлого отчета</h2>
-        </div>
-        <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div className="text-red-400">Ошибка загрузки: {reportsError.message}</div>
-        </div>
+      <Panel p={5} h="full" display="flex" flexDirection="column">
+        <Flex mb={2} align="center" justify="space-between">
+          <Heading size="md">План из вашего прошлого отчета</Heading>
+        </Flex>
+        <Flex flex="1" minH={0} align="center" justify="center" color="red.300">
+          Ошибка загрузки: {reportsError.message}
+        </Flex>
       </Panel>
     );
   }
@@ -93,52 +94,96 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
   // Если нет авторизации, показываем мок данные
   if (!hasCreds) {
     return (
-      <Panel className="p-5 h-full flex flex-col t-surface">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">План из вашего прошлого отчета</h2>
-        </div>
+      <Panel p={5} h="full" display="flex" flexDirection="column">
+        <Flex mb={2} align="center" justify="space-between">
+          <Heading size="md">План из вашего прошлого отчета</Heading>
+        </Flex>
 
-        <div className="flex-1 min-h-0">
+        <Box flex="1" minH={0}>
           {items.length ? (
-            <ul className="space-y-2 h-full overflow-auto pr-1 custom-scroll">
+            <VStack
+              as="ul"
+              gap={2}
+              align="stretch"
+              h="full"
+              overflowY="auto"
+              pr={1}
+              listStyleType="none"
+            >
               {items.map((p) => (
-                <li
+                <Box
+                  as="li"
                   key={p.id}
-                  className="rounded-xl px-4 py-2  backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10"
+                  borderRadius="xl"
+                  px={4}
+                  py={2}
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                  bg="whiteAlpha.100"
+                  color="white"
+                  backdropFilter="blur(10px)"
                 >
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div className="font-medium">{p.task}</div>
+                  <Flex align="baseline" justify="space-between" gap={3}>
+                    <Text fontWeight="medium">{p.task}</Text>
                     {p.subtask && (
-                      <span className="text-s rounded-lg px-5 py-0.5 ring-1 bg-emerald-500/10 text-emerald-300">
+                      <Text
+                        fontSize="xs"
+                        borderRadius="lg"
+                        px={3}
+                        py={1}
+                        color="green.200"
+                        bg="rgba(16, 185, 129, 0.15)"
+                        borderWidth="1px"
+                        borderColor="rgba(16, 185, 129, 0.4)"
+                      >
                         {p.subtask}
-                      </span>
+                      </Text>
                     )}
-                  </div>
+                  </Flex>
                   {p.text && (
-                    <div className="text-slate-400 text-sm mt-0.5">{p.text}</div>
+                    <Text color="gray.300" fontSize="sm" mt={1}>
+                      {p.text}
+                    </Text>
                   )}
-                </li>
+                </Box>
               ))}
-            </ul>
+            </VStack>
           ) : (
-            <div className="grid h-full place-items-center rounded-xl bg-[#141c2f] ring-1 ring-white/10 text-slate-400">
+            <Flex
+              h="full"
+              align="center"
+              justify="center"
+              borderRadius="xl"
+              borderWidth="1px"
+              borderColor="whiteAlpha.200"
+              bg="blackAlpha.600"
+              color="gray.300"
+            >
               Вы не составили план в прошлом отчете
-            </div>
+            </Flex>
           )}
-        </div>
+        </Box>
       </Panel>
     );
   }
 
   return (
-    <Panel className="p-5 h-full flex flex-col t-surface">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">План из вашего прошлого отчета</h2>
-      </div>
+    <Panel p={5} h="full" display="flex" flexDirection="column">
+      <Flex mb={2} align="center" justify="space-between">
+        <Heading size="md">План из вашего прошлого отчета</Heading>
+      </Flex>
 
-      <div className="flex-1 min-h-0">
+      <Box flex="1" minH={0}>
         {taskPlanItems.length ? (
-          <ul className="space-y-2 h-full overflow-auto pr-1 custom-scroll">
+          <VStack
+            as="ul"
+            gap={2}
+            align="stretch"
+            h="full"
+            overflowY="auto"
+            pr={1}
+            listStyleType="none"
+          >
             {taskPlanItems.map((item) => (
               <PlanItem
                 key={item.taskId}
@@ -147,13 +192,22 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
                 onClick={handleTaskClick}
               />
             ))}
-          </ul> 
+          </VStack>
         ) : (
-          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 ring-1 ring-white/10 text-slate-400">
+          <Flex
+            h="full"
+            align="center"
+            justify="center"
+            borderRadius="xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            bg="whiteAlpha.100"
+            color="gray.300"
+          >
             {reportsData ? 'Вы не составили план в прошлом отчете' : 'Нет данных отчетов'}
-          </div>
+          </Flex>
         )}
-      </div>
+      </Box>
 
       <TaskDetailModal
         open={showModal}

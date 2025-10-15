@@ -1,27 +1,24 @@
 'use client';
 
-import * as React from 'react';
+import { forwardRef } from 'react';
+import { Box, type BoxProps } from '@chakra-ui/react';
 
-type PanelProps = React.HTMLAttributes<HTMLDivElement> & {
-  className?: string;
-  children?: React.ReactNode;
-};
+type PanelProps = BoxProps;
 
-/**
- * Универсальная карточка. Принимает любые HTML-атрибуты <div>,
- * в т.ч. onDragOver, onDrop, onClick и т.д.
- */
-const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
-  ({ className = '', children, ...rest }, ref) => {
-    const base =
-      'rounded-2xl ring-1 ring-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] t-surface';
-    return (
-      <div ref={ref} {...rest} className={`${base} ${className}`}>
+const Panel = forwardRef<HTMLDivElement, PanelProps>(({ children, ...rest }, ref) => (
+    <Box
+        ref={ref}
+        borderRadius="2xl"
+        borderWidth="1px"
+        borderColor="whiteAlpha.200"
+        bg="whiteAlpha.100"
+        boxShadow="0 10px 40px -10px rgba(0, 0, 0, 0.6)"
+        backdropFilter="blur(12px)"
+        {...rest}
+    >
         {children}
-      </div>
-    );
-  }
-);
+    </Box>
+));
 
 Panel.displayName = 'Panel';
 

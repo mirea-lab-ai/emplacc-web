@@ -1,11 +1,12 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { Box, Heading, Text, VStack } from '@chakra-ui/react';
 import Link from 'next/link';
 import { useAllProblems } from '@/features/problems/hooks';
-import { getUserId, isAuthed } from "@/lib/auth";
+import { getUserId, isAuthed } from '@/lib/auth';
 import { useIsClient } from '@/hooks/useIsClient';
-import type { UIProblem } from "@/features/problems/api";
+import type { UIProblem } from '@/features/problems/api';
 
 export type ForumNote = {
   id: string;
@@ -20,47 +21,73 @@ export default function ForumUpdates() {
   const { data, isLoading, error } = useAllProblems(1, 10, hasCreds);
   const problems = (data ?? []) as UIProblem[];
   return (
-    <Panel className="p-5 h-full flex flex-col t-surface">
-      <div className="mb-2">
-        <h2 className="text-lg font-semibold">Форум</h2>
-      </div>
+    <Panel p={5} h="full" display="flex" flexDirection="column">
+      <Box mb={2}>
+        <Heading size="md">Форум</Heading>
+      </Box>
 
-      <div className="flex-1 min-h-0">
+      <Box flex="1" minH={0}>
         {isLoading ? (
-          <div className="grid h-full place-items-center text-slate-400">
+          <Box display="grid" placeItems="center" h="full" color="gray.300">
             Загрузка проблем...
-          </div>
+          </Box>
         ) : error ? (
-          <div className="grid h-full place-items-center text-red-400">
+          <Box display="grid" placeItems="center" h="full" color="red.300">
             Ошибка загрузки проблем
-          </div>
+          </Box>
         ) : problems.length ? (
-          <ul className="space-y-2 h-full overflow-auto pr-1 custom-scroll">
+          <VStack
+            as="ul"
+            gap={2}
+            align="stretch"
+            h="full"
+            overflowY="auto"
+            pr={1}
+          >
             {problems.map((problem) => (
-              <li
+              <Box
+                as="li"
                 key={problem.id}
-                className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 px-4 py-2"
+                borderRadius="xl"
+                borderWidth="1px"
+                borderColor="whiteAlpha.200"
+                bg="whiteAlpha.100"
+                color="white"
+                backdropFilter="blur(10px)"
+                px={4}
+                py={3}
+                _hover={{ bg: 'whiteAlpha.200' }}
               >
                 <Link href={`/forum?problem=${problem.id}`}>
-                  <div className="font-semibold">{problem.name}</div>
+                  <Text fontWeight="semibold">{problem.name}</Text>
                   {problem.description && (
-                    <div className="text-slate-400 text-sm line-clamp-2">
+                    <Text color="gray.300" fontSize="sm" lineClamp={2}>
                       {problem.description}
-                    </div>
+                    </Text>
                   )}
-                  <div className="text-slate-400 text-xs mt-1">
+                  <Text color="gray.400" fontSize="xs" mt={1}>
                     {problem.createdAt ? new Date(problem.createdAt).toLocaleDateString() : ''}
-                  </div>
+                  </Text>
                 </Link>
-              </li>
+              </Box>
             ))}
-          </ul>
+          </VStack>
         ) : (
-          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 ring-1 ring-white/10 text-slate-400">
+          <Box
+            display="grid"
+            placeItems="center"
+            h="full"
+            borderRadius="xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            bg="whiteAlpha.100"
+            color="gray.300"
+            backdropFilter="blur(10px)"
+          >
             Проблем пока нет
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </Panel>
   );
 }

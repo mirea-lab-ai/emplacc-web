@@ -1,12 +1,13 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { Badge, Box, Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
 import type { UITask } from '@/features/tasks/types';
 import { getTaskPriorityMeta } from '@/features/tasks/types';
-import {getUserId, isAuthed} from "@/lib/auth";
+import { getUserId, isAuthed } from '@/lib/auth';
 
 const formatDueDate = (value: string) => {
   const date = new Date(value);
@@ -40,56 +41,83 @@ export default function YourTasks() {
   }, [tasks]);
     if (!isClient) {
         return (
-            <Panel className="p-6 h-[680px] overflow-hidden t-surface">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Ваши задачи</h2>
-                </div>
-                <div className="h-[calc(100%-2.5rem)] overflow-y-auto pr-2 custom-scroll space-y-3">
-                </div>
+            <Panel p={6} h="680px" overflow="hidden">
+                <Flex mb={4} align="center" justify="space-between">
+                    <Heading size="md">Ваши задачи</Heading>
+                </Flex>
+                <Stack gap={3} h="calc(100% - 2.5rem)" overflowY="auto" pr={2}>
+                    {/* пустой контейнер для SSR */}
+                </Stack>
             </Panel>
         );
     }
-  return (
-    <Panel className="p-6 h-[680px] overflow-hidden t-surface">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Ваши задачи</h2>
-      </div>
+    return (
+        <Panel p={6} h="680px" overflow="hidden">
+            <Flex mb={4} align="center" justify="space-between">
+                <Heading size="md">Ваши задачи</Heading>
+            </Flex>
 
-      <div className="h-[calc(100%-2.5rem)] overflow-y-auto pr-2 custom-scroll space-y-3">
-        {isLoading ? (
-          <div className="text-center text-slate-400 py-8">Загрузка задач...</div>
-        ) : error ? (
-          <div className="text-center text-red-400 py-8">Ошибка загрузки задач</div>
-        ) : sorted.length === 0 ? (
-          <div className="text-center text-slate-400 py-8">У вас пока нет задач</div>
-        ) : (
-          sorted.map((t) => (
-            <TaskRow key={t.id} t={t}/>
-          ))
-        )}
-      </div>
-    </Panel>
-  );
+            <Stack gap={3} h="calc(100% - 2.5rem)" overflowY="auto" pr={2}>
+                {isLoading ? (
+                    <Text textAlign="center" color="gray.300" py={8}>
+                        Загрузка задач...
+                    </Text>
+                ) : error ? (
+                    <Text textAlign="center" color="red.300" py={8}>
+                        Ошибка загрузки задач
+                    </Text>
+                ) : sorted.length === 0 ? (
+                    <Text textAlign="center" color="gray.300" py={8}>
+                        У вас пока нет задач
+                    </Text>
+                ) : (
+                    sorted.map((t) => <TaskRow key={t.id} t={t} />)
+                )}
+            </Stack>
+        </Panel>
+    );
 }
 
 function TaskRow({t}: { t: UITask }) {
   const priorityMeta = getTaskPriorityMeta(t.priority);
+    const { badgeStyles } = priorityMeta;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl p-4 ring-1 ring-white/10 px-4 py-2 backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors">
-      <div className="relative z-[1] flex items-start justify-between gap-3">
-        <div>
-          <div className="font-semibold">{t.title}</div>
-          {t.due && (
-            <div className="text-slate-400 text-sm mt-0.5">
-              Срок: {formatDueDate(t.due)}
-            </div>
-          )}
-        </div>
-        <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs ring-1 ${priorityMeta.badgeClass}`}>
-          {priorityMeta.label}
-        </span>
-      </div>
-    </div>
+    <Box
+        borderRadius="2xl"
+        px={4}
+        py={3}
+        borderWidth="1px"
+        borderColor="whiteAlpha.200"
+        bg="whiteAlpha.100"
+        backdropFilter="blur(10px)"
+        color="white"
+        transition="background 0.2s ease"
+        _hover={{ bg: 'whiteAlpha.200' }}
+    >
+        <Flex align="flex-start" justify="space-between" gap={3}>
+            <Box>
+                <Text fontWeight="semibold">{t.title}</Text>
+                {t.due && (
+                    <Text color="gray.300" fontSize="sm" mt={1}>
+                        Срок: {formatDueDate(t.due)}
+                    </Text>
+                )}
+            </Box>
+            <Badge
+                borderRadius="lg"
+                px={2}
+                py={1}
+                fontSize="xs"
+                borderWidth="1px"
+                bg={badgeStyles.bg}
+                color={badgeStyles.color}
+                borderColor={badgeStyles.borderColor}
+                boxShadow={badgeStyles.boxShadow}
+            >
+                {priorityMeta.label}
+            </Badge>
+        </Flex>
+    </Box>
   );
 }

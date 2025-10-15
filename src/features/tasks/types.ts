@@ -18,7 +18,12 @@ export type TaskPriorityMeta = {
     value: TaskPriorityValue;
     label: string;
     order: number;
-    badgeClass: string;
+    badgeStyles: {
+        bg: string;
+        color: string;
+        borderColor: string;
+        boxShadow?: string;
+    };
 };
 
 const PRIORITY_META: Record<TaskPriorityValue, TaskPriorityMeta> = {
@@ -26,31 +31,52 @@ const PRIORITY_META: Record<TaskPriorityValue, TaskPriorityMeta> = {
         value: 1,
         label: 'Не задан',
         order: 5,
-        badgeClass: 'bg-slate-700/40 text-slate-200 ring-slate-500/50',
+        badgeStyles: {
+            bg: 'blackAlpha.400',
+            color: 'gray.200',
+            borderColor: 'whiteAlpha.400',
+        },
     },
     2: {
         value: 2,
         label: 'Низкий',
         order: 4,
-        badgeClass: 'bg-emerald-800/25 text-emerald-100 ring-emerald-500/40',
+        badgeStyles: {
+            bg: 'green.700',
+            color: 'green.100',
+            borderColor: 'green.400',
+        },
     },
     3: {
         value: 3,
         label: 'Средний',
         order: 3,
-        badgeClass: 'bg-amber-600/25 text-amber-100 ring-amber-400/40',
+        badgeStyles: {
+            bg: 'orange.600',
+            color: 'orange.100',
+            borderColor: 'orange.300',
+        },
     },
     4: {
         value: 4,
         label: 'Высокий',
         order: 2,
-        badgeClass: 'bg-orange-600/30 text-orange-100 ring-orange-500/50',
+        badgeStyles: {
+            bg: 'red.600',
+            color: 'red.50',
+            borderColor: 'red.300',
+        },
     },
     5: {
         value: 5,
         label: 'СРОЧНЫЙ',
         order: 1,
-        badgeClass: 'bg-rose-600/30 text-rose-50 ring-rose-400/60',
+        badgeStyles: {
+            bg: 'pink.600',
+            color: 'pink.50',
+            borderColor: 'pink.300',
+            boxShadow: '0 0 0 1px rgba(251, 182, 206, 0.6)',
+        },
     },
 };
 

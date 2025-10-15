@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchMyHelpRequests, UIHelpRequest, completeHelpRequest } from '@/features/reports/api';
 import { isAuthed, getUserId } from '@/lib/auth';
@@ -60,65 +61,95 @@ export default function HelpRequests() {
   };
 
   return (
-    <Panel className="p-5 h-full flex flex-col t-surface">
-      <div className="mb-2 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Просьбы о помощи</h2>
+    <Panel p={5} h="full" display="flex" flexDirection="column">
+      <Flex mb={2} align="flex-start" justify="space-between">
+        <Box>
+          <Heading size="md">Просьбы о помощи</Heading>
           {has && (
-            <div className="text-sm text-slate-400 mt-1">
+            <Text fontSize="sm" color="gray.300" mt={1}>
               {i + 1} из {list.length}
-            </div>
+            </Text>
           )}
-        </div>
+        </Box>
         {has && (
-          <div className="flex items-center gap-2">
-            <button
-              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-3 py-1.5 font-bold text-black hover:brightness-110"
+          <Flex align="center" gap={2}>
+            <Button
+              size="sm"
+              fontWeight="bold"
+              colorScheme="green"
+              variant="solid"
               onClick={() => setI((i - 1 + list.length) % list.length)}
               aria-label="Назад"
             >
               ←
-            </button>
-            <button
-              className="rounded-xl bg-gradient-to-br font-bold from-emerald-500 to-lime-400 px-3 py-1.5 text-black hover:brightness-110"
+            </Button>
+            <Button
+              size="sm"
+              fontWeight="bold"
+              colorScheme="green"
+              variant="solid"
               onClick={() => setI((i + 1) % list.length)}
               aria-label="Вперёд"
             >
               →
-            </button>
-          </div>
+            </Button>
+          </Flex>
         )}
-      </div>
+      </Flex>
 
-      <div className="flex-1 min-h-0">
+      <Box flex="1" minH={0} position="relative">
         {!has ? (
-          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 ring-1 ring-white/10 text-slate-400">
+          <Flex
+            h="full"
+            align="center"
+            justify="center"
+            borderRadius="xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            bg="whiteAlpha.100"
+            color="gray.300"
+            backdropFilter="blur(10px)"
+          >
             Вас никто не просил о помощи
-          </div>
+          </Flex>
         ) : (
-          <div className="h-full rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 p-3 text-sm overflow-auto custom-scroll relative">
-            <div className="text-slate-300">Просит:</div>
-            <div className="font-semibold">{list[i].from}</div>
+          <Box
+            h="full"
+            borderRadius="xl"
+            borderWidth="1px"
+            borderColor="whiteAlpha.200"
+            bg="whiteAlpha.100"
+            color="white"
+            backdropFilter="blur(10px)"
+            p={3}
+            fontSize="sm"
+            overflow="auto"
+            position="relative"
+          >
+            <Text color="gray.300">Просит:</Text>
+            <Text fontWeight="semibold">{list[i].from}</Text>
             {list[i].text && (
-              <>
-                <div className="mt-2 text-slate-300">Описание:</div>
-                <div className="font-medium">{list[i].text}</div>
-              </>
+              <Box mt={2}>
+                <Text color="gray.300">Описание:</Text>
+                <Text fontWeight="medium">{list[i].text}</Text>
+              </Box>
             )}
-            
-            {/* Кнопка "Выполнить" в правом нижнем углу */}
-            <div className="absolute bottom-3 right-3">
-              <button
+
+            <Box position="absolute" bottom={3} right={3}>
+              <Button
+                size="sm"
+                colorScheme="green"
+                fontWeight="semibold"
                 onClick={handleCompleteClick}
-                disabled={isCompleting}
-                className="rounded-lg bg-gradient-to-br from-emerald-500 to-lime-400 px-3 py-1.5 text-black font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                loading={isCompleting}
+                loadingText="..."
               >
-                {isCompleting ? '...' : 'Выполнить'}
-              </button>
-            </div>
-          </div>
+                Выполнить
+              </Button>
+            </Box>
+          </Box>
         )}
-      </div>
+      </Box>
       
       <CompleteHelpRequestModal
         open={showCompleteModal}

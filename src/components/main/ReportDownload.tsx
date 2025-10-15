@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { Button, Field, Flex, Input, Stack, Text } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
@@ -52,62 +53,57 @@ export default function ReportDownload() {
   };
 
   return (
-    <Panel className="p-5 h-full flex flex-col t-surface">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">Скачать отчет</h2>
-      </div>
+    <Panel p={5} h="full" display="flex" flexDirection="column">
+      <Text fontSize="lg" fontWeight="semibold" mb={4}>
+        Скачать отчет
+      </Text>
 
-      <div className="flex-1 min-h-0 flex flex-col gap-4">
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">
+      <Flex direction="column" flex="1" minH={0} gap={4}>
+        <Stack gap={3}>
+          <Field.Root disabled={isDownloading}>
+            <Field.Label fontSize="sm" color="gray.300">
               Дата начала
-            </label>
-            <input
+            </Field.Label>
+            <Input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-lg bg-white/5 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              disabled={isDownloading}
+              bg="whiteAlpha.100"
+              borderColor="whiteAlpha.200"
+              color="white"
+              _focus={{ borderColor: 'green.300', boxShadow: '0 0 0 1px rgba(74, 222, 128, 0.4)' }}
             />
-          </div>
-          
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">
+          </Field.Root>
+
+          <Field.Root disabled={isDownloading}>
+            <Field.Label fontSize="sm" color="gray.300">
               Дата окончания
-            </label>
-            <input
+            </Field.Label>
+            <Input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-lg bg-white/5 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              disabled={isDownloading}
+              bg="whiteAlpha.100"
+              borderColor="whiteAlpha.200"
+              color="white"
+              _focus={{ borderColor: 'green.300', boxShadow: '0 0 0 1px rgba(74, 222, 128, 0.4)' }}
             />
-          </div>
-        </div>
+          </Field.Root>
+        </Stack>
 
-        <div className="mt-auto">
-          <button
-            onClick={handleDownload}
-            disabled={!startDate || !endDate || isDownloading}
-            className="w-full rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-3 text-black font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isDownloading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                Скачиваем...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Скачать отчет
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+        <Button
+          mt="auto"
+          w="full"
+          colorScheme="green"
+          fontWeight="semibold"
+          onClick={handleDownload}
+          loading={isDownloading}
+          loadingText="Скачиваем..."
+          disabled={!startDate || !endDate}
+        >
+          Скачать отчет
+        </Button>
+      </Flex>
     </Panel>
   );
 }

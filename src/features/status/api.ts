@@ -1,6 +1,7 @@
 // src/features/status/api.ts
 import { http } from '@/lib/http';
-import { mapTask, type UITask } from '@/features/tasks/types';
+import { fetchTaskById } from '@/features/tasks/api';
+import { mapTask, type TaskShort, type UITask } from '@/features/tasks/types';
 
 export type UIStatus = {
     id: string;
@@ -24,21 +25,49 @@ export async function fetchBoardStatus(boardId: string): Promise<BoardStatus> {
     const json = (await res.json()) as any;
     
     // Обработка разных форматов ответа
-    const statuses: any[] = Array.isArray(json) 
-        ? json 
+    const statuses: any[] = Array.isArray(json)
+        ? json
         : json.statuses ?? json.columns ?? [];
-    
-    return {
-        boardId,
-        projectId: json.project_id,
-        statuses: statuses.map((s: any) => ({
+
+    const resolveAssignees = async (task: any): Promise<UITask> => {
+        const raw = task ?? {};
+        const hasAssigneeData = Boolean(
+            raw.assignees ?? raw.assigned_to ?? raw.executor ?? raw.responsible ?? raw.users
+        );
+
+        if (!hasAssigneeData && raw.id) {
+            try {
+                const detailed = await fetchTaskById(String(raw.id));
+                const merged = {
+                    ...raw,
+                    ...detailed,
+                    assigned_to: detailed?.assigned_to ?? raw.assigned_to,
+                    assignees: raw.assignees ?? detailed?.assignees,
+                } as TaskShort;
+                return mapTask(merged);
+            } catch (error) {
+                console.warn('Не удалось получить данные задачи', error);
+            }
+        }
+
+        return mapTask(raw as TaskShort);
+    };
+
+    const statusesWithTasks = await Promise.all(
+        statuses.map(async (s: any) => ({
             id: String(s.id ?? ''),
             name: s.name ?? 'Без названия',
             description: s.description,
             order: s.order ?? s.position ?? 0,
             color: s.color ?? '#3B82F6',
-            tasks: Array.isArray(s.tasks) ? s.tasks.map(mapTask) : [],
-        })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+            tasks: Array.isArray(s.tasks) ? await Promise.all(s.tasks.map(resolveAssignees)) : [],
+        }))
+    );
+
+    return {
+        boardId,
+        projectId: json.project_id,
+        statuses: statusesWithTasks.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     };
 }
 

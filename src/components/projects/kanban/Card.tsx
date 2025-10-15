@@ -1,6 +1,7 @@
 'use client';
 
-import { type UITask } from '@/features/tasks/types';
+import Avatar from '@/components/ui/Avatar';
+import { getTaskPriorityMeta, type UITask } from '@/features/tasks/types';
 
 export default function Card({
                                 task, fromColId, onRemove, onEdit, isDeleting = false,
@@ -9,6 +10,14 @@ export default function Card({
         e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.id, fromColId }));
         e.dataTransfer.effectAllowed = 'move';
     };
+
+    const assignees = task.assignees ?? [];
+    const visibleAssignees = assignees.slice(0, 3);
+    const remainingAssignees = assignees.length - visibleAssignees.length;
+    const primaryAssignee = assignees[0];
+    const primaryLabel = primaryAssignee?.name || primaryAssignee?.email || primaryAssignee?.id;
+
+    const priorityMeta = getTaskPriorityMeta(task.priority);
 
     return (
         <div
@@ -51,8 +60,47 @@ export default function Card({
             </div>
 
             <div className="font-medium">{task.title}</div>
-            {task.due && <div className="text-slate-400 text-sm">До: {new Date(task.due).toLocaleDateString()}</div>}
-            {task.priority && <div className="text-slate-400 text-sm">Приоритет: {task.priority}</div>}
+            {task.due && <div className="text-slate-400 text-sm mt-1">До: {new Date(task.due).toLocaleDateString()}</div>}
+            <div className="mt-2">
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${priorityMeta.badgeClass}`}>
+                    {priorityMeta.label}
+                </span>
+            </div>
+
+            {assignees.length > 0 ? (
+                <div className="mt-3 flex items-center gap-3">
+                    <div className="flex items-center -space-x-2">
+                        {visibleAssignees.map((assignee, index) => {
+                            const key = assignee.id ?? assignee.email ?? `${assignee.name ?? 'user'}-${index}`;
+                            const nameForAvatar = assignee.name || assignee.email || assignee.id || 'Исполнитель';
+                            return (
+                                <span key={key} className="inline-flex">
+                                    <Avatar
+                                        name={nameForAvatar}
+                                        url={assignee.avatar}
+                                        size="sm"
+                                    />
+                                </span>
+                            );
+                        })}
+                        {remainingAssignees > 0 && (
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-xs text-white ring-1 ring-white/10">
+                                +{remainingAssignees}
+                            </span>
+                        )}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-sm text-white truncate">
+                            {primaryLabel ?? 'Исполнитель'}
+                        </div>
+                        {primaryAssignee?.email && (
+                            <div className="text-xs text-slate-400 truncate">{primaryAssignee.email}</div>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="mt-3 text-xs text-slate-400">Исполнитель не назначен</div>
+            )}
         </div>
     );
 }

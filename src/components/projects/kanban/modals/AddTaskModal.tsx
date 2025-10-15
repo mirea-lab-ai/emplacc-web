@@ -7,8 +7,9 @@ import Avatar from '@/components/ui/Avatar';
 import SelectedChip from '@/components/ReportWizard/SelectedChip';
 import { useAllUsers } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
-import { isAuthed, getUserId } from '@/lib/auth';
+import { isAuthed } from '@/lib/auth';
 import { Employee } from '@/lib/types';
+import { TASK_PRIORITY_OPTIONS, type TaskPriorityValue } from '@/features/tasks/types';
 
 export default function AddTaskModal({
                                         open, onClose, onCreate,
@@ -21,7 +22,7 @@ export default function AddTaskModal({
     const [desc, setDesc] = useState('');
     const [assignedTo, setAssignedTo] = useState<Employee | null>(null);
     const [deadline, setDeadline] = useState('');
-    const [priority, setPriority] = useState<number>(5);
+    const [priority, setPriority] = useState<TaskPriorityValue>(1);
     const [showUserSelector, setShowUserSelector] = useState(false);
     
     const isClient = useIsClient();
@@ -125,15 +126,15 @@ export default function AddTaskModal({
                     </label>
                     
                     <label className="grid gap-2">
-                        <span className="text-slate-200">Укажите приоритет задачи (1-10)</span>
+                        <span className="text-slate-200">Выберите приоритет задачи</span>
                         <select
                             value={priority}
-                            onChange={(e) => setPriority(Number(e.target.value))}
+                            onChange={(e) => setPriority(Number(e.target.value) as TaskPriorityValue)}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         >
-                            {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
-                                <option key={num} value={num} className="bg-slate-800">
-                                    {num} {num === 1 ? '(высший)' : num === 10 ? '(низший)' : ''}
+                            {TASK_PRIORITY_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value} className="bg-slate-800 text-slate-100">
+                                    {option.label}
                                 </option>
                             ))}
                         </select>

@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
 import type { UITask } from '@/features/tasks/types';
+import { getTaskPriorityMeta } from '@/features/tasks/types';
 import {getUserId, isAuthed} from "@/lib/auth";
 
 const formatDueDate = (value: string) => {
@@ -33,7 +34,7 @@ export default function YourTasks() {
     const sorted = useMemo(() => {
     const arr = [...tasks];
     arr.sort((a, b) => {
-      return (a.priority ?? 10) - (b.priority ?? 10);
+      return getTaskPriorityMeta(a.priority).order - getTaskPriorityMeta(b.priority).order;
     });
     return arr;
   }, [tasks]);
@@ -72,6 +73,7 @@ export default function YourTasks() {
 }
 
 function TaskRow({t}: { t: UITask }) {
+  const priorityMeta = getTaskPriorityMeta(t.priority);
 
   return (
     <div className="relative overflow-hidden rounded-2xl p-4 ring-1 ring-white/10 px-4 py-2 backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors">
@@ -84,8 +86,8 @@ function TaskRow({t}: { t: UITask }) {
             </div>
           )}
         </div>
-        <span className={`rounded-lg px-2 py-0.5 text-xs ring-1`}>
-          {`Приоритет ${t.priority ?? 1}`}
+        <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs ring-1 ${priorityMeta.badgeClass}`}>
+          {priorityMeta.label}
         </span>
       </div>
     </div>

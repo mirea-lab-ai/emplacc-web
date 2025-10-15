@@ -101,6 +101,7 @@ export default function KanbanBoard({
                 due: deadline,
                 priority: priority,
                 statuses: undefined,
+                assignees: assignedTo ? [{ id: assignedTo, name: assignedTo }] : undefined,
             };
             setLocal(prev =>
                 prev.map(c => (c.id === colId ? { ...c, tasks: [...c.tasks, newTask] } : c))

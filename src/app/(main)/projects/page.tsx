@@ -108,6 +108,15 @@ export default function ProjectsPage() {
                   // Обновляем список проектов
                   setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
                 }}
+                onProjectDelete={(projectId) => {
+                  // Удаляем проект из списка
+                  setProjects(prev => prev.filter(p => p.id !== projectId));
+                  // Если удаленный проект был выбран, сбрасываем выбор
+                  if (selected?.id === projectId) {
+                    setSelected(null);
+                    setTab('my');
+                  }
+                }}
               />
             )}
           </section>

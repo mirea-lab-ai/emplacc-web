@@ -128,3 +128,12 @@ export async function updateProject(projectId: string, payload: UpdateProjectReq
     createdBy: json.created_by ?? json.createdBy,
   };
 }
+
+// Удаление проекта
+export async function deleteProject(projectId: string): Promise<void> {
+  const res = await http(`/project/${projectId}`, {
+    method: 'DELETE',
+  });
+  
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}

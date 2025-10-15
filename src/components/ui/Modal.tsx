@@ -31,7 +31,7 @@ export default function Modal({ open, onClose, children }: Props) {
       aria-modal="true"
       role="dialog"
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
       <div className="relative z-10 w-full max-w-lg">
         {children}
       </div>

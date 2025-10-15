@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import type { UIProject } from '@/features/projects/api';
-import { updateProject } from '@/features/projects/api';
+import { updateProject, deleteProject } from '@/features/projects/api';
+import DeleteProjectModal from './DeleteProjectModal';
 
 type ProjectSettings = {
   name: string;
@@ -16,9 +17,10 @@ type ProjectSettings = {
 type Props = {
   project: UIProject;
   onProjectUpdate?: (updatedProject: UIProject) => void;
+  onProjectDelete?: (projectId: string) => void;
 };
 
-export default function ProjectsSettingsPanel({ project, onProjectUpdate }: Props) {
+export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProjectDelete }: Props) {
   const [settings, setSettings] = useState<ProjectSettings>({
     name: project.name || '',
     description: project.description || '',
@@ -26,6 +28,8 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate }: Prop
     gitlab_url: '',
     status: 'active',
   });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     // Инициализируем настройки из проекта
@@ -64,6 +68,21 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate }: Prop
     } catch (error) {
       console.error('Ошибка при сохранении настроек проекта:', error);
       alert(`Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      await deleteProject(project.id);
+      alert('Проект успешно удален!');
+      
+      // Уведомляем родительский компонент об удалении
+      if (onProjectDelete) {
+        onProjectDelete(project.id);
+      }
+    } catch (error) {
+      console.error('Ошибка при удалении проекта:', error);
+      alert(`Ошибка при удалении проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     }
   };
 
@@ -132,7 +151,14 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate }: Prop
           </label>
         </div>
       </div>
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex justify-between">
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="rounded-xl bg-red-600 px-5 py-2 font-semibold text-white hover:bg-red-700 transition-colors"
+        >
+          Закрыть проект
+        </button>
+        
         <button
           onClick={saveSettings}
           className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 font-semibold text-black hover:brightness-110"
@@ -140,6 +166,13 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate }: Prop
           Сохранить изменения
         </button>
       </div>
+
+      <DeleteProjectModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteProject}
+        projectName={project.name}
+      />
     </Panel>
   );
 }

@@ -41,7 +41,11 @@ export default function TeamBoard({
           <div>
             <h3 className="text-xl font-semibold">Состав команды</h3>
             <div className="text-sm text-slate-400">
-              Тимлид: {team.lead?.id === 'no-lead' ? 'не назначен' : team.lead.name}
+              Тимлид: {team.lead?.id === 'no-lead'
+                ? 'не назначен'
+                : team.lead.role
+                  ? `${team.lead.name} · ${team.lead.role}`
+                  : team.lead.name}
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import KanbanBoard, { KBColumn } from '@/components/projects/kanban';
 import { useProjectBoards, useDeleteBoard } from '@/features/boards/hooks';
@@ -8,23 +8,79 @@ import { useBoardStatus, useCreateStatus, useDeleteStatus } from '@/features/sta
 import { useCreateTask, useDeleteTask, useMoveTask, useUpdateTask } from '@/features/tasks/hooks';
 import { useAllUserProjects } from '@/features/projects/hooks';
 import { getUserId } from '@/lib/auth';
+import { getErrorMessage } from '@/lib/errors';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
-import CreateBoardModal from './CreateBoardModal';
 import DeleteBoardModal from './DeleteBoardModal';
+import type { UIBoard } from '@/features/boards/api';
 
 const demoColumns: KBColumn[] = [
   { id: 'c-open', title: 'Open', tasks: [] },
   { id: 'c-done', title: 'Done', tasks: [] },
 ];
 
+const HTTP_PREFIX_REGEX = /^HTTP\s+\d+\s*:?[ \t-]*/i;
+
+function normalizeTaskErrorMessage(raw: string): string {
+  const trimmed = raw.trim();
+  const withoutPrefix = trimmed.replace(HTTP_PREFIX_REGEX, '').trim();
+  const base = (withoutPrefix.length > 0 ? withoutPrefix : trimmed) || 'Неизвестная ошибка';
+
+  if (base.startsWith('{') || base.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(base) as unknown;
+      if (typeof parsed === 'string' && parsed.trim()) {
+        return parsed.trim();
+      }
+      if (parsed && typeof parsed === 'object') {
+        const candidate =
+          (parsed as { message?: unknown }).message
+          ?? (parsed as { error?: unknown }).error
+          ?? (parsed as { detail?: unknown }).detail;
+
+        if (typeof candidate === 'string' && candidate.trim()) {
+          return candidate.trim();
+        }
+
+        const errors = (parsed as { errors?: unknown }).errors;
+        if (Array.isArray(errors)) {
+          const joined = errors
+            .map((item) => {
+              if (typeof item === 'string') return item.trim();
+              if (item && typeof item === 'object' && 'message' in item) {
+                const msg = (item as { message?: unknown }).message;
+                if (typeof msg === 'string') return msg.trim();
+              }
+              try {
+                return JSON.stringify(item);
+              } catch {
+                return String(item);
+              }
+            })
+            .filter((item) => typeof item === 'string' && item.length > 0)
+            .join('\n');
+
+          if (joined.trim()) {
+            return joined.trim();
+          }
+        }
+      }
+    } catch {
+      // ignore JSON parse issues and fall back to base message
+    }
+  }
+
+  return base;
+}
+
 type Props = {
   projectId: string;
+  selectedBoardId?: string;
+  onSelectBoard?: (boardId: string | null) => void;
 };
 
-export default function ProjectsBoardPanel({ projectId }: Props) {
-  const [currentBoardIndex, setCurrentBoardIndex] = useState(0);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelectBoard }: Props) {
+  const [internalBoardId, setInternalBoardId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isClient = useIsClient();
@@ -34,11 +90,23 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
   const { mutate: deleteBoard, isPending: isDeleting } = useDeleteBoard();
   const { mutate: createStatus, isPending: isCreatingStatus } = useCreateStatus();
   const { mutate: deleteStatus, isPending: isDeletingStatus } = useDeleteStatus();
-  const { mutate: createTask, isPending: isCreatingTask } = useCreateTask();
+  const { mutateAsync: createTaskAsync, isPending: isCreatingTask } = useCreateTask();
   const { mutate: deleteTask, isPending: isDeletingTask } = useDeleteTask();
   const { mutate: moveTask, isPending: isMovingTask } = useMoveTask();
-  const { mutate: updateTask, isPending: isUpdatingTask } = useUpdateTask();
-  const currentBoard = boards?.[currentBoardIndex];
+  const { mutateAsync: updateTaskAsync, isPending: isUpdatingTask } = useUpdateTask();
+  const boardsList: UIBoard[] = React.useMemo(() => boards ?? [], [boards]);
+
+  const resolveActiveBoardId = useCallback((): string | null => {
+    if (selectedBoardId !== undefined) return selectedBoardId;
+    if (internalBoardId) return internalBoardId;
+    return boardsList[0]?.id ?? null;
+  }, [selectedBoardId, internalBoardId, boardsList]);
+
+  const activeBoardId = resolveActiveBoardId();
+  const currentBoardIndex = activeBoardId
+    ? boardsList.findIndex((board) => board.id === activeBoardId)
+    : -1;
+  const currentBoard = currentBoardIndex >= 0 ? boardsList[currentBoardIndex] : boardsList[0];
   const currentProject = allProjects?.find(p => p.id === projectId);
   
   // Загружаем статусы/колонки для текущей доски
@@ -67,8 +135,34 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
 
   // Сбрасываем индекс доски при смене проекта
   useEffect(() => {
-    setCurrentBoardIndex(0);
+    setInternalBoardId(null);
   }, [projectId]);
+
+  useEffect(() => {
+    if (!boardsList.length) {
+      setInternalBoardId(null);
+      return;
+    }
+
+    if (selectedBoardId !== undefined) {
+      // Управляется родителем — никаких действий
+      return;
+    }
+
+    if (!internalBoardId || !boardsList.some((board) => board.id === internalBoardId)) {
+      setInternalBoardId(boardsList[0].id);
+    }
+  }, [boardsList, selectedBoardId, internalBoardId]);
+
+  const handleSelectBoard = useCallback(
+    (boardId: string) => {
+      onSelectBoard?.(boardId);
+      if (selectedBoardId === undefined) {
+        setInternalBoardId(boardId);
+      }
+    },
+    [onSelectBoard, selectedBoardId]
+  );
 
   // Сохраняем колонки в localStorage для совместимости
   useEffect(() => {
@@ -117,11 +211,18 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
   };
 
   // Функция для создания задачи
-  const handleCreateTask = (statusId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => {
+  const handleCreateTask = async (
+    statusId: string,
+    title: string,
+    description?: string,
+    assignedTo?: string,
+    deadline?: string,
+    priority?: number,
+  ): Promise<void> => {
     const userId = getUserId();
     if (!userId) {
       console.error('User ID not found');
-      return;
+      throw new Error('Не удалось определить пользователя для создания задачи');
     }
     
     const currentTime = new Date().toISOString(); // Timestamp формат
@@ -151,15 +252,28 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
       taskData.deadline = new Date(deadline).toISOString();
     }
 
-    createTask(taskData);
+    try {
+      await createTaskAsync(taskData);
+    } catch (err) {
+      const message = normalizeTaskErrorMessage(getErrorMessage(err));
+      console.error('Проекты: ошибка создания задачи', err);
+      throw new Error(message.startsWith('Не удалось') ? message : `Не удалось создать задачу: ${message}`);
+    }
   };
 
   // Функция для обновления задачи
-  const handleUpdateTask = (taskId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => {
+  const handleUpdateTask = async (
+    taskId: string,
+    title: string,
+    description?: string,
+    assignedTo?: string,
+    deadline?: string,
+    priority?: number,
+  ): Promise<void> => {
     const userId = getUserId();
     if (!userId) {
       console.error('User ID not found');
-      return;
+      throw new Error('Не удалось определить пользователя для обновления задачи');
     }
     
     const taskData: any = {
@@ -183,7 +297,13 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
       taskData.deadline = new Date(deadline).toISOString();
     }
 
-    updateTask({ taskId, payload: taskData });
+    try {
+      await updateTaskAsync({ taskId, payload: taskData });
+    } catch (err) {
+      const message = normalizeTaskErrorMessage(getErrorMessage(err));
+      console.error('Проекты: ошибка обновления задачи', err);
+      throw new Error(message.startsWith('Не удалось') ? message : `Не удалось обновить задачу: ${message}`);
+    }
   };
 
   // Функция для удаления задачи
@@ -200,13 +320,21 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
   };
 
   const handlePrevBoard = () => {
-    if (!boards || boards.length === 0) return;
-    setCurrentBoardIndex((prev) => (prev === 0 ? boards.length - 1 : prev - 1));
+    if (!boardsList.length || currentBoardIndex < 0) return;
+    const nextIndex = currentBoardIndex === 0 ? boardsList.length - 1 : currentBoardIndex - 1;
+    const nextBoardId = boardsList[nextIndex]?.id;
+    if (nextBoardId) {
+      handleSelectBoard(nextBoardId);
+    }
   };
 
   const handleNextBoard = () => {
-    if (!boards || boards.length === 0) return;
-    setCurrentBoardIndex((prev) => (prev === boards.length - 1 ? 0 : prev + 1));
+    if (!boardsList.length || currentBoardIndex < 0) return;
+    const nextIndex = currentBoardIndex === boardsList.length - 1 ? 0 : currentBoardIndex + 1;
+    const nextBoardId = boardsList[nextIndex]?.id;
+    if (nextBoardId) {
+      handleSelectBoard(nextBoardId);
+    }
   };
 
   const handleDeleteBoard = () => {
@@ -216,12 +344,18 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
       {
         onSuccess: () => {
           setShowDeleteModal(false);
-          // Если удалили последнюю доску, сбросить индекс
-          if (boards && boards.length <= 1) {
-            setCurrentBoardIndex(0);
-          } else if (currentBoardIndex >= (boards?.length ?? 1) - 1) {
-            // Если удалили доску с последним индексом, перейти к предыдущей
-            setCurrentBoardIndex((prev) => Math.max(0, prev - 1));
+          const remaining = boardsList.filter((board) => board.id !== currentBoard.id);
+          const fallbackBoard = remaining[currentBoardIndex]
+            ?? remaining[currentBoardIndex - 1]
+            ?? remaining[0];
+
+          if (fallbackBoard) {
+            handleSelectBoard(fallbackBoard.id);
+          } else {
+            if (selectedBoardId === undefined) {
+              setInternalBoardId(null);
+            }
+            onSelectBoard?.(null);
           }
         },
       }
@@ -232,20 +366,20 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
     <>
       <Panel className="p-6 t-surface">
         {/* Board Navigation Header */}
-        <div className="mb-6 flex items-center justify-between">
+  <div className="mb-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-1">
             {isLoading ? (
               <div className="text-slate-400">Загрузка досок...</div>
             ) : error ? (
               <div className="text-red-400">Ошибка загрузки досок</div>
-            ) : !boards || boards.length === 0 ? (
+            ) : !boardsList.length ? (
               <div className="text-slate-400">Нет досок</div>
             ) : (
               <>
                 <button
                   onClick={handlePrevBoard}
                   className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  disabled={boards.length <= 1}
+                  disabled={boardsList.length <= 1}
                   aria-label="Предыдущая доска"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +420,7 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
                 <button
                   onClick={handleNextBoard}
                   className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  disabled={boards.length <= 1}
+                  disabled={boardsList.length <= 1}
                   aria-label="Следующая доска"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,14 +430,6 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
               </>
             )}
           </div>
-
-          {/* Create Board Button */}
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="ml-4 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 transition-colors whitespace-nowrap"
-          >
-            + Создать доску
-          </button>
         </div>
 
         {/* Kanban Board */}
@@ -325,14 +451,6 @@ export default function ProjectsBoardPanel({ projectId }: Props) {
           isMovingTask={isMovingTask}
         />
       </Panel>
-
-        {showCreateModal && (
-          <CreateBoardModal
-            projectId={projectId}
-            onClose={() => setShowCreateModal(false)}
-          />
-        )}
-
         {showDeleteModal && currentBoard && (
           <DeleteBoardModal
             boardName={currentBoard.name}

@@ -19,12 +19,12 @@ export async function fetchProjectBoards(projectId: string): Promise<UIBoard[]> 
     const res = await http(`/boards/project/${encodeURIComponent(projectId)}`, { method: 'GET' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
+
     // Обработка разных форматов ответа
-    const list: any[] = Array.isArray(json) 
-        ? json 
+    const list: any[] = Array.isArray(json)
+        ? json
         : json.boards ?? [];
-    
+
     return list.map((b: any) => ({
         id: String(b.id ?? ''),
         name: b.name ?? 'Без названия',
@@ -40,10 +40,10 @@ export async function createBoard(payload: CreateBoardRequest): Promise<UIBoard>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
+
     return {
         id: String(json.id ?? ''),
         name: payload.name,

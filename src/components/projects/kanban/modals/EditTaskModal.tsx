@@ -10,21 +10,35 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
 import { Employee } from '@/lib/types';
 import { getTaskPriorityMeta, TASK_PRIORITY_OPTIONS, type TaskPriorityValue, type UITask } from '@/features/tasks/types';
+import { getErrorMessage } from '@/lib/errors';
 
 export default function EditTaskModal({
-                                        open, onClose, onUpdate, task,
+                                        open,
+                                        onClose,
+                                        onUpdate,
+                                        task,
+                                        isSubmitting = false,
                                     }: {
     open: boolean;
     onClose: () => void;
-    onUpdate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    onUpdate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => Promise<void>;
     task: UITask | null;
+    isSubmitting?: boolean;
 }) {
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [assignedTo, setAssignedTo] = useState<Employee | null>(null);
     const [deadline, setDeadline] = useState('');
-    const [priority, setPriority] = useState<TaskPriorityValue>(1);
+    const defaultPriority = (TASK_PRIORITY_OPTIONS[0]?.value ?? 1) as TaskPriorityValue;
+    const [priority, setPriority] = useState<TaskPriorityValue>(defaultPriority);
     const [showUserSelector, setShowUserSelector] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    const clearSubmitError = () => {
+        if (submitError) {
+            setSubmitError(null);
+        }
+    };
     
     const isClient = useIsClient();
     const hasCreds = isClient && isAuthed();
@@ -35,19 +49,32 @@ export default function EditTaskModal({
     useEffect(() => {
         if (task && open) {
             setTitle(task.title || '');
-            setDesc(''); // У нас нет описания в UITask, оставляем пустым
+            setDesc(task.description ?? '');
             setPriority(getTaskPriorityMeta(task.priority).value);
             setDeadline(task.due ? task.due.split('T')[0] : ''); // Преобразуем ISO дату в формат YYYY-MM-DD
-            setAssignedTo(null); // У нас нет информации о назначенном пользователе в UITask
+            setSubmitError(null);
+
+            const primaryAssignee = task.assignees?.find((assignee) => assignee && (assignee.id || assignee.name || assignee.email));
+            if (primaryAssignee) {
+                setAssignedTo({
+                    id: primaryAssignee.id ?? '',
+                    name: primaryAssignee.name ?? primaryAssignee.email ?? primaryAssignee.id ?? 'Назначенный сотрудник',
+                    email: primaryAssignee.email,
+                    avatarUrl: primaryAssignee.avatar,
+                });
+            } else {
+                setAssignedTo(null);
+            }
         } else if (!open) {
             // Сбрасываем состояние при закрытии
             setTitle('');
             setDesc('');
             setAssignedTo(null);
             setDeadline('');
-            setPriority(1);
+            setPriority(defaultPriority);
+            setSubmitError(null);
         }
-    }, [task, open]);
+    }, [task, open, defaultPriority]);
     
     // Включаем всех пользователей (включая текущего) для назначения на задачи
     const availableUsers = useMemo(() => {
@@ -58,7 +85,8 @@ export default function EditTaskModal({
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
             avatarUrl: undefined,
-            role: user.profession,
+            role: user.specialization ?? user.profession,
+            specialization: user.specialization,
         }));
     }, [users]);
     
@@ -78,10 +106,31 @@ export default function EditTaskModal({
         setAssignedTo(user);
         setShowUserSelector(false);
         setQuery('');
+        clearSubmitError();
     };
     
     const handleRemoveUser = () => {
         setAssignedTo(null);
+        clearSubmitError();
+    };
+
+    const handleSubmit = async () => {
+        if (!title.trim()) return;
+        clearSubmitError();
+
+        try {
+            await onUpdate(
+                title.trim(),
+                desc.trim() || undefined,
+                assignedTo?.id?.trim() ? assignedTo.id : undefined,
+                deadline || undefined,
+                priority,
+            );
+            onClose();
+        } catch (err) {
+            const message = getErrorMessage(err);
+            setSubmitError(message.startsWith('Не удалось') ? message : `Не удалось обновить задачу: ${message}`);
+        }
     };
 
     if (!open) return null;
@@ -93,31 +142,30 @@ export default function EditTaskModal({
                 onClose={onClose}
                 footer={
                     <>
-                        <ButtonGhost onClick={onClose}>Отмена</ButtonGhost>
+                        <ButtonGhost onClick={() => { if (!isSubmitting) onClose(); }}>Отмена</ButtonGhost>
                         <ButtonPrimary
-                            onClick={() => { 
-                                onUpdate(
-                                    title.trim(), 
-                                    desc.trim() || undefined, 
-                                    assignedTo?.id, 
-                                    deadline || undefined, 
-                                    priority
-                                ); 
-                                onClose(); 
-                            }}
-                            disabled={!title.trim()}
+                            onClick={() => { void handleSubmit(); }}
+                            disabled={!title.trim() || isSubmitting}
                         >
-                            Сохранить
+                            {isSubmitting ? 'Сохранение...' : 'Сохранить'}
                         </ButtonPrimary>
                     </>
                 }
             >
                 <div className="space-y-4">
+                    {submitError && (
+                        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300 whitespace-pre-line">
+                            {submitError}
+                        </div>
+                    )}
                     <label className="grid gap-2">
                         <span className="text-slate-200">Введите название задачи</span>
                         <input
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => {
+                                setTitle(e.target.value);
+                                clearSubmitError();
+                            }}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             placeholder="Например, Сделать поиск"
                         />
@@ -128,7 +176,10 @@ export default function EditTaskModal({
                         <textarea
                             rows={3}
                             value={desc}
-                            onChange={(e) => setDesc(e.target.value)}
+                            onChange={(e) => {
+                                setDesc(e.target.value);
+                                clearSubmitError();
+                            }}
                             className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             placeholder="Кратко опишите детали задачи…"
                         />
@@ -139,7 +190,10 @@ export default function EditTaskModal({
                         <input
                             type="date"
                             value={deadline}
-                            onChange={(e) => setDeadline(e.target.value)}
+                            onChange={(e) => {
+                                setDeadline(e.target.value);
+                                clearSubmitError();
+                            }}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         />
                     </label>
@@ -148,7 +202,10 @@ export default function EditTaskModal({
                         <span className="text-slate-200">Выберите приоритет задачи</span>
                         <select
                             value={priority}
-                            onChange={(e) => setPriority(Number(e.target.value) as TaskPriorityValue)}
+                            onChange={(e) => {
+                                setPriority(Number(e.target.value) as TaskPriorityValue);
+                                clearSubmitError();
+                            }}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         >
                             {TASK_PRIORITY_OPTIONS.map((option) => (
@@ -201,7 +258,10 @@ export default function EditTaskModal({
                     <input
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            clearSubmitError();
+                        }}
                         placeholder="Поиск по имени, email или роли..."
                         className="w-full h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />

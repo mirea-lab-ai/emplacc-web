@@ -89,9 +89,8 @@ export async function http(path: string, init: RequestInit = {}) {
 export async function httpJson<T>(path: string, init: RequestInit = {}): Promise<T> {
     const res = await http(path, init);
     if (!res.ok) {
-        let detail: unknown;
-        try { detail = await res.clone().json(); } catch { detail = await res.text().catch(() => undefined); }
-        throw new Error(`HTTP ${res.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`);
+        const detail = await extractErrorMessage(res.clone());
+        throw new Error(`HTTP ${res.status}: ${detail}`);
     }
     return res.json() as Promise<T>;
 }
@@ -102,4 +101,73 @@ export async function refreshAccessTokenPublic(): Promise<boolean> {
     await refreshAccessToken();
     const after = getAccessToken();
     return !!after && after !== before;
+}
+
+export async function extractErrorMessage(res: Response): Promise<string> {
+    const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
+
+    if (contentType.includes('application/json')) {
+        try {
+            const data = await res.json();
+            if (typeof data === 'string' && data.trim()) {
+                return data;
+            }
+            if (data && typeof data === 'object') {
+                const maybeMessage =
+                    (data as { message?: unknown }).message
+                    ?? (data as { error?: unknown }).error
+                    ?? (data as { detail?: unknown }).detail;
+
+                if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+                    return maybeMessage;
+                }
+
+                if (Array.isArray((data as { errors?: unknown }).errors)) {
+                    const joined = (data as { errors: unknown[] }).errors
+                        .map((item) => {
+                            if (typeof item === 'string') return item;
+                            if (item && typeof item === 'object' && 'message' in item) {
+                                const value = (item as { message?: unknown }).message;
+                                if (typeof value === 'string') return value;
+                            }
+                            try {
+                                return JSON.stringify(item);
+                            } catch {
+                                return String(item);
+                            }
+                        })
+                        .filter(Boolean)
+                        .join('\n');
+
+                    if (joined.trim()) {
+                        return joined;
+                    }
+                }
+
+                try {
+                    const serialized = JSON.stringify(data);
+                    if (serialized && serialized !== '{}') {
+                        return serialized;
+                    }
+                } catch {}
+            }
+        } catch (jsonError) {
+            // Попробуем fallback на текст, если JSON разобрать не удалось
+            const text = await tryReadText(res);
+            if (text) return text;
+            return String(jsonError instanceof Error ? jsonError.message : jsonError ?? `HTTP ${res.status}`);
+        }
+    }
+
+    const text = await tryReadText(res);
+    return text || `HTTP ${res.status}`;
+}
+
+async function tryReadText(res: Response): Promise<string> {
+    try {
+        const text = await res.text();
+        return text.trim();
+    } catch {
+        return '';
+    }
 }

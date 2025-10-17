@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import { ButtonGhost, ButtonPrimary } from '../ui/Buttons';
 import Avatar from '@/components/ui/Avatar';
@@ -10,20 +10,33 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
 import { Employee } from '@/lib/types';
 import { TASK_PRIORITY_OPTIONS, type TaskPriorityValue } from '@/features/tasks/types';
+import { getErrorMessage } from '@/lib/errors';
 
 export default function AddTaskModal({
-                                        open, onClose, onCreate,
+                                        open,
+                                        onClose,
+                                        onCreate,
+                                        isSubmitting = false,
                                     }: {
     open: boolean;
     onClose: () => void;
-    onCreate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    onCreate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => Promise<void>;
+    isSubmitting?: boolean;
 }) {
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [assignedTo, setAssignedTo] = useState<Employee | null>(null);
     const [deadline, setDeadline] = useState('');
-    const [priority, setPriority] = useState<TaskPriorityValue>(1);
+    const defaultPriority = (TASK_PRIORITY_OPTIONS[0]?.value ?? 1) as TaskPriorityValue;
+    const [priority, setPriority] = useState<TaskPriorityValue>(defaultPriority);
     const [showUserSelector, setShowUserSelector] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    const clearSubmitError = () => {
+        if (submitError) {
+            setSubmitError(null);
+        }
+    };
     
     const isClient = useIsClient();
     const hasCreds = isClient && isAuthed();
@@ -39,7 +52,8 @@ export default function AddTaskModal({
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
             avatarUrl: undefined,
-            role: user.profession,
+            role: user.specialization ?? user.profession,
+            specialization: user.specialization,
         }));
     }, [users]);
     
@@ -59,10 +73,47 @@ export default function AddTaskModal({
         setAssignedTo(user);
         setShowUserSelector(false);
         setQuery('');
+        clearSubmitError();
     };
     
     const handleRemoveUser = () => {
         setAssignedTo(null);
+        clearSubmitError();
+    };
+
+    useEffect(() => {
+        if (open) {
+            setSubmitError(null);
+            return;
+        }
+
+        setTitle('');
+        setDesc('');
+        setAssignedTo(null);
+        setDeadline('');
+        setPriority(defaultPriority);
+        setQuery('');
+        setShowUserSelector(false);
+        setSubmitError(null);
+    }, [open, defaultPriority]);
+
+    const handleSubmit = async () => {
+        if (!title.trim()) return;
+        clearSubmitError();
+
+        try {
+            await onCreate(
+                title.trim(),
+                desc.trim() || undefined,
+                assignedTo?.id,
+                deadline || undefined,
+                priority,
+            );
+            onClose();
+        } catch (err) {
+            const message = getErrorMessage(err);
+            setSubmitError(message.startsWith('Не удалось') ? message : `Не удалось создать задачу: ${message}`);
+        }
     };
 
     if (!open) return null;
@@ -74,31 +125,30 @@ export default function AddTaskModal({
                 onClose={onClose}
                 footer={
                     <>
-                        <ButtonGhost onClick={onClose}>Отмена</ButtonGhost>
+                        <ButtonGhost onClick={() => { if (!isSubmitting) onClose(); }}>Отмена</ButtonGhost>
                         <ButtonPrimary
-                            onClick={() => { 
-                                onCreate(
-                                    title.trim(), 
-                                    desc.trim() || undefined, 
-                                    assignedTo?.id, 
-                                    deadline || undefined, 
-                                    priority
-                                ); 
-                                onClose(); 
-                            }}
-                            disabled={!title.trim()}
+                            onClick={() => { void handleSubmit(); }}
+                            disabled={!title.trim() || isSubmitting}
                         >
-                            Добавить
+                            {isSubmitting ? 'Добавление...' : 'Добавить'}
                         </ButtonPrimary>
                     </>
                 }
             >
                 <div className="space-y-4">
+                    {submitError && (
+                        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300 whitespace-pre-line">
+                            {submitError}
+                        </div>
+                    )}
                     <label className="grid gap-2">
                         <span className="text-slate-200">Введите название задачи</span>
                         <input
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => {
+                                setTitle(e.target.value);
+                                clearSubmitError();
+                            }}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             placeholder="Например, Сделать поиск"
                         />
@@ -109,7 +159,10 @@ export default function AddTaskModal({
                         <textarea
                             rows={3}
                             value={desc}
-                            onChange={(e) => setDesc(e.target.value)}
+                            onChange={(e) => {
+                                setDesc(e.target.value);
+                                clearSubmitError();
+                            }}
                             className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             placeholder="Кратко опишите детали задачи…"
                         />
@@ -120,7 +173,10 @@ export default function AddTaskModal({
                         <input
                             type="date"
                             value={deadline}
-                            onChange={(e) => setDeadline(e.target.value)}
+                            onChange={(e) => {
+                                setDeadline(e.target.value);
+                                clearSubmitError();
+                            }}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         />
                     </label>
@@ -129,7 +185,10 @@ export default function AddTaskModal({
                         <span className="text-slate-200">Выберите приоритет задачи</span>
                         <select
                             value={priority}
-                            onChange={(e) => setPriority(Number(e.target.value) as TaskPriorityValue)}
+                            onChange={(e) => {
+                                setPriority(Number(e.target.value) as TaskPriorityValue);
+                                clearSubmitError();
+                            }}
                             className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         >
                             {TASK_PRIORITY_OPTIONS.map((option) => (
@@ -182,7 +241,10 @@ export default function AddTaskModal({
                     <input
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            clearSubmitError();
+                        }}
                         placeholder="Поиск по имени, email или роли..."
                         className="w-full h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />

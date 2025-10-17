@@ -1,5 +1,5 @@
 // src/features/tasks/api.ts
-import { http } from '@/lib/http';
+import { http, extractErrorMessage } from '@/lib/http';
 import type { components } from '@/types/openapi';
 import { mapTask, UITask, TaskShort } from './types';
 import { getUserId, isAuthed } from '@/lib/auth';
@@ -28,7 +28,7 @@ export async function fetchMyTasks(page = 1, pageSize = 20): Promise<UITask[]> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const json = (await res.json()) as TaskListResponse;
-    
+
     const list: TaskShort[] = Array.isArray(json.tasks) ? (json.tasks as TaskShort[]) : [];
     return list.map(mapTask);
 }
@@ -61,10 +61,13 @@ export async function createTask(payload: CreateTaskRequest): Promise<CreateTask
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    if (!res.ok) {
+        const message = await extractErrorMessage(res);
+        throw new Error(message || `HTTP ${res.status}`);
+    }
     const json = (await res.json()) as any;
-    
+
     return {
         id: String(json.id ?? ''),
         title: json.title ?? '',
@@ -101,10 +104,10 @@ export async function moveTask(payload: MoveTaskRequest): Promise<MoveTaskRespon
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
+
     return {
         id: String(json.id ?? ''),
         status_id: json.status_id ?? '',
@@ -118,8 +121,7 @@ export async function fetchBoardTasks(boardId: string): Promise<UITask[]> {
     const res = await http(`/boards/project/${encodeURIComponent(boardId)}`, { method: 'GET' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
-    
+
     // Обработка структуры ответа: boards -> statuses -> tasks
     if (json.boards && Array.isArray(json.boards)) {
         const allTasks: UITask[] = [];
@@ -134,12 +136,11 @@ export async function fetchBoardTasks(boardId: string): Promise<UITask[]> {
         }
         return allTasks;
     }
-    
+
     // Fallback для других форматов
-    const list: any[] = Array.isArray(json) 
-        ? json 
+    const list: any[] = Array.isArray(json)
+        ? json
         : json.tasks ?? [];
-    
     return list.map(mapTask);
 }
 
@@ -148,8 +149,7 @@ export async function fetchBoardTasksByProjectAndBoard(projectId: string, boardI
     const res = await http(`/boards/project/${encodeURIComponent(projectId)}`, { method: 'GET' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
-    
+
     // Обработка структуры ответа: boards -> statuses -> tasks
     if (json.boards && Array.isArray(json.boards)) {
         // Находим конкретную доску
@@ -157,7 +157,7 @@ export async function fetchBoardTasksByProjectAndBoard(projectId: string, boardI
         if (!targetBoard) {
             return [];
         }
-        
+
         const allTasks: UITask[] = [];
         if (targetBoard.statuses && Array.isArray(targetBoard.statuses)) {
             for (const status of targetBoard.statuses) {
@@ -168,7 +168,6 @@ export async function fetchBoardTasksByProjectAndBoard(projectId: string, boardI
         }
         return allTasks;
     }
-    
     return [];
 }
 
@@ -202,7 +201,9 @@ export async function updateTask(taskId: string, payload: UpdateTaskRequest): Pr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(filteredPayload),
     });
-    
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+        const message = await extractErrorMessage(res);
+        throw new Error(message || `HTTP ${res.status}`);
+    }
     return await res.json();
 }

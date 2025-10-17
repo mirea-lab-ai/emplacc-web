@@ -74,7 +74,11 @@ export default function TeamSidebar({
                     </div>
                     <div className={['text-sm',
                                     active ? 'text-slate-800' : 'text-slate-200',].join(' ')}>
-                        Тимлид: {t.lead.name}
+                        Тимлид: {t.lead.id === 'no-lead'
+                          ? 'не назначен'
+                          : t.lead.role
+                            ? `${t.lead.name} · ${t.lead.role}`
+                            : t.lead.name}
                     </div>
                   </div>
                 </button>

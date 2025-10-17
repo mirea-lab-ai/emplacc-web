@@ -35,7 +35,8 @@ export default function HelpSearchModal({
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
                 avatarUrl: undefined,
-                role: user.profession,
+                role: user.specialization ?? user.profession,
+                specialization: user.specialization,
             }));
     }, [users, selected]);
     
@@ -99,7 +100,11 @@ export default function HelpSearchModal({
                                             <Avatar name={emp.name} url={emp.avatarUrl} />
                                             <div className="min-w-0">
                                                 <div className="text-slate-100 text-sm truncate">{emp.name}</div>
-                                                <div className="text-slate-400 text-xs truncate">{emp.email || emp.role || 'Сотрудник'}</div>
+                                                <div className="text-slate-400 text-xs truncate">
+                                                    {emp.specialization
+                                                        ? `${emp.specialization}${emp.email ? ` · ${emp.email}` : ''}`
+                                                        : emp.email || emp.role || 'Сотрудник'}
+                                                </div>
                                             </div>
                                             <span className="ml-auto text-white text-xs">Добавить</span>
                                         </button>

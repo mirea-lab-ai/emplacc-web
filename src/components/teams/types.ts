@@ -8,6 +8,7 @@ export type Member = {
 export type Lead = {
   id: string;
   name: string;
+  role?: string;
   avatarSrc?: string;
 };
 

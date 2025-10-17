@@ -37,7 +37,7 @@ export default function AddTeamModal({
   const availableUsers = useMemo(() => {
     if (!users) return [];
     const selectedIds = selectedMembers.map(s => s.id);
-    
+
     return users
       .filter(user => !selectedIds.includes(user.id))
       .map(user => ({
@@ -45,16 +45,17 @@ export default function AddTeamModal({
         name: `${user.firstName} ${user.lastName}`.trim(),
         email: user.email,
         avatarUrl: undefined,
-        role: user.profession,
+        role: user.specialization ?? user.profession,
+        specialization: user.specialization,
       }));
   }, [users, selectedMembers]);
-  
+
   // Фильтруем по поисковому запросу
   const results = useMemo(() => {
     if (!query.trim()) return availableUsers;
-    
+
     const searchTerm = query.toLowerCase();
-    return availableUsers.filter(user => 
+    return availableUsers.filter(user =>
       user.name.toLowerCase().includes(searchTerm) ||
       user.email?.toLowerCase().includes(searchTerm) ||
       user.role?.toLowerCase().includes(searchTerm)
@@ -76,7 +77,7 @@ export default function AddTeamModal({
 
   const submit = () => {
     if (!name.trim() || isPending) return;
-    
+
     createTeam(
       {
         name: name.trim(),
@@ -154,10 +155,10 @@ export default function AddTeamModal({
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {selectedMembers.map(member => (
-                      <SelectedChip 
-                        key={member.id} 
-                        emp={member} 
-                        onRemove={() => removeMember(member.id)} 
+                      <SelectedChip
+                        key={member.id}
+                        emp={member}
+                        onRemove={() => removeMember(member.id)}
                       />
                     ))}
                   </div>
@@ -173,8 +174,8 @@ export default function AddTeamModal({
           )}
 
           <div className="mt-6 flex justify-end gap-3">
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               disabled={isPending}
               className="rounded-lg px-4 py-2 text-slate-300 hover:text-white disabled:opacity-50"
             >
@@ -206,16 +207,16 @@ export default function AddTeamModal({
 
             <div className="relative mb-4">
               <input
-                autoFocus 
-                value={query} 
+                autoFocus
+                value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Поиск по имени, email, роли…"
                 className="w-full rounded-xl t-surface text-slate-100 placeholder:text-slate-400 px-4 py-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
               />
               {query && (
-                <button 
+                <button
                   onClick={() => setQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200" 
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
                   aria-label="Очистить"
                 >
                   ×
@@ -248,8 +249,8 @@ export default function AddTeamModal({
                       : results.length === 0
                       ? <div className="text-slate-400 text-sm">Ничего не найдено…</div>
                       : results.map(emp => (
-                          <button 
-                            key={emp.id} 
+                          <button
+                            key={emp.id}
                             onClick={() => addMember(emp)}
                             className="flex items-center gap-3 rounded-lg t-surface px-3 py-2 ring-1 ring-white/10 text-left"
                           >
@@ -267,8 +268,8 @@ export default function AddTeamModal({
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button 
-                onClick={() => setShowUserSelector(false)} 
+              <button
+                onClick={() => setShowUserSelector(false)}
                 className="rounded-xl px-4 py-2 bg-white/10 text-slate-100 ring-1 ring-white/10 hover:bg-white/15"
               >
                 Подтвердить

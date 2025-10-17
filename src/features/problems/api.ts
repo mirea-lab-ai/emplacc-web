@@ -20,12 +20,12 @@ export async function fetchAllProblems(page = 1, pageSize = 20): Promise<UIProbl
   const res = await http(`/problem/all/${page}/${pageSize}`, { method: 'GET' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+
   // Обработка разных форматов ответа
-  const list: any[] = Array.isArray(json) 
-    ? json 
+  const list: any[] = Array.isArray(json)
+    ? json
     : json.problems ?? [];
-  
+
   return list.map((p: any) => ({
     id: String(p.id ?? ''),
     name: p.name ?? 'Без названия',
@@ -43,10 +43,10 @@ export async function createProblem(payload: CreateProblemRequest): Promise<UIPr
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+
   return {
     id: String(json.id ?? ''),
     name: payload.name,
@@ -62,6 +62,6 @@ export async function deleteProblem(problemId: string): Promise<void> {
   const res = await http(`/problem/${encodeURIComponent(problemId)}`, {
     method: 'DELETE',
   });
-  
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }

@@ -12,7 +12,7 @@ export function useAllProblems(page = 1, pageSize = 20, enabled = true) {
 
 export function useCreateProblem() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: CreateProblemRequest) => createProblem(payload),
     onSuccess: () => {
@@ -24,7 +24,7 @@ export function useCreateProblem() {
 
 export function useDeleteProblem() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (problemId: string) => deleteProblem(problemId),
     onSuccess: () => {

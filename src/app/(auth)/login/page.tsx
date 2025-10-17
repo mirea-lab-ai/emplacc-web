@@ -1,12 +1,14 @@
 // src/app/(auth)/login/page.tsx
 'use client';
 
+import { Logo } from '@/components/ui/Logo';
 import { generateCodeChallenge, generateCodeVerifier, generateState, saveAuthState } from '@/lib/pkce';
 
 export default function LoginPage() {
     return (
         <div className="min-h-dvh grid place-items-center p-6">
-            <div className="w-full max-w-sm space-y-4 rounded-xl border border-white/10 bg-white/5 p-6 text-slate-100 backdrop-blur">
+            <div className="w-full max-w-sm space-y-6 rounded-xl border border-white/10 bg-white/5 p-6 text-slate-100 backdrop-blur">
+                <Logo variant="colored" className="mx-auto h-12 w-auto" />
                 <h1 className="text-2xl font-semibold">Вход в Emplacc</h1>
                 <p className="text-sm text-slate-300">
                     Войти можно только через корпоративную учётную запись Keycloak.

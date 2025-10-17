@@ -24,12 +24,12 @@ export async function fetchUserProjects(userId: string): Promise<UIProject[]> {
   const res = await http(`/project/all/1/20`, { method: 'GET' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+
   // Обработка разных форматов ответа
-  const list: any[] = Array.isArray(json) 
-    ? json 
+  const list: any[] = Array.isArray(json)
+    ? json
     : json.projects ?? [];
-  
+
   return list.map((p: any) => ({
     id: String(p.id ?? ''),
     name: p.name ?? 'Без названия',
@@ -45,12 +45,12 @@ export async function fetchAllUserProjects(page = 1, pageSize = 100): Promise<UI
   const res = await http(`/project/all/${page}/${pageSize}`, { method: 'GET' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+
   // Обработка разных форматов ответа
-  const list: any[] = Array.isArray(json) 
-    ? json 
+  const list: any[] = Array.isArray(json)
+    ? json
     : json.projects ?? [];
-  
+
   return list.map((p: any) => ({
     id: String(p.id ?? ''),
     name: p.name ?? 'Без названия',
@@ -68,10 +68,10 @@ export async function createProject(payload: CreateProjectRequest): Promise<UIPr
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+
   return {
     id: String(json.id ?? ''),
     name: payload.name,
@@ -95,30 +95,30 @@ export async function updateProject(projectId: string, payload: UpdateProjectReq
   // Попробуем прямой fetch для обхода проблем с http функцией
   const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!.replace(/\/+$/, '');
   const access = getAccessToken();
-  
+
   if (!access) {
     throw new Error('No access token found');
   }
-  
+
   const url = `${BASE}/project/${encodeURIComponent(projectId)}`;
   const headers = {
     'accept': 'application/json',
     'Authorization': `Bearer ${access}`,
     'Content-Type': 'application/json',
   };
-  
+
   console.log('PATCH запрос (обновление проекта):', { url, headers, payload });
-  
+
   const res = await fetch(url, {
     method: 'PATCH',
     headers,
     body: JSON.stringify(payload),
     mode: 'cors',
   });
-  
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+
   return {
     id: String(json.id ?? projectId),
     name: json.name ?? '',
@@ -134,6 +134,6 @@ export async function deleteProject(projectId: string): Promise<void> {
   const res = await http(`/project/${projectId}`, {
     method: 'DELETE',
   });
-  
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }

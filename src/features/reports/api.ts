@@ -73,7 +73,7 @@ export async function createReport(payload: CreateReportRequest): Promise<any> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
 }
@@ -83,7 +83,7 @@ export async function fetchUserReports(userId: string, page = 1, pageSize = 1): 
     const res = await http(`/report/user/${encodeURIComponent(userId)}/${page}/${pageSize}`, {
         method: 'GET',
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
 }
@@ -93,7 +93,7 @@ export async function exportReportsToExcel(startDate: string, endDate: string): 
     // Преобразуем даты в формат ISO (как в остальной части приложения)
     const startDateISO = new Date(startDate + 'T00:00:00').toISOString();
     const endDateISO = new Date(endDate + 'T23:59:59').toISOString();
-    
+
     const res = await http('/report/export/xlsx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -102,7 +102,7 @@ export async function exportReportsToExcel(startDate: string, endDate: string): 
             end_date: endDateISO,
         }),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.blob();
 }
@@ -112,7 +112,7 @@ export async function completeHelpRequest(helpRequestId: string): Promise<void> 
     const res = await http(`/report/help-request/${encodeURIComponent(helpRequestId)}`, {
         method: 'DELETE',
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 

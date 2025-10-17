@@ -1,12 +1,16 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
-import type { UITask } from '@/features/tasks/types';
+import type { TaskStatusSummary, UITask } from '@/features/tasks/types';
 import { getTaskPriorityMeta } from '@/features/tasks/types';
 import { getUserId, isAuthed } from '@/lib/auth';
+import { fetchStatusesByTaskId, fetchBoardStatus } from '@/features/status/api';
+import { fetchAllUserProjects } from '@/features/projects/api';
+import { fetchProjectBoards } from '@/features/boards/api';
 
 const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
 
@@ -15,9 +19,25 @@ const isTaskClosed = (task: UITask) => {
     return false;
   }
 
-  return task.statuses.some((statusName) => {
-    if (typeof statusName !== 'string') return false;
-    const normalized = statusName.trim().toLowerCase();
+  return task.statuses.some((status) => isStatusClosed(status));
+};
+
+const isStatusClosed = (status: TaskStatusSummary | string | undefined | null): boolean => {
+  if (status == null) return false;
+
+  if (typeof status === 'string') {
+    const normalized = status.trim().toLowerCase();
+    if (!normalized) return false;
+    return CLOSED_STATUS_KEYWORDS.some((keyword) => normalized.includes(keyword));
+  }
+
+  if (status.isOpen === false) return true;
+  if (status.isActive === false) return true;
+
+  const candidates = [status.name, status.key];
+  return candidates.some((value) => {
+    if (typeof value !== 'string') return false;
+    const normalized = value.trim().toLowerCase();
     if (!normalized) return false;
     return CLOSED_STATUS_KEYWORDS.some((keyword) => normalized.includes(keyword));
   });
@@ -39,12 +59,161 @@ const formatDueDate = (value: string) => {
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 
+const extractLocationFromTask = (task: UITask) => {
+  const projectId = task.projectId
+    ?? (Array.isArray(task.statuses)
+      ? task.statuses.find((status) => typeof status === 'object' && status?.projectId)?.projectId
+      : undefined);
+
+  const boardId = task.boardId
+    ?? (Array.isArray(task.statuses)
+      ? task.statuses.find((status) => typeof status === 'object' && status?.boardId)?.boardId
+      : undefined);
+
+  return { projectId, boardId };
+};
+
 export default function YourTasks() {
     const isClient = useIsClient();
+  const router = useRouter();
+  const [resolvingTaskId, setResolvingTaskId] = useState<string | null>(null);
+  const [resolvedLocations, setResolvedLocations] = useState<Record<string, { projectId: string; boardId?: string } | null>>({});
 
     const hasCreds = isClient && isAuthed() && !!getUserId();
     const { data, isLoading, error } = useMyTasks(1, 20, hasCreds);
     const tasks = (data ?? []) as UITask[];
+
+    const navigateToBoard = (projectId: string, boardId?: string) => {
+      const params = new URLSearchParams();
+      params.set('projectId', projectId);
+      params.set('tab', 'board');
+      if (boardId) {
+        params.set('boardId', boardId);
+      }
+      router.push(`/projects?${params.toString()}`);
+    };
+
+    const findTaskLocationByScanning = async (taskId: string): Promise<{ projectId: string; boardId?: string } | null> => {
+      try {
+        const projects = await fetchAllUserProjects();
+        for (const project of projects) {
+          if (!project?.id) continue;
+          let boards;
+          try {
+            boards = await fetchProjectBoards(project.id);
+          } catch (boardsError) {
+            console.warn('Ваши задачи: не удалось получить доски проекта', project.id, boardsError);
+            continue;
+          }
+
+          for (const board of boards) {
+            if (!board?.id) continue;
+            try {
+              const status = await fetchBoardStatus(board.id);
+              const hasTask = status.statuses?.some((col) => col.tasks?.some((task) => String(task?.id) === taskId));
+              if (hasTask) {
+                return { projectId: project.id, boardId: board.id };
+              }
+            } catch (statusError) {
+              console.warn('Ваши задачи: не удалось получить статусы доски', board.id, statusError);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Ваши задачи: ошибка при сканировании проектов и досок', error);
+      }
+
+      return null;
+    };
+
+    const handleTaskOpen = async (task: UITask) => {
+      const immediate = extractLocationFromTask(task);
+      const cached = resolvedLocations[task.id];
+
+      if (cached === null) {
+        console.warn('Ваши задачи: ранее не удалось определить проект для задачи', task.id);
+        return;
+      }
+
+      const projectId = immediate.projectId ?? cached?.projectId;
+      const boardId = immediate.boardId ?? cached?.boardId;
+
+      if (projectId) {
+        setResolvedLocations((prev) => {
+          const existing = prev[task.id];
+          if (existing && existing.projectId === projectId && existing.boardId === boardId) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [task.id]: { projectId, boardId },
+          };
+        });
+        navigateToBoard(projectId, boardId);
+        return;
+      }
+
+      if (resolvingTaskId === task.id) {
+        return;
+      }
+
+      setResolvingTaskId(task.id);
+
+      try {
+        const refs = await fetchStatusesByTaskId(task.id);
+        if (Array.isArray(refs) && refs.length > 0) {
+          const withProjectAndBoard = refs.find((ref) => ref.projectId && ref.boardId);
+          const projectFromRefs = withProjectAndBoard?.projectId
+            ?? refs.find((ref) => ref.projectId)?.projectId;
+          const boardFromRefs = withProjectAndBoard?.boardId
+            ?? refs.find((ref) => ref.boardId)?.boardId
+            ?? boardId
+            ?? immediate.boardId;
+
+          if (projectFromRefs) {
+            setResolvedLocations((prev) => {
+              const existing = prev[task.id];
+              if (existing && existing.projectId === projectFromRefs && existing.boardId === boardFromRefs) {
+                return prev;
+              }
+              return {
+                ...prev,
+                [task.id]: { projectId: projectFromRefs, boardId: boardFromRefs },
+              };
+            });
+            navigateToBoard(projectFromRefs, boardFromRefs);
+            return;
+          }
+        }
+
+        const scanned = await findTaskLocationByScanning(task.id);
+        if (scanned) {
+          setResolvedLocations((prev) => {
+            const existing = prev[task.id];
+            if (existing && existing.projectId === scanned.projectId && existing.boardId === scanned.boardId) {
+              return prev;
+            }
+            return {
+              ...prev,
+              [task.id]: { projectId: scanned.projectId, boardId: scanned.boardId },
+            };
+          });
+          navigateToBoard(scanned.projectId, scanned.boardId);
+          return;
+        }
+
+        console.warn('Ваши задачи: не удалось определить проект для перехода', task, refs);
+        setResolvedLocations((prev) => (
+          prev[task.id] === null
+            ? prev
+            : { ...prev, [task.id]: null }
+        ));
+      } catch (err) {
+        console.error('Ваши задачи: ошибка при определении доски задачи', err);
+      } finally {
+        setResolvingTaskId((current) => (current === task.id ? null : current));
+      }
+    };
 
     const { sortedTasks, hiddenCount } = useMemo(() => {
       const openTasks: UITask[] = [];
@@ -99,9 +268,24 @@ export default function YourTasks() {
                 Скрыто {hiddenCount} завершённых задач из списка «Ваши задачи»
               </div>
             )}
-            {sortedTasks.map((t) => (
-              <TaskRow key={t.id} t={t} />
-            ))}
+            {sortedTasks.map((t) => {
+              const immediate = extractLocationFromTask(t);
+              const cached = resolvedLocations[t.id];
+              const projectId = immediate.projectId ?? cached?.projectId;
+              const boardId = immediate.boardId ?? cached?.boardId;
+              const isResolving = resolvingTaskId === t.id;
+
+              return (
+                <TaskRow
+                  key={t.id}
+                  t={t}
+                  resolving={isResolving}
+                  projectId={projectId}
+                  boardId={boardId}
+                  onOpen={() => { void handleTaskOpen(t); }}
+                />
+              );
+            })}
           </>
         )}
       </div>
@@ -109,11 +293,50 @@ export default function YourTasks() {
   );
 }
 
-function TaskRow({t}: { t: UITask }) {
+function TaskRow({
+  t,
+  onOpen,
+  resolving,
+  projectId,
+  boardId,
+}: {
+  t: UITask;
+  onOpen: () => void;
+  resolving: boolean;
+  projectId?: string;
+  boardId?: string;
+}) {
   const priorityMeta = getTaskPriorityMeta(t.priority);
+  const hasLocation = Boolean(projectId);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (!resolving) {
+        onOpen();
+      }
+    }
+  };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl p-4 ring-1 ring-white/10 px-4 py-2 backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors">
+    <div
+  role="button"
+  tabIndex={0}
+  onClick={resolving ? undefined : onOpen}
+  onKeyDown={handleKeyDown}
+      aria-disabled={resolving}
+      aria-busy={resolving}
+      title={hasLocation ? 'Открыть доску с этой задачей' : 'Определяем доску задачи'}
+      className={[
+        'relative overflow-hidden rounded-2xl ring-1 ring-white/10 px-4 py-2 backdrop-blur-sm border border-white/20 text-white transition-colors bg-white/10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300',
+        resolving ? 'pointer-events-none opacity-60' : 'hover:bg-white/20',
+      ].join(' ')}
+    >
+      {resolving && (
+        <div className="absolute inset-0 z-[2] flex items-center justify-center bg-slate-900/40 text-xs text-slate-200">
+          Открываем доску…
+        </div>
+      )}
       <div className="relative z-[1] flex items-start justify-between gap-3">
         <div>
           <div className="font-semibold">{t.title}</div>

@@ -9,11 +9,12 @@ export function convertUITeamToTeam(uiTeam: UITeamFull): Team {
     lead: uiTeam.lead ? {
       id: uiTeam.lead.id,
       name: uiTeam.lead.name,
+      role: uiTeam.lead.specialization ?? uiTeam.lead.profession ?? uiTeam.lead.role,
     } : { id: 'no-lead', name: 'Нет лида' },
     members: uiTeam.members.map(member => ({
       id: member.id,
       name: member.name,
-      role: member.role,
+      role: member.specialization ?? member.profession ?? member.role ?? 'Роль не указана',
     })),
   };
 }

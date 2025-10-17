@@ -2,19 +2,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProjectBoards, createBoard, deleteBoard, type CreateBoardRequest } from './api';
 
+const BOARDS_REFRESH_INTERVAL_MS = 60_000;
+
 export function useProjectBoards(projectId: string | null, enabled = true) {
+    const shouldFetch = enabled && !!projectId;
     return useQuery({
         queryKey: ['projectBoards', projectId],
         queryFn: () => fetchProjectBoards(projectId!),
-        enabled: enabled && !!projectId,
+        enabled: shouldFetch,
         staleTime: 5 * 60 * 1000, // 5 минут - данные считаются свежими
         gcTime: 10 * 60 * 1000, // 10 минут - данные хранятся в кеше
+        refetchInterval: shouldFetch ? BOARDS_REFRESH_INTERVAL_MS : false,
+        refetchIntervalInBackground: true,
     });
 }
 
 export function useCreateBoard() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: (payload: CreateBoardRequest) => createBoard(payload),
         onSuccess: (_, variables) => {
@@ -26,7 +31,7 @@ export function useCreateBoard() {
 
 export function useDeleteBoard() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: ({ boardId, projectId }: { boardId: string; projectId: string }) => deleteBoard(boardId),
         onSuccess: (_, { projectId }) => {

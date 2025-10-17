@@ -69,12 +69,26 @@ export function getTaskPriorityMeta(value?: number | null): TaskPriorityMeta {
     return meta ?? fallback;
 }
 
+export type TaskStatusSummary = {
+    id?: string;
+    name?: string;
+    key?: string;
+    boardId?: string;
+    projectId?: string;
+    isOpen?: boolean;
+    isActive?: boolean;
+    color?: string;
+};
+
 export type UITask = {
     id: string;
     title: string;           // в UI всегда строка
+    description?: string;
     due?: string;
     priority?: number;
-    statuses?: string[];
+    boardId?: string;
+    projectId?: string;
+    statuses?: TaskStatusSummary[];
     assignees?: TaskAssignee[];
 };
 
@@ -85,6 +99,16 @@ export function mapTask(dto: TaskShort): UITask {
         executor?: unknown;
         responsible?: unknown;
         users?: unknown;
+        description?: unknown;
+        desc?: unknown;
+        details?: unknown;
+        body?: unknown;
+        content?: unknown;
+        project_id?: unknown;
+        projectId?: unknown;
+        project?: unknown;
+        board_id?: unknown;
+        boardId?: unknown;
     };
 
     const normalizeAssignee = (input: unknown): TaskAssignee | null => {
@@ -139,12 +163,78 @@ export function mapTask(dto: TaskShort): UITask {
         }
     }
 
+    const description = [
+        extended.description,
+        extended.desc,
+        extended.details,
+        extended.body,
+        extended.content,
+    ].find((value): value is string => typeof value === 'string' && value.trim().length > 0);
+
+    const statusSummaries: TaskStatusSummary[] | undefined = Array.isArray(dto.statuses)
+        ? (dto.statuses as StatusResponse[]).reduce<TaskStatusSummary[]>((acc, raw) => {
+            if (!raw) return acc;
+            const data = raw as Record<string, unknown>;
+            const boardCandidate = data.board_id ?? data.boardId ?? data.list_id ?? data.status_board_id ?? data.statusBoardId;
+            const nestedBoard = typeof data.board === 'object' && data.board !== null ? (data.board as Record<string, unknown>) : undefined;
+            const nestedProject = typeof data.project === 'object' && data.project !== null ? (data.project as Record<string, unknown>) : undefined;
+            const boardProject = typeof nestedBoard?.project === 'object' && nestedBoard.project !== null ? (nestedBoard.project as Record<string, unknown>) : undefined;
+            const nestedBoardId = nestedBoard?.id ?? nestedBoard?.board_id ?? nestedBoard?.boardId;
+            const boardId = boardCandidate ?? nestedBoardId;
+
+            const idCandidate = data.id ?? (data as { status_id?: unknown }).status_id ?? (data as { statusId?: unknown }).statusId;
+            const nameCandidate = data.name ?? data.title ?? data.label;
+            const keyCandidate = data.key ?? (data as { status_key?: unknown }).status_key ?? (data as { statusKey?: unknown }).statusKey;
+            const projectCandidate = data.project_id
+                ?? data.projectId
+                ?? nestedBoard?.project_id
+                ?? nestedBoard?.projectId
+                ?? nestedProject?.id
+                ?? nestedProject?.project_id
+                ?? boardProject?.id
+                ?? boardProject?.project_id;
+
+            acc.push({
+                id: typeof idCandidate === 'string' || typeof idCandidate === 'number' ? String(idCandidate) : undefined,
+                name: typeof nameCandidate === 'string' ? nameCandidate : undefined,
+                key: typeof keyCandidate === 'string' ? keyCandidate : undefined,
+                boardId: typeof boardId === 'string' || typeof boardId === 'number' ? String(boardId) : undefined,
+                projectId: typeof projectCandidate === 'string' || typeof projectCandidate === 'number' ? String(projectCandidate) : undefined,
+                isOpen: typeof data.is_open === 'boolean' ? data.is_open : undefined,
+                isActive: typeof data.is_active === 'boolean' ? data.is_active : undefined,
+                color: typeof data.color === 'string' ? data.color : undefined,
+            });
+
+            return acc;
+        }, [])
+        : undefined;
+
+    const explicitBoardCandidate = extended.board_id ?? extended.boardId;
+
+    const projectCandidate = extended.project_id
+        ?? extended.projectId
+        ?? (typeof extended.project === 'object' && extended.project !== null
+            ? (() => {
+                const projectData = extended.project as Record<string, unknown>;
+                return projectData.id ?? projectData.project_id ?? projectData.projectId;
+            })()
+            : undefined)
+        ?? (statusSummaries?.find((status) => status?.projectId)?.projectId);
+
+    const boardCandidateResolved = explicitBoardCandidate
+        ?? (statusSummaries?.find((status) => status?.boardId)?.boardId);
+
     return {
         id: String(dto.id),
         title: dto.name ?? 'Без названия',                    // дефолт, чтобы не было string | undefined
+        description: description?.trim(),
         due: dto.deadline ?? undefined,
         priority: typeof dto.priority === 'number' ? dto.priority : undefined,
-        statuses: dto.statuses?.map((s: StatusResponse) => s.name).filter(Boolean) as string[] | undefined,
+        boardId: typeof boardCandidateResolved === 'string' || typeof boardCandidateResolved === 'number'
+            ? String(boardCandidateResolved)
+            : undefined,
+        projectId: typeof projectCandidate === 'string' || typeof projectCandidate === 'number' ? String(projectCandidate) : undefined,
+    statuses: statusSummaries && statusSummaries.length > 0 ? statusSummaries : undefined,
         assignees: assignees && assignees.length > 0 ? assignees : undefined,
     };
 }

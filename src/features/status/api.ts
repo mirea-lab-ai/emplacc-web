@@ -15,6 +15,13 @@ export type UIStatus = {
     tasks?: UITask[];
 };
 
+export type TaskStatusReference = {
+    statusId?: string;
+    boardId?: string;
+    projectId?: string;
+    statusName?: string;
+};
+
 export type BoardStatus = {
     boardId: string;
     projectId?: string;
@@ -75,6 +82,61 @@ export async function fetchBoardStatus(boardId: string): Promise<BoardStatus> {
         projectId: json.project_id,
         statuses: statusesWithTasks.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     };
+}
+
+// Получение статусов по ID задачи (для определения доски/проекта)
+export async function fetchStatusesByTaskId(taskId: string): Promise<TaskStatusReference[] | null> {
+    if (!taskId || taskId.trim().length === 0) {
+        return null;
+    }
+
+    const res = await http(`/status/task/${encodeURIComponent(taskId)}`, { method: 'GET' });
+    if (!res.ok) {
+        console.warn('fetchStatusesByTaskId: запрос завершился ошибкой', res.status, taskId);
+        return null;
+    }
+    const json = (await res.json()) as any;
+
+    const statuses: any[] = Array.isArray(json)
+        ? json
+        : json.statuses ?? [];
+
+    return statuses.map((raw) => {
+        const status = raw ?? {};
+        const board = typeof status.board === 'object' && status.board !== null ? status.board : undefined;
+        const project = typeof status.project === 'object' && status.project !== null ? status.project : undefined;
+
+        const boardCandidate = status.board_id
+            ?? status.boardId
+            ?? (board?.id ?? board?.board_id ?? board?.boardId)
+            ?? status.status_board_id
+            ?? status.statusBoardId;
+
+        const projectCandidate = status.project_id
+            ?? status.projectId
+            ?? board?.project_id
+            ?? board?.projectId
+            ?? project?.id
+            ?? project?.project_id
+            ?? project?.projectId;
+
+        const statusIdCandidate = status.id
+            ?? status.status_id
+            ?? status.statusId;
+
+        return {
+            statusId: typeof statusIdCandidate === 'string' || typeof statusIdCandidate === 'number'
+                ? String(statusIdCandidate)
+                : undefined,
+            boardId: typeof boardCandidate === 'string' || typeof boardCandidate === 'number'
+                ? String(boardCandidate)
+                : undefined,
+            projectId: typeof projectCandidate === 'string' || typeof projectCandidate === 'number'
+                ? String(projectCandidate)
+                : undefined,
+            statusName: typeof status.name === 'string' ? status.name : undefined,
+        } satisfies TaskStatusReference;
+    });
 }
 
 export type CreateStatusRequest = {

@@ -1,16 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProjectsNav, { Tab } from '@/components/projects/ProjectsNav';
 import ProjectsBoardPanel from '@/components/projects/ProjectsBoardPanel';
 import ProjectsTeamsPanel from '@/components/projects/ProjectsTeamsPanel';
 import ProjectsSettingsPanel from '@/components/projects/ProjectsSettingsPanel';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
+import CreateBoardModal from '@/components/projects/CreateBoardModal';
 import type { UIProject } from '@/features/projects/api';
 import Panel from '@/components/ui/Panel';
 import { useEffect } from 'react';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchUserProjects } from '@/features/projects/api';
+import ProjectsBoardList from '@/components/projects/ProjectsBoardList';
 
 export default function ProjectsPage() {
   const [tab, setTab] = useState<Tab>('my');
@@ -18,6 +21,10 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<UIProject[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
+  const [appliedSearchKey, setAppliedSearchKey] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   const loadProjects = () => {
     const uid = getUserId();
@@ -33,6 +40,39 @@ export default function ProjectsPage() {
     loadProjects();
   }, []);
 
+  useEffect(() => {
+    if (!selected) {
+      setSelectedBoardId(null);
+    }
+  }, [selected]);
+
+  useEffect(() => {
+    if (!projects.length) return;
+
+    const projectIdParam = searchParams.get('projectId') ?? null;
+    const boardIdParam = searchParams.get('boardId') ?? null;
+    const tabParam = searchParams.get('tab');
+
+    if (!projectIdParam) return;
+
+    const key = `${projectIdParam}|${boardIdParam ?? ''}|${tabParam ?? ''}`;
+    if (appliedSearchKey === key) return;
+
+    const targetProject = projects.find((project) => project.id === projectIdParam);
+    if (!targetProject) return;
+
+    setSelected(targetProject);
+    setSelectedBoardId(boardIdParam);
+
+    if (tabParam === 'board' || tabParam === 'teams' || tabParam === 'settings' || tabParam === 'my') {
+      setTab(tabParam as Tab);
+    } else {
+      setTab('board');
+    }
+
+    setAppliedSearchKey(key);
+  }, [projects, searchParams, appliedSearchKey]);
+
   return (
     <main className="min-h-screen text-white">
       <div className="mx-auto p-6 space-y-6">
@@ -41,8 +81,17 @@ export default function ProjectsPage() {
             {/* NAV */}
             <aside className="sticky top-6 h-[calc(100dvh-3rem)] w-[240px] shrink-0 ">
                 {/* свой внутренний скролл, чтобы сайдбар не «ездил» вместе со страницей */}
-                <div className="h-full  overflow-auto custom-scroll">
+                <div className="h-full  overflow-auto custom-scroll space-y-4">
                     <ProjectsNav tab={tab} onChange={setTab} disabled={!selected} />
+
+                    {tab === 'board' && selected && (
+                      <ProjectsBoardList
+                        projectId={selected.id}
+                        activeBoardId={selectedBoardId}
+                        onSelect={setSelectedBoardId}
+                        onCreateBoard={() => setShowCreateBoardModal(true)}
+                      />
+                    )}
                 </div>
             </aside>
 
@@ -67,7 +116,11 @@ export default function ProjectsPage() {
                     {projects.map((p)=> (
                       <li key={p.id}>
                         <button
-                          onClick={()=>{ setSelected(p); setTab('board'); }}
+                          onClick={()=>{
+                            setSelected(p);
+                            setSelectedBoardId(null);
+                            setTab('board');
+                          }}
                           className={[
                             'w-full text-left rounded-xl px-4 py-2 transition-colors',
                             selected?.id === p.id
@@ -97,7 +150,13 @@ export default function ProjectsPage() {
                 )}
               </Panel>
             )}
-            {tab === 'board' && selected && <ProjectsBoardPanel projectId={selected.id} />}
+            {tab === 'board' && selected && (
+              <ProjectsBoardPanel
+                projectId={selected.id}
+                selectedBoardId={selectedBoardId ?? undefined}
+                onSelectBoard={setSelectedBoardId}
+              />
+            )}
             {tab === 'teams' && selected && <ProjectsTeamsPanel projectId={selected.id} />}
             {tab === 'settings' && selected && (
               <ProjectsSettingsPanel 
@@ -114,6 +173,7 @@ export default function ProjectsPage() {
                   // Если удаленный проект был выбран, сбрасываем выбор
                   if (selected?.id === projectId) {
                     setSelected(null);
+                    setSelectedBoardId(null);
                     setTab('my');
                   }
                 }}
@@ -130,6 +190,13 @@ export default function ProjectsPage() {
             setShowCreateModal(false);
             loadProjects();
           }}
+        />
+      )}
+
+      {showCreateBoardModal && selected && (
+        <CreateBoardModal
+          projectId={selected.id}
+          onClose={() => setShowCreateBoardModal(false)}
         />
       )}
     </main>

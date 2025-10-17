@@ -14,7 +14,7 @@ export function useBoardStatus(boardId: string | null, enabled = true) {
 
 export function useCreateStatus() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: (payload: CreateStatusRequest) => createStatus(payload),
         onSuccess: (_, variables) => {
@@ -28,7 +28,7 @@ export function useCreateStatus() {
 
 export function useDeleteStatus() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: (statusId: string) => deleteStatus(statusId),
         onSuccess: () => {

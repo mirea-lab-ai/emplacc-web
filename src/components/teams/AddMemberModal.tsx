@@ -44,7 +44,8 @@ export default function AddMemberModal({
         name: `${user.firstName} ${user.lastName}`.trim(),
         email: user.email,
         avatarUrl: undefined,
-        role: user.profession,
+        role: user.specialization ?? user.profession,
+        specialization: user.specialization,
       }));
   }, [users, selectedMembers, existingMemberIds]);
   

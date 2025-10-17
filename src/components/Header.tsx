@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { Logo } from '@/components/ui/Logo';
 import { clearTokens, getRefreshToken } from '@/lib/auth';
 import { apiLogout } from '@/features/auth/api';
-import { useRouter } from 'next/navigation';
 
 
 type Props = {
@@ -32,7 +33,16 @@ export default function Header({ items }: Props) {
   return (
     <header className=" items-center mx-auto px-6 py-4 border-b border-gray-400 max-w-6xl ">
       <div className="flex items-center justify-between">
-        <div className="text-5xl font-semibold bg-gradient-to-r from-emerald-500 to-lime-400 bg-clip-text text-transparent">Emplacc</div>
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-3 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          aria-label="На главную Emplacc"
+        >
+          <Logo className="h-10" variant="colored" priority />
+          <span className="text-5xl font-semibold bg-gradient-to-r from-emerald-500 to-lime-400 bg-clip-text text-transparent">
+            Emplacc
+          </span>
+        </Link>
         
         <nav className="flex gap-10 items-center">
           {items.map(({ label, href }) => {

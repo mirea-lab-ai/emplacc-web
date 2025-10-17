@@ -5,7 +5,7 @@ import { createReport, fetchUserReports, type CreateReportRequest } from './api'
 
 export function useCreateReport() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: CreateReportRequest) => createReport(payload),
     onSuccess: () => {

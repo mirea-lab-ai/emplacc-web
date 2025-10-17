@@ -13,6 +13,8 @@ export type UITeamMember = {
     name: string;
     role: string;
     email?: string;
+    profession?: string;
+    specialization?: string;
 };
 
 export type UITeamFull = {
@@ -40,20 +42,16 @@ export type UpdateTeamRequest = {
 // Получение команд проекта
 export async function fetchProjectTeams(projectId: string): Promise<UITeam[]> {
     const res = await http(`/team/project/${encodeURIComponent(projectId)}`, { method: 'GET' });
-    
     // Обрабатываем ошибку 404 как пустой массив
     if (res.status === 404) {
         return [];
     }
-    
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
     // Обработка разных форматов ответа
-    const list: any[] = Array.isArray(json) 
-        ? json 
+    const list: any[] = Array.isArray(json)
+        ? json
         : json.teams ?? [];
-    
     return list.map((t: any) => ({
         id: String(t.id ?? ''),
         name: t.name ?? 'Без названия',
@@ -67,30 +65,57 @@ export async function fetchAllTeams(): Promise<UITeamFull[]> {
     const res = await http('/team/all', { method: 'GET' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
-    const list: any[] = Array.isArray(json) 
-        ? json 
+    const list: any[] = Array.isArray(json)
+        ? json
         : json.teams ?? [];
-    
-    return list.map((t: any) => ({
-        id: String(t.id ?? ''),
-        name: t.name ?? 'Без названия',
-        description: t.description,
-        lead: t.members?.find((m: any) => m.is_lead) ? {
-            id: String(t.members.find((m: any) => m.is_lead).user_id ?? ''),
-            name: `${t.members.find((m: any) => m.is_lead).first_name ?? ''} ${t.members.find((m: any) => m.is_lead).last_name ?? ''}`.trim(),
-            role: t.members.find((m: any) => m.is_lead).specialization ?? 'Lead',
-            email: t.members.find((m: any) => m.is_lead).email,
-        } : undefined,
-        members: (t.members ?? []).map((m: any) => ({
-            id: String(m.user_id ?? ''),
-            name: `${m.first_name ?? ''} ${m.last_name ?? ''}`.trim(),
-            role: m.specialization ?? 'Member',
-            email: m.email,
-        })),
-        createdAt: t.created_at,
-        updatedAt: t.updated_at,
-    }));
+    const resolveSpecialization = (value: any): string | undefined => {
+        if (!value) return undefined;
+        if (typeof value === 'string') return value.trim() || undefined;
+        if (typeof value === 'object') {
+            if (typeof value.name === 'string') return value.name.trim() || undefined;
+            if (typeof value.title === 'string') return value.title.trim() || undefined;
+        }
+        return undefined;
+    };
+
+    return list.map((team: any) => {
+        const rawMembers: any[] = Array.isArray(team.members) ? team.members : [];
+
+        const members: UITeamMember[] = rawMembers.map((member: any) => {
+            const specializationResolved = resolveSpecialization(member?.specialization) ?? resolveSpecialization(member?.profession);
+            const name = `${member?.first_name ?? ''} ${member?.last_name ?? ''}`.trim();
+            return {
+                id: String(member?.user_id ?? ''),
+                name: name || 'Без имени',
+                role: specializationResolved ?? resolveSpecialization(member?.role) ?? 'Member',
+                profession: resolveSpecialization(member?.profession),
+                specialization: specializationResolved,
+                email: member?.email,
+            } satisfies UITeamMember;
+        });
+
+        const leadRaw = rawMembers.find((member: any) => member?.is_lead);
+        const lead = leadRaw
+            ? {
+                  id: String(leadRaw.user_id ?? ''),
+                  name: `${leadRaw.first_name ?? ''} ${leadRaw.last_name ?? ''}`.trim() || 'Без имени',
+                  role: resolveSpecialization(leadRaw.specialization) ?? resolveSpecialization(leadRaw.profession) ?? 'Lead',
+                  profession: resolveSpecialization(leadRaw.profession),
+                  specialization: resolveSpecialization(leadRaw.specialization) ?? resolveSpecialization(leadRaw.profession),
+                  email: leadRaw.email,
+              }
+            : undefined;
+
+        return {
+            id: String(team.id ?? ''),
+            name: team.name ?? 'Без названия',
+            description: team.description,
+            lead,
+            members,
+            createdAt: team.created_at,
+            updatedAt: team.updated_at,
+        } satisfies UITeamFull;
+    });
 }
 
 // Создание команды
@@ -100,10 +125,10 @@ export async function createTeam(payload: CreateTeamRequest): Promise<UITeamFull
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as any;
-    
+
     return {
         id: String(json.id ?? ''),
         name: payload.name,
@@ -141,7 +166,7 @@ export async function deleteTeam(teamId: string): Promise<void> {
     const res = await http(`/team/${encodeURIComponent(teamId)}`, {
         method: 'DELETE',
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -150,7 +175,7 @@ export async function fetchTeamProjects(teamId: string): Promise<any[]> {
     const res = await http(`/project/team/${encodeURIComponent(teamId)}`, {
         method: 'GET',
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return Array.isArray(data) ? data : data.projects || [];
@@ -166,7 +191,7 @@ export async function removeTeamMember(teamId: string, userId: string): Promise<
             user_id: userId,
         }),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -175,7 +200,7 @@ export async function fetchAllProjects(page = 1, pageSize = 100): Promise<any[]>
     const res = await http(`/project/all/${page}/${pageSize}`, {
         method: 'GET',
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return Array.isArray(data) ? data : data.projects || [];
@@ -191,7 +216,7 @@ export async function addProjectToTeam(teamId: string, projectId: string): Promi
             project_id: projectId,
         }),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -205,7 +230,7 @@ export async function addUsersToTeam(teamId: string, userIds: string[]): Promise
             user_ids: userIds,
         }),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -219,7 +244,7 @@ export async function addTeamToProject(projectId: string, teamId: string): Promi
             team_id: teamId,
         }),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -233,7 +258,7 @@ export async function removeTeamFromProject(projectId: string, teamId: string): 
             team_id: teamId,
         }),
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 

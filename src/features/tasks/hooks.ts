@@ -13,7 +13,6 @@ export function useMyTasks(page = 1, pageSize = 20, enabled = false) {
 
 export function useCreateTask() {
     const queryClient = useQueryClient();
-    
     return useMutation({
         mutationFn: (payload: CreateTaskRequest) => createTask(payload),
         onSuccess: () => {
@@ -27,7 +26,6 @@ export function useCreateTask() {
 
 export function useDeleteTask() {
     const queryClient = useQueryClient();
-    
     return useMutation({
         mutationFn: (taskId: string) => deleteTask(taskId),
         onSuccess: () => {
@@ -41,7 +39,6 @@ export function useDeleteTask() {
 
 export function useMoveTask() {
     const queryClient = useQueryClient();
-    
     return useMutation({
         mutationFn: (payload: MoveTaskRequest) => moveTask(payload),
         onSuccess: () => {
@@ -97,7 +94,6 @@ export function useTasksByIds(taskIds: string[], enabled = true): UseQueryResult
 
 export function useUpdateTask() {
     const queryClient = useQueryClient();
-    
     return useMutation({
         mutationFn: ({ taskId, payload }: { taskId: string; payload: UpdateTaskRequest }) => updateTask(taskId, payload),
         onSuccess: () => {

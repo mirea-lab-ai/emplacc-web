@@ -23,7 +23,7 @@ export function useAllTeams(enabled = true) {
 
 export function useCreateTeam() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: CreateTeamRequest) => createTeam(payload),
     onSuccess: () => {
@@ -35,7 +35,7 @@ export function useCreateTeam() {
 
 export function useDeleteTeam() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (teamId: string) => deleteTeam(teamId),
     onSuccess: () => {
@@ -69,7 +69,7 @@ export function useTeamProjects(teamId: string | null, enabled = true) {
 
 export function useRemoveTeamMember() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) => 
       removeTeamMember(teamId, userId),
@@ -92,7 +92,7 @@ export function useAllProjects(enabled = true) {
 
 export function useAddProjectToTeam() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ teamId, projectId }: { teamId: string; projectId: string }) => 
       addProjectToTeam(teamId, projectId),
@@ -105,7 +105,7 @@ export function useAddProjectToTeam() {
 
 export function useAddUsersToTeam() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ teamId, userIds }: { teamId: string; userIds: string[] }) => 
       addUsersToTeam(teamId, userIds),
@@ -118,7 +118,7 @@ export function useAddUsersToTeam() {
 
 export function useAddTeamToProject() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ projectId, teamId }: { projectId: string; teamId: string }) => 
       addTeamToProject(projectId, teamId),
@@ -131,7 +131,7 @@ export function useAddTeamToProject() {
 
 export function useRemoveTeamFromProject() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ projectId, teamId }: { projectId: string; teamId: string }) => 
       removeTeamFromProject(projectId, teamId),

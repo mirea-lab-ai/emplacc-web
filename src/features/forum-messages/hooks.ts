@@ -13,7 +13,7 @@ export function useForumMessagesByProblem(problemId: string | null, page = 1, pa
 
 export function useCreateForumMessage() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: CreateForumMessageRequest) => createForumMessage(payload),
     onSuccess: (_, { problem_id }) => {

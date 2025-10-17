@@ -6,6 +6,7 @@ export type UIUser = {
   lastName: string;
   email: string;
   profession?: string;
+  specialization?: string;
   tgId?: string;
 };
 
@@ -14,6 +15,7 @@ export type UpdateUserRequest = {
   last_name: string;
   email: string;
   profession?: string;
+  specialization?: string;
   tg_id?: string;
 };
 
@@ -22,13 +24,25 @@ export async function fetchUser(userId: string): Promise<UIUser> {
   const res = await http(`/user/${encodeURIComponent(userId)}`, { method: 'GET' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
+  const resolveSpecialization = (value: any): string | undefined => {
+    if (!value) return undefined;
+    if (typeof value === 'string') return value.trim() || undefined;
+    if (typeof value === 'object') {
+      if (typeof value.name === 'string') return value.name.trim() || undefined;
+      if (typeof value.title === 'string') return value.title.trim() || undefined;
+    }
+    return undefined;
+  };
+
+  const specialization = resolveSpecialization(json.specialization) ?? resolveSpecialization(json.profession);
   
   return {
     id: String(json.id ?? ''),
     firstName: json.first_name ?? '',
     lastName: json.last_name ?? '',
     email: json.email ?? '',
-    profession: json.profession,
+    profession: resolveSpecialization(json.profession) ?? specialization,
+    specialization,
     tgId: json.tg_id,
   };
 }
@@ -38,7 +52,16 @@ export async function fetchAllUsers(page = 1, pageSize = 100): Promise<UIUser[]>
   const res = await http(`/user/all/${page}/${pageSize}`, { method: 'GET' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
-  
+  const resolveSpecialization = (value: any): string | undefined => {
+    if (!value) return undefined;
+    if (typeof value === 'string') return value.trim() || undefined;
+    if (typeof value === 'object') {
+      if (typeof value.name === 'string') return value.name.trim() || undefined;
+      if (typeof value.title === 'string') return value.title.trim() || undefined;
+    }
+    return undefined;
+  };
+
   const list: any[] = Array.isArray(json) 
     ? json 
     : json.users ?? [];
@@ -48,7 +71,8 @@ export async function fetchAllUsers(page = 1, pageSize = 100): Promise<UIUser[]>
     firstName: u.first_name ?? '',
     lastName: u.last_name ?? '',
     email: u.email ?? '',
-    profession: u.profession,
+    profession: resolveSpecialization(u.profession) ?? resolveSpecialization(u.specialization),
+    specialization: resolveSpecialization(u.specialization) ?? resolveSpecialization(u.profession),
     tgId: u.tg_id,
   }));
 }
@@ -63,13 +87,28 @@ export async function updateUser(userId: string, payload: UpdateUserRequest): Pr
   
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as any;
+  const resolveSpecialization = (value: any): string | undefined => {
+    if (!value) return undefined;
+    if (typeof value === 'string') return value.trim() || undefined;
+    if (typeof value === 'object') {
+      if (typeof value.name === 'string') return value.name.trim() || undefined;
+      if (typeof value.title === 'string') return value.title.trim() || undefined;
+    }
+    return undefined;
+  };
+
+  const specialization = resolveSpecialization(json.specialization)
+    ?? resolveSpecialization(payload.specialization)
+    ?? resolveSpecialization(json.profession)
+    ?? resolveSpecialization(payload.profession);
   
   return {
     id: String(json.id ?? ''),
     firstName: json.first_name ?? payload.first_name,
     lastName: json.last_name ?? payload.last_name,
     email: json.email ?? payload.email,
-    profession: json.profession ?? payload.profession,
+    profession: resolveSpecialization(json.profession) ?? resolveSpecialization(payload.profession) ?? specialization,
+    specialization,
     tgId: json.tg_id ?? payload.tg_id,
   };
 }

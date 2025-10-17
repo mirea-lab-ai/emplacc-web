@@ -49,7 +49,7 @@ export default function ProfilePage() {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
-        profession: userData.profession || '',
+        profession: userData.specialization || userData.profession || '',
         tgId: userData.tgId || '',
         avatarSrc: undefined, // Аватар пока не поддерживается API
       });
@@ -82,6 +82,7 @@ export default function ProfilePage() {
           last_name: data.lastName,
           email: data.email,
           profession: data.profession || undefined,
+          specialization: data.profession || undefined,
           tg_id: data.tgId || undefined,
         },
       },

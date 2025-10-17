@@ -9,7 +9,6 @@ import AddTaskModal from './modals/AddTaskModal';
 import EditTaskModal from './modals/EditTaskModal';
 import { KBColumn } from './types';
 import { uid } from '@/lib/uid' // если путь иной, поправь импорт
-import { useCreateTask } from '@/features/tasks/hooks';
 import { type UITask } from '@/features/tasks/types';
 
 export default function KanbanBoard({
@@ -36,9 +35,23 @@ export default function KanbanBoard({
     isCreatingStatus?: boolean;
     onDeleteStatus?: (statusId: string) => void;
     isDeletingStatus?: boolean;
-    onCreateTask?: (statusId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    onCreateTask?: (
+        statusId: string,
+        title: string,
+        description?: string,
+        assignedTo?: string,
+        deadline?: string,
+        priority?: number,
+    ) => Promise<void>;
     isCreatingTask?: boolean;
-    onUpdateTask?: (taskId: string, title: string, description?: string, assignedTo?: string, deadline?: string, priority?: number) => void;
+    onUpdateTask?: (
+        taskId: string,
+        title: string,
+        description?: string,
+        assignedTo?: string,
+        deadline?: string,
+        priority?: number,
+    ) => Promise<void>;
     isUpdatingTask?: boolean;
     onDeleteTask?: (taskId: string) => void;
     isDeletingTask?: boolean;
@@ -88,25 +101,34 @@ export default function KanbanBoard({
     };
 
     /* ---------- CRUD задач ---------- */
-    const addTask = (colId: string, title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => {
+    const addTask = async (
+        colId: string,
+        title: string,
+        desc?: string,
+        assignedTo?: string,
+        deadline?: string,
+        priority?: number,
+    ) => {
         if (onCreateTask) {
-            // Используем API для создания задачи
-            onCreateTask(colId, title, desc, assignedTo, deadline, priority);
-        } else {
-            // Fallback для локального создания (если API не передан)
-            const t = title.trim(); if (!t) return;
-            const newTask: UITask = {
-                id: uid(),
-                title: t,
-                due: deadline,
-                priority: priority,
-                statuses: undefined,
-                assignees: assignedTo ? [{ id: assignedTo, name: assignedTo }] : undefined,
-            };
-            setLocal(prev =>
-                prev.map(c => (c.id === colId ? { ...c, tasks: [...c.tasks, newTask] } : c))
-            );
+            await onCreateTask(colId, title, desc, assignedTo, deadline, priority);
+            return;
         }
+
+        const t = title.trim();
+        if (!t) return;
+
+        const newTask: UITask = {
+            id: uid(),
+            title: t,
+            due: deadline,
+            priority: priority,
+            statuses: undefined,
+            assignees: assignedTo ? [{ id: assignedTo, name: assignedTo }] : undefined,
+        };
+
+        setLocal(prev =>
+            prev.map(c => (c.id === colId ? { ...c, tasks: [...c.tasks, newTask] } : c))
+        );
     };
     const removeTask = (colId: string, taskId: string) => {
         if (onDeleteTask) {
@@ -200,16 +222,21 @@ export default function KanbanBoard({
             <AddTaskModal
                 open={!!addTaskFor}
                 onClose={() => setAddTaskFor(null)}
-                onCreate={(title, desc, assignedTo, deadline, priority) => addTask(addTaskFor!, title, desc, assignedTo, deadline, priority)}
+                isSubmitting={isCreatingTask}
+                onCreate={async (title, desc, assignedTo, deadline, priority) => {
+                    if (!addTaskFor) return;
+                    await addTask(addTaskFor, title, desc, assignedTo, deadline, priority);
+                }}
             />
 
             <EditTaskModal
                 open={!!editTask}
                 onClose={() => setEditTask(null)}
                 task={editTask ? local.find(col => col.id === editTask.colId)?.tasks.find(t => t.id === editTask.taskId) || null : null}
-                onUpdate={(title, desc, assignedTo, deadline, priority) => {
+                isSubmitting={isUpdatingTask}
+                onUpdate={async (title, desc, assignedTo, deadline, priority) => {
                     if (editTask && onUpdateTask) {
-                        onUpdateTask(editTask.taskId, title, desc, assignedTo, deadline, priority);
+                        await onUpdateTask(editTask.taskId, title, desc, assignedTo, deadline, priority);
                     }
                 }}
             />

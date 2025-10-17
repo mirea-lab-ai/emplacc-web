@@ -8,9 +8,7 @@ import { useMyTasks } from '@/features/tasks/hooks';
 import type { TaskStatusSummary, UITask } from '@/features/tasks/types';
 import { getTaskPriorityMeta } from '@/features/tasks/types';
 import { getUserId, isAuthed } from '@/lib/auth';
-import { fetchStatusesByTaskId, fetchBoardStatus } from '@/features/status/api';
-import { fetchAllUserProjects } from '@/features/projects/api';
-import { fetchProjectBoards } from '@/features/boards/api';
+import { fetchTaskBoardProject } from '@/features/tasks/api';
 
 const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
 
@@ -93,39 +91,6 @@ export default function YourTasks() {
       router.push(`/projects?${params.toString()}`);
     };
 
-    const findTaskLocationByScanning = async (taskId: string): Promise<{ projectId: string; boardId?: string } | null> => {
-      try {
-        const projects = await fetchAllUserProjects();
-        for (const project of projects) {
-          if (!project?.id) continue;
-          let boards;
-          try {
-            boards = await fetchProjectBoards(project.id);
-          } catch (boardsError) {
-            console.warn('Ваши задачи: не удалось получить доски проекта', project.id, boardsError);
-            continue;
-          }
-
-          for (const board of boards) {
-            if (!board?.id) continue;
-            try {
-              const status = await fetchBoardStatus(board.id);
-              const hasTask = status.statuses?.some((col) => col.tasks?.some((task) => String(task?.id) === taskId));
-              if (hasTask) {
-                return { projectId: project.id, boardId: board.id };
-              }
-            } catch (statusError) {
-              console.warn('Ваши задачи: не удалось получить статусы доски', board.id, statusError);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Ваши задачи: ошибка при сканировании проектов и досок', error);
-      }
-
-      return null;
-    };
-
     const handleTaskOpen = async (task: UITask) => {
       const immediate = extractLocationFromTask(task);
       const cached = resolvedLocations[task.id];
@@ -160,49 +125,26 @@ export default function YourTasks() {
       setResolvingTaskId(task.id);
 
       try {
-        const refs = await fetchStatusesByTaskId(task.id);
-        if (Array.isArray(refs) && refs.length > 0) {
-          const withProjectAndBoard = refs.find((ref) => ref.projectId && ref.boardId);
-          const projectFromRefs = withProjectAndBoard?.projectId
-            ?? refs.find((ref) => ref.projectId)?.projectId;
-          const boardFromRefs = withProjectAndBoard?.boardId
-            ?? refs.find((ref) => ref.boardId)?.boardId
-            ?? boardId
-            ?? immediate.boardId;
+        const remote = await fetchTaskBoardProject(task.id);
+        const resolvedProjectId = remote.projectId ?? immediate.projectId ?? cached?.projectId;
+        const resolvedBoardId = remote.boardId ?? immediate.boardId ?? cached?.boardId;
 
-          if (projectFromRefs) {
-            setResolvedLocations((prev) => {
-              const existing = prev[task.id];
-              if (existing && existing.projectId === projectFromRefs && existing.boardId === boardFromRefs) {
-                return prev;
-              }
-              return {
-                ...prev,
-                [task.id]: { projectId: projectFromRefs, boardId: boardFromRefs },
-              };
-            });
-            navigateToBoard(projectFromRefs, boardFromRefs);
-            return;
-          }
-        }
-
-        const scanned = await findTaskLocationByScanning(task.id);
-        if (scanned) {
+        if (resolvedProjectId) {
           setResolvedLocations((prev) => {
             const existing = prev[task.id];
-            if (existing && existing.projectId === scanned.projectId && existing.boardId === scanned.boardId) {
+            if (existing && existing.projectId === resolvedProjectId && existing.boardId === resolvedBoardId) {
               return prev;
             }
             return {
               ...prev,
-              [task.id]: { projectId: scanned.projectId, boardId: scanned.boardId },
+              [task.id]: { projectId: resolvedProjectId, boardId: resolvedBoardId },
             };
           });
-          navigateToBoard(scanned.projectId, scanned.boardId);
+          navigateToBoard(resolvedProjectId, resolvedBoardId);
           return;
         }
 
-        console.warn('Ваши задачи: не удалось определить проект для перехода', task, refs);
+        console.warn('Ваши задачи: не удалось определить проект для перехода', task, remote);
         setResolvedLocations((prev) => (
           prev[task.id] === null
             ? prev
@@ -210,6 +152,11 @@ export default function YourTasks() {
         ));
       } catch (err) {
         console.error('Ваши задачи: ошибка при определении доски задачи', err);
+        setResolvedLocations((prev) => (
+          prev[task.id] === null
+            ? prev
+            : { ...prev, [task.id]: null }
+        ));
       } finally {
         setResolvingTaskId((current) => (current === task.id ? null : current));
       }

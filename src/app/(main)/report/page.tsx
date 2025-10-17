@@ -12,6 +12,7 @@ import { Employee } from '@/lib/types';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { TaskInfo } from '@/components/ReportProjectPicker';
+import { useImproveTaskReport } from '@/features/tasks/hooks';
 
 type Notes = Record<string, string>; // key `${boardId}:${taskId}` -> text
 
@@ -58,6 +59,8 @@ export default function ReportsPage() {
 
   // Карта задач для получения названий
   const [taskMap, setTaskMap] = useState<Map<string, TaskInfo>>(new Map());
+  const improveReportMutation = useImproveTaskReport();
+  const [improvingKey, setImprovingKey] = useState<string | null>(null);
   
   // Функция для обновления карты задач
   const updateTaskMap = useCallback((newTaskMap: Map<string, TaskInfo>) => {
@@ -158,6 +161,34 @@ export default function ReportsPage() {
   // (1..n) формы "что сделал(а)"
   doneKeys.forEach((k) => {
     const i1 = idx; // фикс индекса
+    const handleImprove = async () => {
+      const key = k;
+      const parts = key.split(':');
+      const taskId = parts.length > 1 ? parts[1] : parts[0];
+      if (!taskId) {
+        console.warn('Не удалось определить taskId для улучшения отчета', key);
+        return;
+      }
+
+      const currentText = doneNotes[key] ?? '';
+      setImprovingKey(key);
+      try {
+        const result = await improveReportMutation.mutateAsync({
+          taskId,
+          userText: currentText,
+        });
+        const improvedText = typeof result?.improved_text === 'string' && result.improved_text.trim().length > 0
+          ? result.improved_text
+          : currentText;
+        setDoneNotes((prev) => ({ ...prev, [key]: improvedText }));
+      } catch (error) {
+        console.error('Ошибка при генерации комментария отчета', error);
+        alert('Не удалось сгенерировать комментарий. Попробуйте позже.');
+      } finally {
+        setImprovingKey((prev) => (prev === key ? null : prev));
+      }
+    };
+
     slides.push(
       <div key={`slide-${i1}`} className="flex flex-col justify-between">
         <NotesForm
@@ -166,6 +197,8 @@ export default function ReportsPage() {
           value={doneNotes[k] ?? ''}
           placeholder="Опишите выполненную работу…"
           onChange={(v) => setDoneNotes((prev) => ({ ...prev, [k]: v }))}
+          onImproveClick={() => { void handleImprove(); }}
+          isImproving={improvingKey === k && improveReportMutation.isPending}
         />
         <WizardNav  onPrev={() => goTo(i1 - 1)} onNext={() => goTo(i1 + 1)} />
       </div>

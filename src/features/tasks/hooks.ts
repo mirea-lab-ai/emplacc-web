@@ -1,6 +1,6 @@
 'use client';
 import { useQuery, useMutation, useQueryClient, useQueries, type UseQueryResult } from '@tanstack/react-query';
-import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, updateTask, type CreateTaskRequest, type MoveTaskRequest, type UpdateTaskRequest } from './api';
+import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, updateTask, improveTaskReport, type CreateTaskRequest, type MoveTaskRequest, type UpdateTaskRequest } from './api';
 
 export function useMyTasks(page = 1, pageSize = 20, enabled = false) {
     return useQuery({
@@ -102,5 +102,11 @@ export function useUpdateTask() {
             // Также инвалидировать кеш для статусов, так как задачи могут отображаться в колонках
             queryClient.invalidateQueries({ queryKey: ['boardStatus'] });
         },
+    });
+}
+
+export function useImproveTaskReport() {
+    return useMutation({
+        mutationFn: ({ taskId, userText }: { taskId: string; userText: string }) => improveTaskReport(taskId, userText),
     });
 }

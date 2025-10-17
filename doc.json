@@ -4696,6 +4696,68 @@
                 }
             }
         },
+        "/task/board-project/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает ID доски и ID проекта, к которым принадлежит задача",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Получение доски и проекта задачи",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID задачи",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о доске и проекте",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Некорректный ID задачи",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Задача, статус или доска не найдены",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/task/move": {
             "post": {
                 "security": [
@@ -4828,7 +4890,7 @@
                     "200": {
                         "description": "Список задач успешно получен",
                         "schema": {
-                            "$ref": "#/definitions/response.TaskListResponse"
+                            "$ref": "#/definitions/response.UserTasksResponse"
                         }
                     },
                     "400": {
@@ -4842,6 +4904,178 @@
                     },
                     "401": {
                         "description": "Нет или неверный токен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении задач",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/task/user/{id}/{page}/{pagesize}/active": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получение списка задач, назначенных на пользователя, где статус != 'done' и deleted = false",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Получение активных задач по ID пользователя (исключая статус Done)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Размер страницы",
+                        "name": "pagesize",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список активных задач успешно получен",
+                        "schema": {
+                            "$ref": "#/definitions/response.UserTasksResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка при парсинге параметров или некорректный ID пользователя",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении задач",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/task/user/{user_id}/project/{project_id}/{page}/{pagesize}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получает список задач, назначенных на указанного пользователя и принадлежащих заданному проекту, с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Получение задач пользователя в рамках проекта",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID пользователя",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID проекта",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Размер страницы",
+                        "name": "pagesize",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список задач успешно получен",
+                        "schema": {
+                            "$ref": "#/definitions/response.UserProjectTasksResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID пользователя или проекта",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь или проект не найдены",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5066,6 +5300,79 @@
                     },
                     "500": {
                         "description": "Ошибка сервера при обновлении задачи",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/task/{id}/improve-report": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Принимает текст пользователя и улучшает его на основе описания задачи через LLM",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Улучшить отчет по задаче с помощью LLM",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID задачи",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для улучшения отчета",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ImproveReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Улучшенный отчет",
+                        "schema": {
+                            "$ref": "#/definitions/response.ImprovedReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID задачи или данные запроса",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Задача не найдена",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при обработке LLM",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -6708,6 +7015,19 @@
                 }
             }
         },
+        "request.ImproveReportRequest": {
+            "type": "object",
+            "required": [
+                "user_text"
+            ],
+            "properties": {
+                "user_text": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "minLength": 1
+                }
+            }
+        },
         "request.LoginRequest": {
             "type": "object",
             "required": [
@@ -7402,6 +7722,20 @@
                 }
             }
         },
+        "response.BoardRef": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "string"
+                }
+            }
+        },
         "response.BoardResponse": {
             "type": "object",
             "properties": {
@@ -7736,6 +8070,26 @@
                 }
             }
         },
+        "response.ImprovedReportResponse": {
+            "type": "object",
+            "properties": {
+                "improved_text": {
+                    "type": "string"
+                },
+                "original_text": {
+                    "type": "string"
+                },
+                "task_description": {
+                    "type": "string"
+                },
+                "task_id": {
+                    "type": "string"
+                },
+                "task_title": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ProblemListResponse": {
             "type": "object",
             "properties": {
@@ -7875,6 +8229,26 @@
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ProjectShort": {
+            "type": "object",
+            "properties": {
+                "created_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "gitlab_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -8058,6 +8432,29 @@
                     "items": {
                         "$ref": "#/definitions/response.StatusResponse"
                     }
+                }
+            }
+        },
+        "response.StatusFull": {
+            "type": "object",
+            "properties": {
+                "board": {
+                    "$ref": "#/definitions/response.BoardRef"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_open": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -8268,6 +8665,56 @@
                 }
             }
         },
+        "response.TaskFull": {
+            "type": "object",
+            "properties": {
+                "assigned_to_user": {
+                    "$ref": "#/definitions/response.UserFull"
+                },
+                "category": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by_user": {
+                    "$ref": "#/definitions/response.UserFull"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "gitlab_issue_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/response.StatusFull"
+                },
+                "time_spent": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "response.TaskListResponse": {
             "type": "object",
             "properties": {
@@ -8447,6 +8894,23 @@
                 }
             }
         },
+        "response.UserFull": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                }
+            }
+        },
         "response.UserInfo": {
             "description": "Структура с информацией о пользователе из Keycloak",
             "type": "object",
@@ -8481,6 +8945,32 @@
                 }
             }
         },
+        "response.UserProjectTasksResponse": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "project": {
+                    "$ref": "#/definitions/response.ProjectShort"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TaskFull"
+                    }
+                },
+                "total_count": {
+                    "type": "integer"
+                },
+                "user": {
+                    "$ref": "#/definitions/response.UserFull"
+                }
+            }
+        },
         "response.UserShort": {
             "type": "object",
             "properties": {
@@ -8492,6 +8982,26 @@
                 },
                 "last_name": {
                     "type": "string"
+                }
+            }
+        },
+        "response.UserTasksResponse": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TaskFull"
+                    }
+                },
+                "total_count": {
+                    "type": "integer"
                 }
             }
         },

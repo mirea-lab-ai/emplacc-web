@@ -234,7 +234,13 @@ export async function fetchTaskBoardProject(taskId: string): Promise<TaskBoardPr
     };
 }
 
-type ImproveReportResponse = components['schemas']['response.ImprovedReportResponse'];
+export type ImproveReportResponse = {
+    improved_text?: string;
+    original_text?: string;
+    task_description?: string;
+    task_id?: string;
+    task_title?: string;
+};
 
 const IMPROVE_REPORT_FALLBACK_TEXT =
     'Пользователь не предоставил комментарий. Сформируй краткое описание работы, учитывая контекст задачи.';

@@ -60,3 +60,23 @@ export async function deleteBoard(boardId: string): Promise<void> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
+export async function fetchBoardById(boardId: string): Promise<UIBoard | null> {
+    const trimmed = typeof boardId === 'string' ? boardId.trim() : '';
+    if (!trimmed) {
+        return null;
+    }
+
+    const res = await http(`/boards/${encodeURIComponent(trimmed)}`, { method: 'GET' });
+    if (!res.ok) {
+        console.warn('fetchBoardById: запрос завершился ошибкой', res.status, boardId);
+        return null;
+    }
+    const json = (await res.json()) as any;
+
+    return {
+        id: String(json.id ?? trimmed),
+        name: json.name ?? 'Без названия',
+        description: json.description,
+        projectId: json.project_id ?? json.projectId ?? '',
+    };
+}

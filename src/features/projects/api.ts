@@ -137,3 +137,27 @@ export async function deleteProject(projectId: string): Promise<void> {
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
+
+export async function fetchProjectById(projectId: string): Promise<UIProject | null> {
+  const trimmed = typeof projectId === 'string' ? projectId.trim() : '';
+  if (!trimmed) {
+    return null;
+  }
+
+  const res = await http(`/project/${encodeURIComponent(trimmed)}`, { method: 'GET' });
+  if (!res.ok) {
+    console.warn('fetchProjectById: запрос завершился ошибкой', res.status, projectId);
+    return null;
+  }
+
+  const json = (await res.json()) as any;
+
+  return {
+    id: String(json.id ?? trimmed),
+    name: json.name ?? 'Без названия',
+    description: json.description,
+    status: json.status,
+    createdAt: json.created_at ?? json.createdAt,
+    createdBy: json.created_by ?? json.createdBy,
+  };
+}

@@ -13,6 +13,9 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { TaskInfo } from '@/components/ReportProjectPicker';
 import { useImproveTaskReport } from '@/features/tasks/hooks';
+import { fetchTaskById } from '@/features/tasks/api';
+import { fetchBoardById } from '@/features/boards/api';
+import { fetchProjectById } from '@/features/projects/api';
 
 type Notes = Record<string, string>; // key `${boardId}:${taskId}` -> text
 
@@ -60,7 +63,9 @@ export default function ReportsPage() {
   // Карта задач для получения названий
   const [taskMap, setTaskMap] = useState<Map<string, TaskInfo>>(new Map());
   const improveReportMutation = useImproveTaskReport();
+  const createReportMutation = useCreateReport();
   const [improvingKey, setImprovingKey] = useState<string | null>(null);
+  const [pickerResetToken, setPickerResetToken] = useState(0);
   
   // Функция для обновления карты задач
   const updateTaskMap = useCallback((newTaskMap: Map<string, TaskInfo>) => {
@@ -72,6 +77,154 @@ export default function ReportsPage() {
       return combined;
     });
   }, []);
+
+  const allSelectedKeys = useMemo(() => {
+    const keys = new Set<string>();
+    selectedDone.forEach((key) => keys.add(key));
+    selectedPlan.forEach((key) => keys.add(key));
+    return Array.from(keys);
+  }, [selectedDone, selectedPlan]);
+
+  const missingTaskKeys = useMemo(() => {
+    return allSelectedKeys.filter((key) => !taskMap.has(key));
+  }, [allSelectedKeys, taskMap]);
+
+  const resolveTaskInfo = useCallback(async (key: string): Promise<TaskInfo | null> => {
+    const parts = key.split(':');
+    const boardPart = parts.length > 1 ? parts[0] : undefined;
+    const taskPart = parts.length > 1 ? parts[1] : parts[0];
+    const taskId = taskPart?.trim();
+
+    if (!taskId) {
+      return null;
+    }
+
+    let taskTitle = `Задача ${taskId}`;
+    let boardIdForLookup = boardPart?.trim();
+    let boardName: string | undefined;
+    let projectId: string | undefined;
+    let projectName: string | undefined;
+
+    try {
+      const task = await fetchTaskById(taskId);
+      if (task && typeof task === 'object') {
+        const taskData = task as Record<string, unknown>;
+        const titleCandidate = taskData.name ?? taskData.title;
+        if (typeof titleCandidate === 'string' && titleCandidate.trim().length > 0) {
+          taskTitle = titleCandidate.trim();
+        }
+
+        const status = taskData.status;
+        const boardCandidate = typeof status === 'object' && status !== null
+          ? ((status as Record<string, unknown>).board ?? undefined)
+          : taskData.board;
+        if (boardCandidate && typeof boardCandidate === 'object') {
+          const boardObj = boardCandidate as Record<string, unknown>;
+          const boardIdCandidate = boardObj.id ?? boardObj.board_id ?? boardObj.boardId;
+          const boardNameCandidate = boardObj.name;
+          const projectIdCandidate = boardObj.project_id ?? boardObj.projectId;
+
+          if (!boardIdForLookup && (typeof boardIdCandidate === 'string' || typeof boardIdCandidate === 'number')) {
+            boardIdForLookup = String(boardIdCandidate);
+          }
+
+          if (typeof boardNameCandidate === 'string' && boardNameCandidate.trim().length > 0) {
+            boardName = boardNameCandidate.trim();
+          }
+
+          if (typeof projectIdCandidate === 'string' || typeof projectIdCandidate === 'number') {
+            projectId = String(projectIdCandidate);
+          }
+        }
+
+        const projectCandidate = taskData.project;
+        if (!projectId && projectCandidate && typeof projectCandidate === 'object') {
+          const projectObj = projectCandidate as Record<string, unknown>;
+          const projectIdCandidate = projectObj.id ?? projectObj.project_id ?? projectObj.projectId;
+          if (typeof projectIdCandidate === 'string' || typeof projectIdCandidate === 'number') {
+            projectId = String(projectIdCandidate);
+          }
+          const projectNameCandidate = projectObj.name;
+          if (typeof projectNameCandidate === 'string' && projectNameCandidate.trim().length > 0) {
+            projectName = projectNameCandidate.trim();
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Не удалось получить данные задачи через fetchTaskById', taskId, error);
+    }
+
+    if ((!boardName || !projectId) && boardIdForLookup) {
+      try {
+        const board = await fetchBoardById(boardIdForLookup);
+        if (board) {
+          if (!boardName && typeof board.name === 'string' && board.name.trim().length > 0) {
+            boardName = board.name.trim();
+          }
+          const boardProjectId = board.projectId;
+          if (!projectId && typeof boardProjectId === 'string' && boardProjectId.trim().length > 0) {
+            projectId = boardProjectId.trim();
+          }
+        }
+      } catch (error) {
+        console.warn('Не удалось получить данные доски', boardIdForLookup, error);
+      }
+    }
+
+    if (projectId && !projectName) {
+      try {
+        const project = await fetchProjectById(projectId);
+        if (project && typeof project.name === 'string' && project.name.trim().length > 0) {
+          projectName = project.name.trim();
+        }
+      } catch (error) {
+        console.warn('Не удалось получить данные проекта', projectId, error);
+      }
+    }
+
+    return {
+      taskTitle,
+      boardName: boardName ?? (boardIdForLookup ? `Доска ${boardIdForLookup}` : 'Неизвестная доска'),
+      projectName: projectName ?? (projectId ? `Проект ${projectId}` : 'Неизвестный проект'),
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasCreds) return;
+    if (missingTaskKeys.length === 0) return;
+    let cancelled = false;
+
+    const load = async () => {
+      const updates = new Map<string, TaskInfo>();
+      for (const key of missingTaskKeys) {
+        try {
+          const info = await resolveTaskInfo(key);
+          if (info) {
+            updates.set(key, info);
+          }
+        } catch (error) {
+          console.error('Ошибка при дозагрузке информации о задаче', key, error);
+        }
+        if (cancelled) {
+          return;
+        }
+      }
+
+      if (!cancelled && updates.size > 0) {
+        setTaskMap((prev) => {
+          const merged = new Map(prev);
+          updates.forEach((value, key) => merged.set(key, value));
+          return merged;
+        });
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [missingTaskKeys, hasCreds, resolveTaskInfo]);
 
   // Получаем выбранные ключи в порядке выбора
   const orderedKeys = (set: Set<string>) => {
@@ -93,6 +246,32 @@ export default function ReportsPage() {
     if (step > stepsCount - 1) setStep(stepsCount - 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepsCount]);
+  useEffect(() => {
+    if (!isClient) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step, isClient]);
+
+  const resetWizard = useCallback(() => {
+    setSelectedDone(() => new Set());
+    setSelectedPlan(() => new Set());
+    setDoneNotes({});
+    setPlanNotes({});
+    setSelectedProblems(() => new Set());
+    setNeedHelp(null);
+    setHelpComments({});
+    setSelectedHelpers([]);
+    setReportDate(() => {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    });
+    setTaskMap(new Map());
+    setImprovingKey(null);
+    setStep(0);
+    setShowSuccessModal(false);
+    setPickerResetToken((prev) => prev + 1);
+    improveReportMutation.reset();
+    createReportMutation.reset();
+  }, [createReportMutation, improveReportMutation]);
 
   const toggleDone = (boardId: string, taskId: string) => {
     setSelectedDone((prev) => {
@@ -142,6 +321,7 @@ export default function ReportsPage() {
       <div key={`slide-${i0}`} className="flex flex-col justify-between">
         <div className="rounded-2xl t-surface-no-shadow bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
           <ReportProjectPicker
+            key={`done-${pickerResetToken}`}
             selected={selectedDone}
             onToggle={toggleDone}
             onTaskInfoUpdate={updateTaskMap}
@@ -213,6 +393,7 @@ export default function ReportsPage() {
       <div key={`slide-${i2}`} className="flex flex-col justify-between">
         <div className="rounded-2xl t-surface-no-shadow bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
           <ReportProjectPicker
+            key={`plan-${pickerResetToken}`}
             selected={selectedPlan}
             onToggle={togglePlan}
             onTaskInfoUpdate={updateTaskMap}
@@ -252,7 +433,6 @@ export default function ReportsPage() {
   // финал
   {
     const i4 = idx;
-    const createReportMutation = useCreateReport();
     
     const handleSubmit = async () => {
         try {
@@ -338,7 +518,7 @@ export default function ReportsPage() {
       
       <SuccessModal 
         open={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
+        onClose={resetWizard}
       />
     </main>
   );

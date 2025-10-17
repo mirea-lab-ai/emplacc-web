@@ -58,7 +58,7 @@ export default function ReportProjectPicker({
     if (onTaskInfoUpdate && allTaskInfo.size > 0) {
       onTaskInfoUpdate(allTaskInfo);
     }
-  }, [allTaskInfo]); // Убираем onTaskInfoUpdate из зависимостей
+  }, [allTaskInfo, onTaskInfoUpdate]);
 
   const toggleProject = (projectId: string) => {
     setOpenProjectIds((prev) => {

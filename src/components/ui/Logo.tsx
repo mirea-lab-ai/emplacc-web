@@ -1,4 +1,8 @@
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
+
+import coloredLogo from '../../../public/logo/colored_logo.svg';
+import whiteLogo from '../../../public/logo/white_logo.svg';
+import blackLogo from '../../../public/logo/black_logo.svg';
 
 type LogoVariant = 'auto' | 'colored' | 'white' | 'black';
 
@@ -17,10 +21,10 @@ type LogoProps = {
   priority?: boolean;
 };
 
-const LOGO_SOURCE: Record<Exclude<LogoVariant, 'auto'>, string> = {
-  colored: '/logo/colored_logo.svg',
-  white: '/logo/white_logo.svg',
-  black: '/logo/black_logo.svg',
+const LOGO_SOURCE: Record<Exclude<LogoVariant, 'auto'>, StaticImageData> = {
+  colored: coloredLogo,
+  white: whiteLogo,
+  black: blackLogo,
 };
 
 function joinClasses(...values: Array<string | undefined>) {
@@ -42,7 +46,6 @@ export function Logo({ className, variant = 'auto', priority }: LogoProps) {
           height={LOGO_HEIGHT}
           className="hidden h-full w-auto dark:block"
           priority={priority}
-          unoptimized
         />
         <Image
           src={LOGO_SOURCE.colored}
@@ -51,7 +54,6 @@ export function Logo({ className, variant = 'auto', priority }: LogoProps) {
           height={LOGO_HEIGHT}
           className="block h-full w-auto dark:hidden"
           priority={priority}
-          unoptimized
         />
       </span>
     );
@@ -65,7 +67,6 @@ export function Logo({ className, variant = 'auto', priority }: LogoProps) {
       height={LOGO_HEIGHT}
       className={joinClasses('h-10 w-auto', className)}
       priority={priority}
-      unoptimized
     />
   );
 }

@@ -15,12 +15,12 @@ type Props = {
 export default function Header({ items }: Props) {
     const router = useRouter();
 
-    async function onLogout() {
-        try {
-            const rt = getRefreshToken();
-            if (rt) await apiLogout(rt); // по спецификации
-        } catch (_) {
-        }
+  async function onLogout() {
+    try {
+      const rt = getRefreshToken();
+      if (rt) await apiLogout(rt); // по спецификации
+    } catch {
+    }
         clearTokens();
         router.replace('/login');
     }

@@ -42,6 +42,7 @@ export function Logo({ className, variant = 'auto', priority }: LogoProps) {
           height={LOGO_HEIGHT}
           className="hidden h-full w-auto dark:block"
           priority={priority}
+          unoptimized
         />
         <Image
           src={LOGO_SOURCE.colored}
@@ -50,6 +51,7 @@ export function Logo({ className, variant = 'auto', priority }: LogoProps) {
           height={LOGO_HEIGHT}
           className="block h-full w-auto dark:hidden"
           priority={priority}
+          unoptimized
         />
       </span>
     );
@@ -63,6 +65,7 @@ export function Logo({ className, variant = 'auto', priority }: LogoProps) {
       height={LOGO_HEIGHT}
       className={joinClasses('h-10 w-auto', className)}
       priority={priority}
+      unoptimized
     />
   );
 }

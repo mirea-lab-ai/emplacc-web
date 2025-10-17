@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProjectsNav, { Tab } from '@/components/projects/ProjectsNav';
 import ProjectsBoardPanel from '@/components/projects/ProjectsBoardPanel';
@@ -10,12 +10,19 @@ import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import CreateBoardModal from '@/components/projects/CreateBoardModal';
 import type { UIProject } from '@/features/projects/api';
 import Panel from '@/components/ui/Panel';
-import { useEffect } from 'react';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchUserProjects } from '@/features/projects/api';
 import ProjectsBoardList from '@/components/projects/ProjectsBoardList';
 
 export default function ProjectsPage() {
+  return (
+    <Suspense fallback={<ProjectsPageFallback />}>
+      <ProjectsPageContent />
+    </Suspense>
+  );
+}
+
+function ProjectsPageContent() {
   const [tab, setTab] = useState<Tab>('my');
   const [selected, setSelected] = useState<UIProject | null>(null);
   const [projects, setProjects] = useState<UIProject[]>([]);
@@ -199,6 +206,16 @@ export default function ProjectsPage() {
           onClose={() => setShowCreateBoardModal(false)}
         />
       )}
+    </main>
+  );
+}
+
+function ProjectsPageFallback() {
+  return (
+    <main className="min-h-screen text-white">
+      <div className="mx-auto p-6">
+        <div className="text-slate-400">Загрузка…</div>
+      </div>
     </main>
   );
 }

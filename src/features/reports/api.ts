@@ -5,6 +5,146 @@ import type { components } from '@/types/openapi';
 
 type HelpRequestsForUser = components['schemas']['response.HelpRequestsForUser'];
 type APIHelpRequestItem = components['schemas']['response.HelpRequestWithAssignerID'] | components['schemas']['response.HelpRequestItem'];
+type APIReportResponse = components['schemas']['response.ReportResponse'];
+type APIReportListResponse = components['schemas']['response.ReportListResponse'];
+
+export type UIReportUser = {
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+};
+
+export type UIReportCompletedWork = {
+    id?: string;
+    taskId?: string;
+    description?: string;
+};
+
+export type UIReportPlan = {
+    id?: string;
+    taskId?: string;
+    description?: string;
+};
+
+export type UIReportHelpRequest = {
+    id?: string;
+    helperId?: string;
+    description?: string;
+    status?: string;
+};
+
+export type UIReportProblem = {
+    id?: string;
+    name?: string;
+    description: string[];
+};
+
+export type UIReport = {
+    id: string;
+    reportDate?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    checked?: number;
+    user: UIReportUser;
+    completedWork: UIReportCompletedWork[];
+    tomorrowPlans: UIReportPlan[];
+    helpRequests: UIReportHelpRequest[];
+    problems: UIReportProblem[];
+};
+
+export type ReportListResult = {
+    items: UIReport[];
+    total: number;
+    page: number;
+    pageSize: number;
+};
+
+const normalizeString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+
+const mapReport = (report: APIReportResponse | null | undefined): UIReport => {
+    const dto = report ?? {};
+    const userInfo = (dto.user_info ?? {}) as Record<string, unknown>;
+    const firstName = normalizeString(userInfo.first_name);
+    const lastName = normalizeString(userInfo.last_name);
+    const userId = normalizeString(userInfo.id);
+    const userEmail = normalizeString(userInfo.email);
+    const userAvatarUrl = normalizeString(userInfo.avatar_url) || normalizeString(userInfo.avatar);
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+
+    const completedWork: UIReportCompletedWork[] = Array.isArray(dto.completed_work)
+        ? dto.completed_work.map((item) => {
+            const record = (item ?? {}) as Record<string, unknown>;
+            return {
+                id: normalizeString(record.id),
+                taskId: normalizeString(record.task_id),
+                description: normalizeString(record.description),
+            };
+        })
+        : [];
+
+    const tomorrowPlans: UIReportPlan[] = Array.isArray(dto.plan_tomorrow)
+        ? dto.plan_tomorrow.map((item) => {
+            const record = (item ?? {}) as Record<string, unknown>;
+            return {
+                id: normalizeString(record.id),
+                taskId: normalizeString(record.task_id),
+                description: normalizeString(record.description),
+            };
+        })
+        : [];
+
+    const helpRequests: UIReportHelpRequest[] = Array.isArray(dto.help_requests)
+        ? dto.help_requests.map((item) => {
+            const record = (item ?? {}) as Record<string, unknown>;
+            return {
+                id: normalizeString(record.id),
+                helperId: normalizeString(record.helper_id),
+                description: normalizeString(record.description),
+                status: normalizeString(record.status),
+            };
+        })
+        : [];
+
+    const problems: UIReportProblem[] = Array.isArray(dto.problem)
+        ? dto.problem.map((item) => {
+            const record = (item ?? {}) as Record<string, unknown>;
+            const descriptionRaw = record.description;
+            return {
+                id: normalizeString(record.id),
+                name: normalizeString(record.name),
+                description: Array.isArray(descriptionRaw)
+                    ? descriptionRaw.map((value) => String(value)).filter(Boolean)
+                    : [],
+            };
+        })
+        : [];
+
+    const baseId = normalizeString(dto.id);
+    const fallbackId = `${userId ?? 'report'}-${normalizeString(dto.report_date) ?? normalizeString(dto.created_at) ?? Date.now().toString()}`;
+
+    return {
+        id: baseId && baseId.length > 0 ? baseId : fallbackId,
+        reportDate: normalizeString(dto.report_date),
+        createdAt: normalizeString(dto.created_at),
+        updatedAt: normalizeString(dto.updated_at),
+        checked: typeof dto.checked === 'number' ? dto.checked : undefined,
+        user: {
+            id: userId,
+            firstName,
+            lastName,
+            name: fullName || userId || 'Без имени',
+            email: userEmail,
+            avatarUrl: userAvatarUrl,
+        },
+        completedWork,
+        tomorrowPlans,
+        helpRequests,
+        problems,
+    } satisfies UIReport;
+};
 
 export type UIHelpRequest = {
     id: string;
@@ -52,8 +192,6 @@ export type HelpRequestItem = {
 };
 
 export type TomorrowPlanItem = {
-    task_id: string;
-    id: string;
     description: string;
 };
 
@@ -68,13 +206,17 @@ export type CreateReportRequest = {
 
 // Создание отчета
 export async function createReport(payload: CreateReportRequest): Promise<any> {
+    console.log('Sending createReport request with payload:', payload);
     const res = await http('/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+        console.error('createReport failed with status:', res.status, 'response:', await res.text());
+        throw new Error(`HTTP ${res.status}`);
+    }
     return await res.json();
 }
 
@@ -86,6 +228,37 @@ export async function fetchUserReports(userId: string, page = 1, pageSize = 1): 
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
+}
+
+export async function fetchAllReports(page = 1, pageSize = 20): Promise<ReportListResult> {
+    const res = await http(`/report/all/${page}/${pageSize}`, {
+        method: 'GET',
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as APIReportListResponse;
+    const reportsRaw = Array.isArray(json?.reports) ? json.reports : [];
+    return {
+        items: reportsRaw.map((item) => mapReport(item)),
+        total: typeof json?.total_count === 'number' ? json.total_count : reportsRaw.length,
+        page: typeof json?.page === 'number' ? json.page : page,
+        pageSize: typeof json?.page_size === 'number' ? json.page_size : pageSize,
+    } satisfies ReportListResult;
+}
+
+export async function fetchReportById(reportId: string): Promise<UIReport | null> {
+    if (!reportId) return null;
+    const res = await http(`/report/${encodeURIComponent(reportId)}`, {
+        method: 'GET',
+    });
+
+    if (res.status === 404) {
+        return null;
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as APIReportResponse;
+    return mapReport(json);
 }
 
 // Экспорт отчетов в Excel
@@ -115,5 +288,3 @@ export async function completeHelpRequest(helpRequestId: string): Promise<void> 
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
-
-

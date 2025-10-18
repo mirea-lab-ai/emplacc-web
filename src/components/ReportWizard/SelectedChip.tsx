@@ -13,7 +13,7 @@ export default function SelectedChip({ emp, onRemove }:{ emp: Employee; onRemove
 
     return (
         <div className="group flex items-center gap-2 shrink-0 rounded-full bg-white/10 px-2 py-1 ring-1 ring-white/15">
-            <Avatar name={emp.name} url={emp.avatarUrl} size="sm" />
+            <Avatar name={emp.name} url={emp.avatarUrl} email={emp.email} fallbackKey={emp.id} size="sm" />
             <span className="text-slate-100 text-sm">{emp.name}</span>
             <button
                 onClick={handleRemove}

@@ -97,7 +97,7 @@ export default function HelpSearchModal({
                                     : results.map(emp => (
                                         <button key={emp.id} onClick={()=>onAdd(emp)}
                                                 className="flex items-center gap-3 rounded-lg t-surface px-3 py-2 ring-1 ring-white/10 text-left">
-                                            <Avatar name={emp.name} url={emp.avatarUrl} />
+                                            <Avatar name={emp.name} url={emp.avatarUrl} email={emp.email} fallbackKey={emp.id} />
                                             <div className="min-w-0">
                                                 <div className="text-slate-100 text-sm truncate">{emp.name}</div>
                                                 <div className="text-slate-400 text-xs truncate">

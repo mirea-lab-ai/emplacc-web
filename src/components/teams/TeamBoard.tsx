@@ -1,8 +1,9 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import Avatar from '@/components/ui/Avatar';
 import type { Member, Team } from './types';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import AddMemberModal from './AddMemberModal';
 import TeamProjects from './TeamProjects';
 import { useRemoveTeamMember } from '@/features/teams/hooks';
@@ -75,7 +76,9 @@ export default function TeamBoard({
                   className="flex items-center justify-between rounded-xl t-surface hover:bg-white/20 ring-1 ring-white/10 px-4 py-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Avatar name={m.name} src={m.avatarSrc} />
+                    <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
+                      <Avatar name={m.name} url={m.avatarSrc} email={m.email} fallbackKey={m.id} size="lg" />
+                    </div>
                     <div className="min-w-0">
                       <div className="truncate text-base font-semibold">{m.name}</div>
                       <div className="truncate text-slate-400 text-sm">{m.role}</div>
@@ -130,22 +133,4 @@ export default function TeamBoard({
       />
     </div>
   );
-}
-
-/* --- helpers --- */
-
-function Avatar({ name, src }: { name: string; src?: string }) {
-  const initials = useMemo(() => toInitials(name), [name]);
-  return (
-    <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
-      <div className="h-10 w-10 md:h-11 md:w-11 rounded-full grid place-items-center bg-[#0f1422] text-sm md:text-base font-semibold text-white overflow-hidden">
-        {src ? <img src={src} alt={name} className="h-full w-full object-cover rounded-full" /> : initials}
-      </div>
-    </div>
-  );
-}
-
-function toInitials(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]?.toUpperCase() ?? '').join('');
 }

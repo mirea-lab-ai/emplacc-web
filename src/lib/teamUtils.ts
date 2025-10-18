@@ -10,11 +10,15 @@ export function convertUITeamToTeam(uiTeam: UITeamFull): Team {
       id: uiTeam.lead.id,
       name: uiTeam.lead.name,
       role: uiTeam.lead.specialization ?? uiTeam.lead.profession ?? uiTeam.lead.role,
+      email: uiTeam.lead.email,
+      avatarSrc: undefined,
     } : { id: 'no-lead', name: 'Нет лида' },
     members: uiTeam.members.map(member => ({
       id: member.id,
       name: member.name,
       role: member.specialization ?? member.profession ?? member.role ?? 'Роль не указана',
+      email: member.email,
+      avatarSrc: undefined,
     })),
   };
 }

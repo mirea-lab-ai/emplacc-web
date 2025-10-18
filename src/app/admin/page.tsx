@@ -9,6 +9,7 @@ export default function AdminPage() {
     {
       id: 'u1',
       name: 'Алексей Смирнов',
+      email: 'alexey.smirnov@example.com',
       role: 'Frontend Developer',
       reports: [
         {
@@ -33,6 +34,7 @@ export default function AdminPage() {
     {
       id: 'u2',
       name: 'Мария Иванова',
+      email: 'maria.ivanova@example.com',
       role: 'Backend Engineer',
       reports: [
         {
@@ -49,6 +51,7 @@ export default function AdminPage() {
     {
       id: 'u3',
       name: 'Илья Петров',
+      email: 'ilya.petrov@example.com',
       role: 'QA',
       reports: [],
     },

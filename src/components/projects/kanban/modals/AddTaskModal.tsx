@@ -263,7 +263,7 @@ export default function AddTaskModal({
                                     onClick={() => handleUserSelect(user)}
                                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-colors text-left"
                                 >
-                                    <Avatar name={user.name} url={user.avatarUrl} size="sm" />
+                                    <Avatar name={user.name} url={user.avatarUrl} email={user.email} fallbackKey={user.id} size="sm" />
                                     <div>
                                         <div className="text-slate-100 font-medium">{user.name}</div>
                                         {user.role && (

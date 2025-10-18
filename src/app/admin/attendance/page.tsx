@@ -14,6 +14,7 @@ const demoEmployees: EmployeeWithStatus[] = [
   {
     id: 'u1',
     name: 'Алексей Смирнов',
+    email: 'alexey.smirnov@example.com',
     role: 'Frontend Developer',
     status: 'office',
     reports: [
@@ -31,6 +32,7 @@ const demoEmployees: EmployeeWithStatus[] = [
   {
     id: 'u2',
     name: 'Мария Иванова',
+    email: 'maria.ivanova@example.com',
     role: 'Backend Engineer',
     status: 'remote',
     reports: [
@@ -47,6 +49,7 @@ const demoEmployees: EmployeeWithStatus[] = [
   {
     id: 'u3',
     name: 'Илья Петров',
+    email: 'ilya.petrov@example.com',
     role: 'QA',
     status: 'off',
     reports: [],

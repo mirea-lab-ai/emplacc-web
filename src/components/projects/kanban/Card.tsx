@@ -78,6 +78,8 @@ export default function Card({
                                     <Avatar
                                         name={nameForAvatar}
                                         url={assignee.avatar}
+                                        email={assignee.email}
+                                        fallbackKey={assignee.id ?? assignee.name ?? assignee.email ?? undefined}
                                         size="sm"
                                     />
                                 </span>

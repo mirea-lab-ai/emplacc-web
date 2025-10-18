@@ -109,6 +109,9 @@ export function mapTask(dto: TaskShort): UITask {
         project?: unknown;
         board_id?: unknown;
         boardId?: unknown;
+        status?: unknown;
+        status_name?: unknown;
+        statusName?: unknown;
     };
 
     const normalizeAssignee = (input: unknown): TaskAssignee | null => {
@@ -130,18 +133,26 @@ export function mapTask(dto: TaskShort): UITask {
             const first = data.first_name ?? data.firstName ?? '';
             const last = data.last_name ?? data.lastName ?? '';
             const full = data.name ?? data.full_name ?? data.display_name ?? data.username ?? `${first} ${last}`;
-            const email = data.email ?? data.mail ?? undefined;
-            const avatar = data.avatar_url ?? data.avatar ?? data.image ?? data.photo ?? undefined;
+            const email = data.email ?? data.mail ?? data.user_email ?? data.email_address ?? undefined;
+
 
             const name = typeof full === 'string' && full.trim().length > 0
                 ? full.trim()
                 : [first, last].map((part) => (typeof part === 'string' ? part.trim() : '')).filter(Boolean).join(' ');
 
+            const avatar =
+                typeof data.avatar_url === 'string' ? data.avatar_url
+                : typeof data.avatar === 'string' ? data.avatar
+                : typeof data.image === 'string' ? data.image
+                : typeof data.photo === 'string' ? data.photo
+                : typeof data.avatarUrl === 'string' ? data.avatarUrl
+                : undefined;
+
             return {
                 id: typeof id === 'string' || typeof id === 'number' ? String(id) : undefined,
                 name: name || undefined,
                 email: typeof email === 'string' ? email : undefined,
-                avatar: typeof avatar === 'string' ? avatar : undefined,
+                avatar: avatar,
             };
         }
 
@@ -171,7 +182,7 @@ export function mapTask(dto: TaskShort): UITask {
         extended.content,
     ].find((value): value is string => typeof value === 'string' && value.trim().length > 0);
 
-    const statusSummaries: TaskStatusSummary[] | undefined = Array.isArray(dto.statuses)
+    const statusSummaries: TaskStatusSummary[] = Array.isArray(dto.statuses)
         ? (dto.statuses as StatusResponse[]).reduce<TaskStatusSummary[]>((acc, raw) => {
             if (!raw) return acc;
             const data = raw as Record<string, unknown>;
@@ -207,7 +218,65 @@ export function mapTask(dto: TaskShort): UITask {
 
             return acc;
         }, [])
-        : undefined;
+        : [];
+
+    const pushStatusCandidate = (input: unknown) => {
+        if (!input) return;
+        if (typeof input === 'string') {
+            const trimmed = input.trim();
+            if (!trimmed) return;
+            statusSummaries.push({ name: trimmed });
+            return;
+        }
+        if (typeof input === 'object') {
+            const data = input as Record<string, unknown>;
+            const nameCandidate = data.name ?? data.title ?? data.label ?? data.status_name ?? data.statusName;
+            const keyCandidate = data.key ?? data.status_key ?? data.statusKey;
+            const colorCandidate = data.color ?? data.status_color ?? data.statusColor;
+            const idCandidate = data.id ?? data.status_id ?? data.statusId;
+            const boardCandidate = data.board_id ?? data.boardId;
+            const projectCandidate = data.project_id ?? data.projectId;
+            if (typeof nameCandidate === 'string' && nameCandidate.trim().length > 0) {
+                statusSummaries.push({
+                    id: typeof idCandidate === 'string' || typeof idCandidate === 'number' ? String(idCandidate) : undefined,
+                    name: nameCandidate.trim(),
+                    key: typeof keyCandidate === 'string' ? keyCandidate : undefined,
+                    color: typeof colorCandidate === 'string' ? colorCandidate : undefined,
+                    boardId: typeof boardCandidate === 'string' || typeof boardCandidate === 'number' ? String(boardCandidate) : undefined,
+                    projectId: typeof projectCandidate === 'string' || typeof projectCandidate === 'number' ? String(projectCandidate) : undefined,
+                    isOpen: typeof data.is_open === 'boolean' ? data.is_open : undefined,
+                    isActive: typeof data.is_active === 'boolean' ? data.is_active : undefined,
+                });
+                return;
+            }
+        }
+    };
+
+    if (statusSummaries.length === 0) {
+        pushStatusCandidate(extended.status);
+        if (statusSummaries.length === 0) {
+            pushStatusCandidate(extended.status_name ?? extended.statusName);
+        }
+    }
+
+    const uniqueStatuses = statusSummaries.filter((status, index, array) => {
+        const signature = [
+            status.id ?? '',
+            status.boardId ?? '',
+            status.projectId ?? '',
+            status.name ?? '',
+            status.key ?? '',
+        ].join('::');
+        return array.findIndex((candidate) => (
+            [
+                candidate.id ?? '',
+                candidate.boardId ?? '',
+                candidate.projectId ?? '',
+                candidate.name ?? '',
+                candidate.key ?? '',
+            ].join('::') === signature
+        )) === index;
+    });
 
     const explicitBoardCandidate = extended.board_id ?? extended.boardId;
 
@@ -219,10 +288,10 @@ export function mapTask(dto: TaskShort): UITask {
                 return projectData.id ?? projectData.project_id ?? projectData.projectId;
             })()
             : undefined)
-        ?? (statusSummaries?.find((status) => status?.projectId)?.projectId);
+        ?? (uniqueStatuses.find((status) => status?.projectId)?.projectId);
 
     const boardCandidateResolved = explicitBoardCandidate
-        ?? (statusSummaries?.find((status) => status?.boardId)?.boardId);
+        ?? (uniqueStatuses.find((status) => status?.boardId)?.boardId);
 
     return {
         id: String(dto.id),
@@ -234,7 +303,7 @@ export function mapTask(dto: TaskShort): UITask {
             ? String(boardCandidateResolved)
             : undefined,
         projectId: typeof projectCandidate === 'string' || typeof projectCandidate === 'number' ? String(projectCandidate) : undefined,
-    statuses: statusSummaries && statusSummaries.length > 0 ? statusSummaries : undefined,
+    statuses: uniqueStatuses.length > 0 ? uniqueStatuses : undefined,
         assignees: assignees && assignees.length > 0 ? assignees : undefined,
     };
 }

@@ -1,15 +1,18 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getGravatarUrl } from '@/lib/gravatar';
 
 export default function AvatarEditor({
                                        name,
                                        src,
+                                       email,
                                        onChange,
                                        readOnly = false,
                                      }: {
   name: string;
   src?: string;
+  email?: string;
   onChange: (next?: string) => void; // undefined = убрать
   readOnly?: boolean;
 }) {
@@ -24,6 +27,13 @@ export default function AvatarEditor({
 
   useEffect(() => setDraft(src), [src]);
 
+  const gravatarUrl = useMemo(() => {
+    if (!email) return undefined;
+    return getGravatarUrl(email, 256);
+  }, [email]);
+
+  const displaySrc = draft ?? src ?? gravatarUrl;
+
   // Esc закрывает
   useEffect(() => {
     if (!open) return;
@@ -34,9 +44,9 @@ export default function AvatarEditor({
 
   const avatarCore = (
     <div className="rounded-full bg-[#0f1422] p-[3px]">
-      {src ? (
+      {displaySrc ? (
         <img
-          src={src}
+          src={displaySrc}
           alt="avatar"
           className="h-32 w-32 rounded-full object-cover"
         />
@@ -85,9 +95,9 @@ export default function AvatarEditor({
             <div className="flex items-center gap-5">
               <div className="rounded-full p-[3px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80">
                 <div className="h-28 w-28 overflow-hidden rounded-full bg-[#0f1422]">
-                  {draft ? (
+                  {(draft ?? gravatarUrl) ? (
                     <img
-                      src={draft}
+                      src={draft ?? gravatarUrl}
                       alt="preview"
                       className="h-full w-full object-cover"
                     />

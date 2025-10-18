@@ -115,6 +115,7 @@ export default function ProfilePage() {
             <AvatarEditor
               name={`${data.firstName} ${data.lastName}`.trim() || 'Пользователь'}
               src={data.avatarSrc}
+              email={data.email}
               onChange={(src) => onChange('avatarSrc', src)}
               readOnly
             />

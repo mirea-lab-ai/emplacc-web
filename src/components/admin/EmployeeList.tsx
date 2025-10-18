@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Avatar from '@/components/ui/Avatar';
 
 export type Report = {
   id: string;
@@ -14,6 +15,7 @@ export type Employee = {
   id: string;
   name: string;
   role: string;
+  email?: string;
   avatarSrc?: string;
   reports: Report[];
 };
@@ -87,7 +89,9 @@ function EmployeeCard({
 
       <div className="relative z-[1]">
         <div className="flex items-center gap-4">
-          <Avatar src={employee.avatarSrc} name={employee.name} />
+          <div className="rounded-full p-[3px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80">
+            <Avatar name={employee.name} url={employee.avatarSrc} email={employee.email} fallbackKey={employee.id} size="lg" />
+          </div>
           <div>
             <div className="text-xl font-semibold">{employee.name}</div>
             <div className="text-slate-300 mt-0.5">{employee.role}</div>
@@ -188,33 +192,6 @@ function ReportItem({
         </div>
       </div>
     </li>
-  );
-}
-
-/* -------------------- Avatar -------------------- */
-
-function Avatar({ src, name }: { src?: string; name: string }) {
-  const initials = useMemo(() => {
-    const parts = name.trim().split(/\s+/).slice(0, 2);
-    return parts.map((p) => p[0]?.toUpperCase() ?? '').join('');
-  }, [name]);
-
-  return (
-    <div className="rounded-full p-[2px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80">
-      <div className="rounded-full bg-[#0f1422] p-[2px]">
-        {src ? (
-          <img
-            src={src}
-            alt={name}
-            className="h-12 w-12 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-12 w-12 rounded-full grid place-items-center bg-[#141c2f] text-sm font-semibold text-white">
-            {initials || '🙂'}
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
 

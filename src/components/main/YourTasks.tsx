@@ -71,8 +71,12 @@ const extractLocationFromTask = (task: UITask) => {
   return { projectId, boardId };
 };
 
-const extractTaskStatusMeta = (task: UITask): { label: string; color?: string } | null => {
-  const statuses = Array.isArray(task.statuses) ? task.statuses : [];
+type StatusMeta = { label: string; color?: string };
+
+const extractTaskStatusMeta = (task: UITask): StatusMeta | null => {
+  const statuses: Array<TaskStatusSummary | string> = Array.isArray(task.statuses)
+    ? task.statuses
+    : [];
   const firstObject = statuses.find((status) => typeof status === 'object' && status);
   if (firstObject && typeof firstObject === 'object') {
     const summary = firstObject as TaskStatusSummary;
@@ -93,6 +97,42 @@ const extractTaskStatusMeta = (task: UITask): { label: string; color?: string } 
 
   return null;
 };
+
+const HEX_COLOR_REGEX = /^#([\da-f]{3}|[\da-f]{6})$/i;
+
+const parseColor = (value: string): { r: number; g: number; b: number } | null => {
+  const trimmed = value.trim();
+
+  if (HEX_COLOR_REGEX.test(trimmed)) {
+    const hex = trimmed.slice(1);
+    const normalized = hex.length === 3
+      ? hex.split('').map((char) => `${char}${char}`).join('')
+      : hex;
+    const r = parseInt(normalized.slice(0, 2), 16);
+    const g = parseInt(normalized.slice(2, 4), 16);
+    const b = parseInt(normalized.slice(4, 6), 16);
+    return { r, g, b };
+  }
+
+  const rgbMatch = trimmed.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+  if (rgbMatch) {
+    const [, rStr, gStr, bStr] = rgbMatch;
+    return {
+      r: Number.parseFloat(rStr),
+      g: Number.parseFloat(gStr),
+      b: Number.parseFloat(bStr),
+    };
+  }
+
+  return null;
+};
+
+const asCssColor = ({ r, g, b }: { r: number; g: number; b: number }, alpha = 1) => {
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  const clampAlpha = Math.max(0, Math.min(1, alpha));
+  return `rgba(${clamp(r)}, ${clamp(g)}, ${clamp(b)}, ${clampAlpha})`;
+};
+
 
 export default function YourTasks() {
     const isClient = useIsClient();
@@ -281,28 +321,18 @@ function TaskRow({
   const statusMeta = extractTaskStatusMeta(t);
   const statusBadgeStyle = useMemo(() => {
     if (!statusMeta?.color) return undefined;
-    const color = statusMeta.color.trim();
-    const hexMatch = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(color);
-    if (hexMatch) {
-      const normalized = hexMatch[1].length === 3
-        ? `#${hexMatch[1].split('').map((char) => `${char}${char}`).join('')}`
-        : color;
-      const alphaHex = Math.round(0.15 * 255).toString(16).padStart(2, '0');
-      return {
-        borderColor: normalized,
-        color: normalized,
-        backgroundColor: `${normalized}${alphaHex}`,
-      } satisfies CSSProperties;
-    }
+    const parsed = parseColor(statusMeta.color);
+    if (!parsed) return undefined;
     return {
-      borderColor: color,
-      color,
+      color: '#f8fafc',
+      backgroundColor: asCssColor(parsed, 0.24),
+      boxShadow: `0 0 0 1px ${asCssColor(parsed, 0.45)}`,
     } satisfies CSSProperties;
   }, [statusMeta?.color]);
   const statusBadgeClassName = [
-    'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs border text-slate-100',
-    statusBadgeStyle ? 'bg-white/5' : 'border-white/15 bg-white/10',
-  ].join(' ');
+    'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold text-white',
+    statusBadgeStyle ? 'ring-1 ring-white/20' : 'ring-1 ring-slate-500/50 bg-slate-700/40',
+  ].join(' ').trim();
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {

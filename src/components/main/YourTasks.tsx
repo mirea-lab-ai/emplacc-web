@@ -1,7 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
@@ -69,6 +69,29 @@ const extractLocationFromTask = (task: UITask) => {
       : undefined);
 
   return { projectId, boardId };
+};
+
+const extractTaskStatusMeta = (task: UITask): { label: string; color?: string } | null => {
+  const statuses = Array.isArray(task.statuses) ? task.statuses : [];
+  const firstObject = statuses.find((status) => typeof status === 'object' && status);
+  if (firstObject && typeof firstObject === 'object') {
+    const summary = firstObject as TaskStatusSummary;
+    const label = typeof summary.name === 'string' && summary.name.trim().length > 0
+      ? summary.name.trim()
+      : typeof summary.key === 'string' && summary.key.trim().length > 0
+        ? summary.key.trim()
+        : undefined;
+    if (label) {
+      return { label, color: summary.color };
+    }
+  }
+
+  const firstString = statuses.find((status) => typeof status === 'string');
+  if (typeof firstString === 'string' && firstString.trim().length > 0) {
+    return { label: firstString.trim() };
+  }
+
+  return null;
 };
 
 export default function YourTasks() {
@@ -255,6 +278,31 @@ function TaskRow({
 }) {
   const priorityMeta = getTaskPriorityMeta(t.priority);
   const hasLocation = Boolean(projectId);
+  const statusMeta = extractTaskStatusMeta(t);
+  const statusBadgeStyle = useMemo(() => {
+    if (!statusMeta?.color) return undefined;
+    const color = statusMeta.color.trim();
+    const hexMatch = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(color);
+    if (hexMatch) {
+      const normalized = hexMatch[1].length === 3
+        ? `#${hexMatch[1].split('').map((char) => `${char}${char}`).join('')}`
+        : color;
+      const alphaHex = Math.round(0.15 * 255).toString(16).padStart(2, '0');
+      return {
+        borderColor: normalized,
+        color: normalized,
+        backgroundColor: `${normalized}${alphaHex}`,
+      } satisfies CSSProperties;
+    }
+    return {
+      borderColor: color,
+      color,
+    } satisfies CSSProperties;
+  }, [statusMeta?.color]);
+  const statusBadgeClassName = [
+    'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs border text-slate-100',
+    statusBadgeStyle ? 'bg-white/5' : 'border-white/15 bg-white/10',
+  ].join(' ');
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -285,7 +333,7 @@ function TaskRow({
         </div>
       )}
       <div className="relative z-[1] flex items-start justify-between gap-3">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="font-semibold">{t.title}</div>
           {t.due && (
             <div className="text-slate-400 text-sm mt-0.5">
@@ -293,9 +341,19 @@ function TaskRow({
             </div>
           )}
         </div>
-        <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs ring-1 ${priorityMeta.badgeClass}`}>
-          {priorityMeta.label}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs ring-1 ${priorityMeta.badgeClass}`}>
+            {priorityMeta.label}
+          </span>
+          {statusMeta && (
+            <span
+              className={statusBadgeClassName}
+              style={statusBadgeStyle}
+            >
+              {statusMeta.label}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

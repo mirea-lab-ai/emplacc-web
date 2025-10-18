@@ -1,5 +1,6 @@
 // src/features/tasks/types.ts
 import type { components } from '@/types/openapi';
+import { userCache } from '@/features/user/userCache';
 
 // Типы прямо из сгенерённого openapi.d.ts
 export type TaskShort = components['schemas']['response.TaskShort'];
@@ -148,10 +149,13 @@ export function mapTask(dto: TaskShort): UITask {
                 : typeof data.avatarUrl === 'string' ? data.avatarUrl
                 : undefined;
 
+            // Если email не найден в данных, попробуем получить из кэша пользователей
+            const resolvedEmail = email || (id ? userCache.getUserEmail(String(id)) : undefined);
+
             return {
                 id: typeof id === 'string' || typeof id === 'number' ? String(id) : undefined,
                 name: name || undefined,
-                email: typeof email === 'string' ? email : undefined,
+                email: typeof resolvedEmail === 'string' ? resolvedEmail : undefined,
                 avatar: avatar,
             };
         }

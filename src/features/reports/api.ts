@@ -2,6 +2,7 @@
 import { http } from '@/lib/http';
 import { getUserId } from '@/lib/auth';
 import type { components } from '@/types/openapi';
+import { userCache } from '@/features/user/userCache';
 
 type HelpRequestsForUser = components['schemas']['response.HelpRequestsForUser'];
 type APIHelpRequestItem = components['schemas']['response.HelpRequestWithAssignerID'] | components['schemas']['response.HelpRequestItem'];
@@ -70,7 +71,7 @@ const mapReport = (report: APIReportResponse | null | undefined): UIReport => {
     const firstName = normalizeString(userInfo.first_name);
     const lastName = normalizeString(userInfo.last_name);
     const userId = normalizeString(userInfo.id);
-    const userEmail = normalizeString(userInfo.email);
+    const userEmail = normalizeString(userInfo.email) || (userId ? userCache.getUserEmail(userId) : undefined);
     const userAvatarUrl = normalizeString(userInfo.avatar_url) || normalizeString(userInfo.avatar);
     const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
 

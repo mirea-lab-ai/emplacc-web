@@ -5,11 +5,19 @@ import { useAllUserProjects } from '@/features/projects/hooks';
 import { useProjectBoards } from '@/features/boards/hooks';
 import { useBoardTasksByProjectAndBoard } from '@/features/tasks/hooks';
 import { isAuthed } from '@/lib/auth';
+import type { TaskAssignee } from '@/features/tasks/types';
 
 export type TaskInfo = {
   taskTitle: string;
   boardName: string;
   projectName: string;
+  statusName?: string;
+  statusColor?: string;
+  priority?: number;
+  assignees?: TaskAssignee[];
+  description?: string;
+  creatorName?: string;
+  creatorEmail?: string;
 };
 
 export type ReportProjectPickerProps = {
@@ -243,13 +251,21 @@ function BoardTasks({
       const taskMap = new Map<string, TaskInfo>();
       tasks.forEach(task => {
         const key = `${boardId}:${task.id}`;
+        const status = Array.isArray(task.statuses)
+          ? task.statuses.find((item) => item?.boardId === boardId) ?? task.statuses[0]
+          : undefined;
         taskMap.set(key, {
           taskTitle: task.title,
-          boardName: boardName,
-          projectName: projectName,
+          boardName,
+          projectName,
+          statusName: status?.name ?? status?.key,
+          statusColor: status?.color,
+          priority: task.priority,
+          assignees: task.assignees,
+          description: task.description,
         });
       });
-      
+
       // Обновляем общую карту задач
       onTaskInfoUpdate(taskMap);
     }

@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"gen:api": "openapi-typescript https://api.emplacc.g-309.ru/swagger/doc.json -o src/types/openapi.d.ts",
-		"dev": "next dev",
+		"dev": "next dev --turbopack",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"

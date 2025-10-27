@@ -317,7 +317,6 @@ export default function ReportsPage() {
                         />
                         <div className="min-w-0">
                           <div className="truncate text-base font-semibold text-white">{report.user.name}</div>
-                          <div className="text-xs text-slate-300">{formatDateTime(report.reportDate ?? report.createdAt)}</div>
                         </div>
                       </div>
                       <div className="text-sm text-slate-200">
@@ -463,6 +462,28 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
   }, [missingTaskKeys, hasCreds, resolveTaskInfo]);
 
   const doneKeys = useMemo(() => Array.from(selectedDone), [selectedDone]);
+  const parseTaskKey = useCallback((key: string): { boardId: string | null; taskId: string | null } => {
+    if (!key) return { boardId: null, taskId: null };
+    const parts = key.split(':');
+    if (parts.length === 1) {
+      const taskId = parts[0]?.trim() ?? '';
+      return { boardId: null, taskId: taskId.length > 0 ? taskId : null };
+    }
+    const boardId = parts[0]?.trim() ?? '';
+    const taskId = parts[1]?.trim() ?? '';
+    return {
+      boardId: boardId.length > 0 ? boardId : null,
+      taskId: taskId.length > 0 ? taskId : null,
+    };
+  }, []);
+
+  const resolveTaskId = useCallback((key: string) => {
+    const { taskId } = parseTaskKey(key);
+    const fallback = key.includes(':') ? key.split(':')[1] : key;
+    const candidate = (taskId ?? fallback).trim();
+    return candidate.length > 0 ? candidate : undefined;
+  }, [parseTaskKey]);
+
   const planKeys = useMemo(() => Array.from(selectedPlan), [selectedPlan]);
   const stepsCount = 1 + doneKeys.length + 1 + planKeys.length + 1;
 
@@ -583,18 +604,26 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
 
     try {
       const completeWork = doneKeys.map((key) => {
-        const taskId = key.includes(':') ? key.split(':')[1] : key;
+        const resolvedTaskId = resolveTaskId(key);
         return {
-          task_id: taskId,
+          task_id: resolvedTaskId ?? '',
           description: doneNotes[key] || '',
         };
       });
 
       const planTomorrow = planKeys
-        .map((key) => ({
-          description: planNotes[key] || '',
-        }))
-        .filter((plan) => plan.description.trim().length > 0);
+        .map((key) => {
+          const note = (planNotes[key] ?? '').trim();
+          if (!note) {
+            return null;
+          }
+          const resolvedTaskId = resolveTaskId(key);
+          return {
+            description: note,
+            ...(resolvedTaskId ? { task_id: resolvedTaskId } : {}),
+          };
+        })
+        .filter((plan): plan is { description: string; task_id?: string } => plan !== null);
 
       console.log('Plan data:', { planKeys, planNotes, planTomorrow });
 
@@ -989,11 +1018,11 @@ function formatDateLabel(key: string) {
   if (Number.isNaN(date.getTime())) {
     const altDate = new Date(Date.parse(key));
     if (!Number.isNaN(altDate.getTime())) {
-      return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }).format(altDate);
+      return withWeekdayLabel(altDate);
     }
     return key;
   }
-  return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+  return withWeekdayLabel(date);
 }
 
 function formatDateTime(value?: string) {
@@ -1007,4 +1036,16 @@ function formatDateTime(value?: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function withWeekdayLabel(date: Date) {
+  const base = new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+  const weekday = new Intl.DateTimeFormat('ru-RU', {
+    weekday: 'long',
+  }).format(date);
+  return `${base}, ${weekday}`;
 }

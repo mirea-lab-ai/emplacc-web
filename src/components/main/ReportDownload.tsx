@@ -14,14 +14,13 @@ export default function ReportDownload() {
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
 
-  // Устанавливаем даты по умолчанию (текущий месяц)
+  // Устанавливаем даты по умолчанию (текущая дата)
   useEffect(() => {
     const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(lastDay.toISOString().split('T')[0]);
+    const todayIso = now.toISOString().split('T')[0];
+
+    setStartDate(todayIso);
+    setEndDate(todayIso);
   }, []);
 
   const handleDownload = async () => {

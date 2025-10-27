@@ -3,7 +3,7 @@
 import Panel from '@/components/ui/Panel';
 import Link from 'next/link';
 import { useAllProblems } from '@/features/problems/hooks';
-import { getUserId, isAuthed } from "@/lib/auth";
+import { isAuthed } from "@/lib/auth";
 import { useIsClient } from '@/hooks/useIsClient';
 import type { UIProblem } from "@/features/problems/api";
 
@@ -12,6 +12,17 @@ export type ForumNote = {
   topic: string;
   text: string;
   href?: string;
+};
+
+const formatDate = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 };
 
 export default function ForumUpdates() {
@@ -49,7 +60,7 @@ export default function ForumUpdates() {
                     </div>
                   )}
                   <div className="text-slate-400 text-xs mt-1">
-                    {problem.createdAt ? new Date(problem.createdAt).toLocaleDateString() : ''}
+                    {formatDate(problem.createdAt)}
                   </div>
                 </Link>
               </li>

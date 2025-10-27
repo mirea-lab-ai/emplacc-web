@@ -194,6 +194,7 @@ export type HelpRequestItem = {
 
 export type TomorrowPlanItem = {
     description: string;
+    task_id?: string;
 };
 
 export type CreateReportRequest = {

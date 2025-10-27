@@ -3493,6 +3493,79 @@
                 }
             }
         },
+        "/role/user/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получает роль пользователя по его ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Получение роли по ID пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Роль пользователя успешно получена",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetRoleByUserId"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный идентификатор пользователя",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Роль не найдена для данного пользователя",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении роли",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/role/{id}": {
             "get": {
                 "security": [
@@ -5495,6 +5568,81 @@
                 }
             }
         },
+        "/team/member/role": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет специализацию (роль) пользователя в указанной команде",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Изменение роли участника в команде",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления роли",
+                        "name": "updateRole",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamUpdateMemberRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Роль успешно обновлена",
+                        "schema": {
+                            "$ref": "#/definitions/response.TeamUniversalUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе или некорректные идентификаторы",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Нет или неверный токен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Участник команды не найден",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при обновлении роли",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/team/project": {
             "post": {
                 "security": [
@@ -7384,6 +7532,25 @@
                 }
             }
         },
+        "request.TeamUpdateMemberRoleRequest": {
+            "type": "object",
+            "required": [
+                "specialization",
+                "team_id",
+                "user_id"
+            ],
+            "properties": {
+                "specialization": {
+                    "type": "string"
+                },
+                "team_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "request.TeamUpdateRequest": {
             "type": "object",
             "properties": {
@@ -7907,6 +8074,17 @@
                     "items": {
                         "$ref": "#/definitions/response.GetUserResponse"
                     }
+                }
+            }
+        },
+        "response.GetRoleByUserId": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "$ref": "#/definitions/response.GetRoleResponse"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },

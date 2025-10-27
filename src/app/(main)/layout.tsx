@@ -6,7 +6,7 @@ import Providers from "@/app/providers";
 import AuthGate from "@/components/AuthGate";
 const nav = [
   { label: 'Главная', href: '/' },
-  { label: 'Мои проекты', href: '/projects'},
+  { label: 'Проекты', href: '/projects' },
   { label: 'Команды', href: '/teams' },
   { label: 'Отчет', href: '/report' },
   { label: 'Форум', href: '/forum' },
@@ -14,18 +14,18 @@ const nav = [
 ];
 
 export default function MainLayout({
-                                     children,
-                                   }: {
+  children,
+}: {
   children: React.ReactNode;
 }) {
   return (
     <Providers>
-        <AuthGate>
-            <div className="mx-auto max-w-screen items-center p-6">
-                <Header items={nav}/>
-                {children}
-            </div>
-        </AuthGate>
+      <AuthGate>
+        <div className="mx-auto max-w-screen items-center p-6">
+          <Header items={nav} />
+          {children}
+        </div>
+      </AuthGate>
     </Providers>
   );
 }

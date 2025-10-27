@@ -21,7 +21,6 @@ export type UITeamFull = {
     id: string;
     name: string;
     description?: string;
-    lead?: UITeamMember;
     members: UITeamMember[];
     createdAt?: string;
     updatedAt?: string;
@@ -36,7 +35,6 @@ export type CreateTeamRequest = {
 export type UpdateTeamRequest = {
     name?: string;
     description?: string;
-    lead_user_id?: number | null;
 };
 
 // Получение команд проекта
@@ -94,23 +92,10 @@ export async function fetchAllTeams(): Promise<UITeamFull[]> {
             } satisfies UITeamMember;
         });
 
-        const leadRaw = rawMembers.find((member: any) => member?.is_lead);
-        const lead = leadRaw
-            ? {
-                  id: String(leadRaw.user_id ?? ''),
-                  name: `${leadRaw.first_name ?? ''} ${leadRaw.last_name ?? ''}`.trim() || 'Без имени',
-                  role: resolveSpecialization(leadRaw.specialization) ?? resolveSpecialization(leadRaw.profession) ?? 'Lead',
-                  profession: resolveSpecialization(leadRaw.profession),
-                  specialization: resolveSpecialization(leadRaw.specialization) ?? resolveSpecialization(leadRaw.profession),
-                  email: leadRaw.email,
-              }
-            : undefined;
-
         return {
             id: String(team.id ?? ''),
             name: team.name ?? 'Без названия',
             description: team.description,
-            lead,
             members,
             createdAt: team.created_at,
             updatedAt: team.updated_at,
@@ -133,7 +118,6 @@ export async function createTeam(payload: CreateTeamRequest): Promise<UITeamFull
         id: String(json.id ?? ''),
         name: payload.name,
         description: payload.description,
-        lead: undefined,
         members: [],
         createdAt: json.created_at ?? new Date().toISOString(),
         updatedAt: json.updated_at ?? new Date().toISOString(),
@@ -261,4 +245,3 @@ export async function removeTeamFromProject(projectId: string, teamId: string): 
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
-

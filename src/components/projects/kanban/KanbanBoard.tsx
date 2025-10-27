@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import KanbanHeader from './KanbanHeader';
 import Column from './Column';
 import AddStatusModal from './modals/AddStatusModal';
@@ -8,7 +8,7 @@ import RenameColumnModal from './modals/RenameColumnModal';
 import AddTaskModal from './modals/AddTaskModal';
 import EditTaskModal from './modals/EditTaskModal';
 import { KBColumn } from './types';
-import { uid } from '@/lib/uid' // если путь иной, поправь импорт
+import { uid } from '@/lib/uid';
 import { type UITask } from '@/features/tasks/types';
 
 export default function KanbanBoard({
@@ -27,6 +27,9 @@ export default function KanbanBoard({
                                         isDeletingTask = false,
                                         onMoveTask,
                                         isMovingTask = false,
+                                        hideHeader = false,
+                                        onHeaderStateChange,
+                                        showColumnActions = false,
                                     }: {
     columns: KBColumn[];
     onChange: (cols: KBColumn[]) => void;
@@ -57,6 +60,9 @@ export default function KanbanBoard({
     isDeletingTask?: boolean;
     onMoveTask?: (taskId: string, statusId: string) => void;
     isMovingTask?: boolean;
+    hideHeader?: boolean;
+    onHeaderStateChange?: (state: { openAddColumn: () => void; canAdd: boolean; isCreating: boolean }) => void;
+    showColumnActions?: boolean;
 }) {
     const [local, setLocal] = useState<KBColumn[]>(columns);
     useEffect(() => setLocal(columns), [columns]);
@@ -172,17 +178,31 @@ export default function KanbanBoard({
     const [rename, setRename] = useState<null | { id: string; title: string }>(null);
     const [addTaskFor, setAddTaskFor] = useState<null | string>(null);
     const [editTask, setEditTask] = useState<null | { taskId: string; colId: string }>(null);
+    const canAddColumn = local.length >= 2;
+    const handleOpenAddColumn = useCallback(() => setAddOpen(true), []);
+
+    useEffect(() => {
+        if (onHeaderStateChange) {
+            onHeaderStateChange({
+                openAddColumn: handleOpenAddColumn,
+                canAdd: canAddColumn,
+                isCreating: isCreatingStatus,
+            });
+        }
+    }, [onHeaderStateChange, handleOpenAddColumn, canAddColumn, isCreatingStatus]);
 
     return (
         <div className="flex flex-col gap-4 " style={{ height: `calc(100dvh - ${viewportOffset}px)` }}>
-            <KanbanHeader 
-                canAdd={local.length >= 2} 
-                onAddColumn={() => setAddOpen(true)}
-                isCreating={isCreatingStatus}
-            />
+            {!hideHeader && (
+                <KanbanHeader 
+                    canAdd={canAddColumn} 
+                    onAddColumn={handleOpenAddColumn}
+                    isCreating={isCreatingStatus}
+                />
+            )}
 
             <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
-                <div className="flex h-full items-stretch gap-4 pb-2 min-h-0">
+                <div className="flex h-full items-stretch gap-3 pb-2 min-h-0">
                     {local.map((col, index) => (
                         <Column
                             key={col.id}
@@ -197,6 +217,7 @@ export default function KanbanBoard({
                             isCreatingTask={isCreatingTask}
                             isDeletingTask={isDeletingTask}
                             canEdit={index > 0 && index < local.length - 1}
+                            showActions={showColumnActions}
                         />
                     ))}
                 </div>

@@ -3,6 +3,13 @@
 import Avatar from '@/components/ui/Avatar';
 import { getTaskPriorityMeta, type UITask } from '@/features/tasks/types';
 
+const formatDate = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
+};
+
 export default function Card({
                                 task, fromColId, onRemove, onEdit, isDeleting = false,
                             }: { task: UITask; fromColId: string; onRemove: () => void; onEdit: () => void; isDeleting?: boolean }) {
@@ -60,7 +67,7 @@ export default function Card({
             </div>
 
             <div className="font-medium">{task.title}</div>
-            {task.due && <div className="text-slate-400 text-sm mt-1">До: {new Date(task.due).toLocaleDateString()}</div>}
+            {task.due && <div className="text-slate-400 text-sm mt-1">До: {formatDate(task.due)}</div>}
             <div className="mt-2">
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${priorityMeta.badgeClass}`}>
                     {priorityMeta.label}

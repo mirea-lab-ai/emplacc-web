@@ -4,9 +4,18 @@ import Panel from '@/components/ui/Panel';
 import { useTeamProjects } from '@/features/teams/hooks';
 import { useState } from 'react';
 import AddProjectModal from './AddProjectModal';
+import Link from 'next/link';
 
 type Props = {
   teamId: string;
+};
+
+const formatDate = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 };
 
 export default function TeamProjects({ teamId }: Props) {
@@ -39,24 +48,24 @@ export default function TeamProjects({ teamId }: Props) {
         </div>
       ) : (
         <div className="space-y-3">
-          {projects.map((project: any) => (
-            <div
-              key={project.id}
-              className="rounded-xl bg-white/5 border border-white/10 p-4 hover:bg-white/10 transition-colors"
-            >
-              <div className="font-semibold text-white mb-2">{project.name}</div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500">
-                  Создан: {new Date(project.created_at).toLocaleDateString('ru-RU')}
-                </span>
-                {project.updated_at && (
-                  <span className="text-xs text-slate-500">
-                    Обновлен: {new Date(project.updated_at).toLocaleDateString('ru-RU')}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+          {projects.map((project: any) => {
+            const created = formatDate(project.created_at ?? project.createdAt);
+            const updatedRaw = project.updated_at ?? project.updatedAt;
+            const updated = updatedRaw ? formatDate(updatedRaw) : null;
+            return (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                className="block rounded-xl bg-white/5 border border-white/10 p-4 transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+              >
+                <div className="font-semibold text-white mb-2">{project.name ?? 'Без названия'}</div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                  {created && <span>Создан: {created}</span>}
+                  {updated && <span>Обновлён: {updated}</span>}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 

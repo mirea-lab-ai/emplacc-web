@@ -143,13 +143,10 @@ export default function YourTasks() {
     const tasks = (data ?? []) as UITask[];
 
     const navigateToBoard = (projectId: string, boardId?: string) => {
-      const params = new URLSearchParams();
-      params.set('projectId', projectId);
-      params.set('tab', 'board');
-      if (boardId) {
-        params.set('boardId', boardId);
-      }
-      router.push(`/projects?${params.toString()}`);
+      const target = boardId
+        ? `/projects/${projectId}?boardId=${encodeURIComponent(boardId)}`
+        : `/projects/${projectId}`;
+      router.push(target);
     };
 
     const handleTaskOpen = async (task: UITask) => {

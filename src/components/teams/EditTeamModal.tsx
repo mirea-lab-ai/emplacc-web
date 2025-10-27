@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import type { Team } from './types';
 import { useUpdateTeam } from '@/features/teams/hooks';
 import type { UpdateTeamRequest } from '@/features/teams/api';
-
-const EMPTY_LEAD_ID = '';
 
 type Props = {
   open: boolean;
@@ -16,51 +14,25 @@ type Props = {
 
 export default function EditTeamModal({ open, team, onClose }: Props) {
   const [name, setName] = useState('');
-  const [leadId, setLeadId] = useState<string>(EMPTY_LEAD_ID);
+  const [description, setDescription] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const { mutate, isPending } = useUpdateTeam();
-
-  const currentLeadId = useMemo(() => {
-    if (!team) return EMPTY_LEAD_ID;
-    return team.lead?.id && team.lead.id !== 'no-lead' ? team.lead.id : EMPTY_LEAD_ID;
-  }, [team]);
-
-  const membersOptions = useMemo(() => {
-    if (!team) return [];
-    const list = [...team.members];
-
-    if (
-      currentLeadId &&
-      !list.some((member) => member.id === currentLeadId) &&
-      team.lead &&
-      team.lead.id !== 'no-lead'
-    ) {
-      list.unshift({
-        id: team.lead.id,
-        name: team.lead.name,
-        role: 'Тимлид',
-      });
-    }
-
-    return list;
-  }, [team, currentLeadId]);
 
   useEffect(() => {
     if (!open || !team) return;
     setName(team.name);
-    setLeadId(currentLeadId);
+    setDescription(team.description ?? '');
     setFormError(null);
-  }, [open, team, currentLeadId]);
+  }, [open, team]);
 
   if (!open || !team) {
     return null;
   }
 
-  const hasMembers = membersOptions.length > 0;
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
 
     if (!trimmedName) {
       setFormError('Название команды обязательно');
@@ -73,20 +45,12 @@ export default function EditTeamModal({ open, team, onClose }: Props) {
       payload.name = trimmedName;
     }
 
-    if (leadId !== currentLeadId) {
-      if (leadId) {
-        const numericLead = Number(leadId);
-        if (Number.isNaN(numericLead)) {
-          setFormError('Не удалось определить выбранного тимлида');
-          return;
-        }
-        payload.lead_user_id = numericLead;
-      } else {
-        payload.lead_user_id = null;
-      }
+    const originalDescription = team.description ?? '';
+    if (trimmedDescription !== originalDescription) {
+      payload.description = trimmedDescription || undefined;
     }
 
-    if (!payload.name && payload.lead_user_id === undefined) {
+    if (Object.keys(payload).length === 0) {
       setFormError('Изменений не обнаружено');
       return;
     }
@@ -112,7 +76,7 @@ export default function EditTeamModal({ open, team, onClose }: Props) {
       >
         <h2 className="text-xl font-semibold">Редактирование команды</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Обновите название и при необходимости выберите нового тимлида.
+          Обновите название и описание команды.
         </p>
 
         <div className="mt-5 grid gap-4">
@@ -128,26 +92,14 @@ export default function EditTeamModal({ open, team, onClose }: Props) {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-slate-200">Тимлид</span>
-            <select
-              value={leadId}
-              onChange={(event) => setLeadId(event.target.value)}
-              disabled={!hasMembers || isPending}
-              className="h-11 rounded-xl bg-white/10 px-4 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 disabled:opacity-50"
-            >
-              <option value={EMPTY_LEAD_ID}>Не назначен</option>
-              {membersOptions.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name}
-                  {member.role ? ` - ${member.role}` : ''}
-                </option>
-              ))}
-            </select>
-            {!hasMembers && (
-              <span className="text-sm text-slate-400">
-                Чтобы назначить тимлида, добавьте участников в команду.
-              </span>
-            )}
+            <span className="text-slate-200">Описание</span>
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              className="min-h-[96px] rounded-xl bg-white/10 px-4 py-3 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 resize-none"
+              placeholder="Расскажите о задачах и целях команды"
+              disabled={isPending}
+            />
           </label>
         </div>
 

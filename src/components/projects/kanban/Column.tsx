@@ -6,16 +6,17 @@ import { KBColumn } from './types';
 
 export default function Column({
                                    column,
-                                   onAddTask,
-                                   onDrop,
-                                   onRename,
-                                   onRemove,
-                                   onRemoveTask,
-                                   onEditTask,
-                                   isDeleting = false,
-                                   isCreatingTask = false,
-                                   isDeletingTask = false,
-                                   canEdit = true,
+                                  onAddTask,
+                                  onDrop,
+                                  onRename,
+                                  onRemove,
+                                  onRemoveTask,
+                                  onEditTask,
+                                  isDeleting = false,
+                                  isCreatingTask = false,
+                                  isDeletingTask = false,
+                                  canEdit = true,
+                                  showActions = false,
                                }: {
     column: KBColumn;
     onAddTask: () => void;
@@ -28,6 +29,7 @@ export default function Column({
     isCreatingTask?: boolean;
     isDeletingTask?: boolean;
     canEdit?: boolean;
+    showActions?: boolean;
 }) {
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -40,7 +42,7 @@ export default function Column({
     };
 
     return (
-        <div className="group flex flex-col h-full min-h-0 flex-1 min-w-[360px]">
+        <div className="group flex flex-col h-full min-h-0 flex-1 min-w-[320px]">
             <div className="mb-2 flex items-center justify-between px-3">
                 <div className="font-semibold flex items-center gap-2 min-w-0 flex-1">
                     {column.color && (
@@ -50,10 +52,10 @@ export default function Column({
                         />
                     )}
                     <span className="align-middle text-xl truncate" title={column.title}>{column.title}</span>
-                    {canEdit && (
+                    {canEdit && showActions && (
                         <button
                             onClick={onRename}
-                            className="ml-2 align-middle opacity-0 group-hover:opacity-100 transition rounded-md p-1 ring-1 ring-white/10 hover:bg-emerald-800 flex-shrink-0"
+                            className="ml-2 align-middle transition rounded-md p-1 ring-1 ring-white/10 hover:bg-emerald-800 flex-shrink-0"
                             title="Переименовать"
                         >
                             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -81,7 +83,7 @@ export default function Column({
                             '+ Задача'
                         )}
                     </button>
-                    {canEdit && (
+                    {canEdit && showActions && (
                         <button
                             onClick={onRemove}
                             disabled={isDeleting}
@@ -112,7 +114,7 @@ export default function Column({
                 onDrop={handleDrop}
             >
                 {/* список задач занимает ВСЮ оставшуюся высоту, скролл только внутри */}
-                <div className="flex-1 min-h-0 overflow-auto pr-1 custom-scroll space-y-2 p-3">
+                <div className="flex-1 min-h-0 overflow-auto custom-scroll space-y-2 p-3">
                     {column.tasks.map((t) => (
                         <Card key={t.id} task={t} fromColId={column.id} onRemove={() => onRemoveTask(t.id)} onEdit={() => onEditTask(t.id)} isDeleting={isDeletingTask} />
                     ))}

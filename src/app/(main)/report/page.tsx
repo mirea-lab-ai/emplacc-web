@@ -89,7 +89,6 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
 
   try {
     const task = await fetchTaskById(trimmedId);
-    console.log('loadTaskInfo: fetchTaskById result for', trimmedId, task);
     if (task && typeof task === 'object') {
       const taskData = task as Record<string, unknown>;
       const titleCandidate = taskData.name ?? taskData.title;
@@ -142,7 +141,6 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
   if ((!boardIdForLookup || !projectId) && !boardName) {
     try {
       const boardProjectInfo = await fetchTaskBoardProject(trimmedId);
-      console.log('loadTaskInfo: fetchTaskBoardProject result for', trimmedId, boardProjectInfo);
       if (boardProjectInfo.boardId && !boardIdForLookup) {
         boardIdForLookup = boardProjectInfo.boardId;
       }
@@ -193,7 +191,6 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
   };
 
   taskInfoCache.set(trimmedId, result);
-  console.log('loadTaskInfo: final result for', trimmedId, result);
   return result;
 }
 
@@ -625,7 +622,6 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
         })
         .filter((plan): plan is { description: string; task_id?: string } => plan !== null);
 
-      console.log('Plan data:', { planKeys, planNotes, planTomorrow });
 
       const helpRequests = selectedHelpers.map((helper) => ({
         helper_id: helper.id,
@@ -646,7 +642,6 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
         user_id: userId,
       };
 
-      console.log('Creating report with payload:', payload);
 
       await createReportMutation.mutateAsync(payload);
 
@@ -817,11 +812,6 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
       if (id) uniqueTaskIds.add(id);
     });
 
-    console.log('ReportDetailsModal: uniqueTaskIds', Array.from(uniqueTaskIds));
-    console.log('ReportDetailsModal: report.completedWork', report.completedWork);
-    console.log('ReportDetailsModal: report.tomorrowPlans', report.tomorrowPlans);
-    console.log('ReportDetailsModal: report.helpRequests', report.helpRequests);
-    console.log('ReportDetailsModal: report.problems', report.problems);
 
     if (uniqueTaskIds.size === 0) {
       setTaskInfo({});
@@ -876,7 +866,6 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
       );
     }
     const info = taskInfo[taskId];
-    console.log('renderTaskMeta: taskId', taskId, 'info', info);
     if (!info) {
       return (
         <div className="mt-2 text-xs text-slate-400">

@@ -46,7 +46,7 @@ export default function ProblemSelector({ selectedProblems, onToggleProblem }: P
       {/* Список всех проблем */}
       <div>
         <h4 className="text-sm font-medium text-slate-300 mb-2">Все проблемы:</h4>
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex flex-wrap gap-2 pb-2">
           {/* Кнопка создания новой проблемы */}
           <button
             onClick={() => setShowCreateModal(true)}

@@ -21,9 +21,9 @@ export default function MainLayout({
   return (
     <Providers>
       <AuthGate>
-        <div className="mx-auto max-w-screen items-center p-6">
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
           <Header items={nav} />
-          {children}
+          <div className="min-w-0">{children}</div>
         </div>
       </AuthGate>
     </Providers>

@@ -24,7 +24,7 @@ export default function Modal({ open, onClose, children }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -32,8 +32,10 @@ export default function Modal({ open, onClose, children }: Props) {
       role="dialog"
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-      <div className="relative z-10 w-full max-w-lg">
-        {children}
+      <div className="relative z-10 w-full max-w-lg max-h-[calc(100vh-3rem)] overflow-y-auto overscroll-contain">
+        <div className="pointer-events-auto">
+          {children}
+        </div>
       </div>
     </div>,
     document.body

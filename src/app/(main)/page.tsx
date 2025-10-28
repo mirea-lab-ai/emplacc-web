@@ -16,23 +16,20 @@ const demoPlan: PlanItem[] = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen  text-white">
-      <div className="mx-auto p-6 space-y-6">
-        {/* фикс-сетка: левая широкая колонка + правая с 4 малыми блоками */}
-        <div className="grid grid-cols-[480px_1fr] gap-6">
-          <YourTasks/>
-
-          <div className="grid grid-cols-2 grid-rows-[1fr_1fr] gap-6 min-h-[680px]">
-            <HelpRequests/>
-            <ForumUpdates/>
-            <ReportDownload/>
-            <TodayPlan items={demoPlan}/>
+    <main className="min-h-screen text-white">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 xl:grid-cols-[480px_minmax(0,1fr)] xl:items-start">
+          <YourTasks />
+          <div className="grid gap-6 sm:grid-cols-2 lg:min-h-[680px]">
+            <HelpRequests />
+            <ForumUpdates />
+            <ReportDownload />
+            <TodayPlan items={demoPlan} />
           </div>
         </div>
       </div>
     </main>
   );
 }
-
 
 

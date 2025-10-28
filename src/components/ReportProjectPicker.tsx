@@ -168,7 +168,7 @@ function ProjectBoards({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-4">
+    <div className="ml-0 grid grid-cols-1 gap-4 md:ml-4 md:grid-cols-2">
       {boards.map((board) => {
         const boardOpen = openBoardIds.has(board.id);
         return (

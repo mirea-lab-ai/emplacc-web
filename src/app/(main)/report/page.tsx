@@ -410,7 +410,7 @@ export default function ReportsPage() {
           }}
         />
       ) : (
-        <div className="mx-auto max-w-6xl p-6 space-y-6">
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
           <Panel className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between p-6">
             <div>
               <h1 className="text-2xl font-semibold">Отчёты команды</h1>
@@ -1192,7 +1192,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
 
   return (
     <div className="min-h-screen text-white">
-      <div className="mx-auto max-w-6xl p-6 space-y-6">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <button
             type="button"

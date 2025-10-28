@@ -77,7 +77,7 @@ export default function FinalQuestions({
                         type="date"
                         value={reportDate}
                         onChange={(e) => setReportDate(e.target.value)}
-                        className="w-auto min-w-[200px] rounded-xl t-surface text-slate-100 p-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                        className="w-full max-w-xs rounded-xl t-surface p-3 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     />
                 </div>
 
@@ -92,9 +92,9 @@ export default function FinalQuestions({
                 <div>
                     <span className="block text-slate-200 mb-2">Нужна ли чья-то помощь?</span>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         {/* Да/Нет */}
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3">
                             <button
                                 type="button" onClick={onYes}
                                 className={[
@@ -117,7 +117,7 @@ export default function FinalQuestions({
                         </div>
 
                         {/* Горизонтальный список выбранных */}
-                        <div className="flex items-center gap-2 ml-2 overflow-x-auto">
+                        <div className="flex flex-wrap items-center gap-2 sm:ml-2">
                             {canAddMore && (
                                 <button
                                     type="button"

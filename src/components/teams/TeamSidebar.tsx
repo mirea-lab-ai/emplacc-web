@@ -20,7 +20,7 @@ export default function TeamSidebar({
   const hasTeams = teams.length > 0;
 
   return (
-    <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start max-h-[calc(100vh-7rem)] overflow-auto custom-scroll space-y-3 t-surface">
+    <Panel className="p-4 w-full space-y-3 t-surface lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scroll">
       <h2 className="text-lg font-semibold px-1">Мои команды</h2>
 
       {/* новая плитка «Добавить команду» */}

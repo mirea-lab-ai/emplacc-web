@@ -16,9 +16,9 @@ const demoPlan: PlanItem[] = [
 
 export default function Home() {
   return (
-    <main className="flex h-full min-h-0 flex-col text-white">
-      <div className="flex-1 overflow-auto pb-6">
-        <div className="flex w-full flex-col gap-6">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6">
+        <div className="flex w-full flex-col gap-6 px-4 sm:px-6 lg:px-10">
           <div className="grid gap-6 lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(420px,480px)_minmax(0,1fr)]">
             <div className="min-h-0">
               <YourTasks />
@@ -35,4 +35,3 @@ export default function Home() {
     </main>
   );
 }
-

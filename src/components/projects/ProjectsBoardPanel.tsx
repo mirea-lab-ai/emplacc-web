@@ -384,7 +384,7 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
 
   return (
     <>
-      <Panel className="flex w-full min-h-[calc(100vh-200px)] flex-1 flex-col gap-4 p-4 t-surface">
+      <Panel className="flex h-full min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden p-4 t-surface">
         {/* Board Navigation Header */}
         <div className="flex items-center gap-3">
           <button
@@ -473,12 +473,12 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
         </div>
 
         {/* Kanban Board */}
-        <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
-          <div className="flex h-full min-w-max items-stretch gap-3 pb-2">
+        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden pb-2 custom-scroll">
+          <div className="flex h-full min-w-max items-stretch gap-3">
             <KanbanBoard
               columns={columns}
               onChange={() => {}}
-              viewportOffset={240}
+              viewportOffset={280}
               onCreateStatus={handleCreateStatus}
               isCreatingStatus={isCreatingStatus}
               onDeleteStatus={handleDeleteStatus}

@@ -5,19 +5,19 @@ import Card from './Card';
 import { KBColumn } from './types';
 
 export default function Column({
-                                   column,
-                                  onAddTask,
-                                  onDrop,
-                                  onRename,
-                                  onRemove,
-                                  onRemoveTask,
-                                  onEditTask,
-                                  isDeleting = false,
-                                  isCreatingTask = false,
-                                  isDeletingTask = false,
-                                  canEdit = true,
-                                  showActions = false,
-                               }: {
+    column,
+    onAddTask,
+    onDrop,
+    onRename,
+    onRemove,
+    onRemoveTask,
+    onEditTask,
+    isDeleting = false,
+    isCreatingTask = false,
+    isDeletingTask = false,
+    canEdit = true,
+    showActions = false,
+}: {
     column: KBColumn;
     onAddTask: () => void;
     onDrop: (payload: { taskId: string; fromColId: string }) => void;
@@ -38,7 +38,7 @@ export default function Column({
                 taskId: string; fromColId: string;
             };
             if (data?.taskId && data?.fromColId) onDrop(data);
-        } catch {}
+        } catch { }
     };
 
     return (
@@ -46,7 +46,7 @@ export default function Column({
             <div className="mb-2 flex items-center justify-between px-3">
                 <div className="font-semibold flex items-center gap-2 min-w-0 flex-1">
                     {column.color && (
-                        <div 
+                        <div
                             className="w-4 h-4 rounded border border-white/20 flex-shrink-0"
                             style={{ backgroundColor: column.color }}
                         />
@@ -107,7 +107,7 @@ export default function Column({
                     )}
                 </div>
             </div>
-            
+
             <Panel
                 className="t-surface text-white flex flex-col h-full min-h-0 flex-1"
                 onDragOver={(e: React.DragEvent) => e.preventDefault()}

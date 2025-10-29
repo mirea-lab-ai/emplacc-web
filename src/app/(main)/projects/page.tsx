@@ -99,9 +99,9 @@ function ProjectsListView() {
 
   if (!hasCreds) {
     return (
-      <main className="flex h-full min-h-0 flex-col text-white">
+      <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
         <div className="flex-1 overflow-auto">
-          <div className="flex w-full flex-col gap-4">
+          <div className="flex w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
             <Panel className="p-6 t-surface text-slate-300">
               Авторизуйтесь, чтобы просматривать проекты.
             </Panel>
@@ -112,9 +112,9 @@ function ProjectsListView() {
   }
 
   return (
-    <main className="flex h-full min-h-0 flex-col text-white">
-      <div className="flex-1 overflow-auto pb-6">
-        <div className="flex w-full flex-col gap-6">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6">
+        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 lg:px-10">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold">Проекты</h1>

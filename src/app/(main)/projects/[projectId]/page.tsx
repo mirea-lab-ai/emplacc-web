@@ -67,9 +67,9 @@ export default function ProjectDetailPage({ params }: Props) {
 
   if (!hasCreds) {
     return (
-      <main className="flex h-full min-h-0 flex-col text-white">
+      <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
         <div className="flex-1 overflow-auto">
-          <div className="flex w-full flex-col gap-4">
+          <div className="flex w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
             <button
               type="button"
               onClick={() => router.push('/projects')}
@@ -91,8 +91,8 @@ export default function ProjectDetailPage({ params }: Props) {
     : undefined;
 
   return (
-    <main className="flex h-full min-h-0 flex-col bg-transparent text-white">
-      <div className="flex h-full min-h-0 w-full flex-col gap-4">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent text-white">
+      <div className="flex h-full min-h-0 w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
         <div className="flex-none">
           <button
             type="button"
@@ -103,7 +103,7 @@ export default function ProjectDetailPage({ params }: Props) {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
           {loading ? (
             <Panel className="p-6 t-surface text-slate-300">Загрузка проекта…</Panel>
           ) : !project ? (

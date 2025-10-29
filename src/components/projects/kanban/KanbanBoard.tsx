@@ -192,7 +192,10 @@ export default function KanbanBoard({
     }, [onHeaderStateChange, handleOpenAddColumn, canAddColumn, isCreatingStatus]);
 
     return (
-        <div className="flex flex-col gap-4 " style={{ height: `calc(100dvh - ${viewportOffset}px)` }}>
+        <div
+            className="flex h-full min-h-0 flex-col gap-4"
+            style={{ maxHeight: `calc(100dvh - ${viewportOffset}px)` }}
+        >
             {!hideHeader && (
                 <KanbanHeader 
                     canAdd={canAddColumn} 
@@ -202,7 +205,7 @@ export default function KanbanBoard({
             )}
 
             <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
-                <div className="flex h-full items-stretch gap-3 pb-2 min-h-0">
+                <div className="flex h-full min-w-max items-stretch gap-3 pb-2">
                     {local.map((col, index) => (
                         <Column
                             key={col.id}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { getGravatarUrl } from '@/lib/gravatar';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
@@ -41,12 +42,17 @@ export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: A
 
   if (src) {
     return (
-      <img
-        src={src}
-        alt={name}
-        className={`${box} rounded-full object-cover ring-1 ring-white/10`}
-        onError={() => { setImageFailed(true); }}
-      />
+      <div className={`${box} relative overflow-hidden rounded-full ring-1 ring-white/10`}>
+        <Image
+          src={src}
+          alt={name}
+          fill
+          sizes={size === 'sm' ? '24px' : size === 'lg' ? '40px' : '32px'}
+          className="object-cover"
+          unoptimized
+          onError={() => { setImageFailed(true); }}
+        />
+      </div>
     );
   }
 

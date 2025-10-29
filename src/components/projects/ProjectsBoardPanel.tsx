@@ -6,7 +6,6 @@ import KanbanBoard, { KBColumn } from '@/components/projects/kanban';
 import { useProjectBoards, useDeleteBoard } from '@/features/boards/hooks';
 import { useBoardStatus, useCreateStatus, useDeleteStatus } from '@/features/status/hooks';
 import { useCreateTask, useDeleteTask, useMoveTask, useUpdateTask } from '@/features/tasks/hooks';
-import { useAllUserProjects } from '@/features/projects/hooks';
 import { getUserId } from '@/lib/auth';
 import { getErrorMessage } from '@/lib/errors';
 import { useIsClient } from '@/hooks/useIsClient';
@@ -79,14 +78,21 @@ type Props = {
   onSelectBoard?: (boardId: string | null) => void;
 };
 
+type HeaderControls = {
+  openAddColumn: () => void;
+  canAdd: boolean;
+  isCreating: boolean;
+};
+
 export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelectBoard }: Props) {
   const [internalBoardId, setInternalBoardId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [headerControls, setHeaderControls] = useState<HeaderControls | null>(null);
+  const [columnsEditMode, setColumnsEditMode] = useState(false);
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
   const { data: boards, isLoading, error } = useProjectBoards(projectId, hasCreds);
-  const { data: allProjects } = useAllUserProjects(hasCreds);
   const { mutate: deleteBoard, isPending: isDeleting } = useDeleteBoard();
   const { mutate: createStatus, isPending: isCreatingStatus } = useCreateStatus();
   const { mutate: deleteStatus, isPending: isDeletingStatus } = useDeleteStatus();
@@ -107,8 +113,6 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     ? boardsList.findIndex((board) => board.id === activeBoardId)
     : -1;
   const currentBoard = currentBoardIndex >= 0 ? boardsList[currentBoardIndex] : boardsList[0];
-  const currentProject = allProjects?.find(p => p.id === projectId);
-  
   // Загружаем статусы/колонки для текущей доски
   const { data: boardStatus, isLoading: statusLoading, error: statusError } = useBoardStatus(
     currentBoard?.id ?? null, 
@@ -362,12 +366,39 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     );
   };
 
+  const handleHeaderStateChange = useCallback((controls: HeaderControls) => {
+    setHeaderControls((prev) => {
+      if (
+        prev &&
+        prev.openAddColumn === controls.openAddColumn &&
+        prev.canAdd === controls.canAdd &&
+        prev.isCreating === controls.isCreating
+      ) {
+        return prev;
+      }
+      return controls;
+    });
+  }, []);
+
+  const addColumnDisabled = headerControls ? (!headerControls.canAdd || headerControls.isCreating) : true;
+
   return (
     <>
-      <Panel className="p-6 t-surface">
+      <Panel className="flex w-full min-h-[calc(100vh-200px)] flex-1 flex-col gap-4 p-4 t-surface">
         {/* Board Navigation Header */}
-  <div className="mb-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handlePrevBoard}
+            className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled={boardsList.length <= 1}
+            aria-label="Предыдущая доска"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div className="flex-1 text-left">
             {isLoading ? (
               <div className="text-slate-400">Загрузка досок...</div>
             ) : error ? (
@@ -375,81 +406,97 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
             ) : !boardsList.length ? (
               <div className="text-slate-400">Нет досок</div>
             ) : (
-              <>
-                <button
-                  onClick={handlePrevBoard}
-                  className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  disabled={boardsList.length <= 1}
-                  aria-label="Предыдущая доска"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-
-                    <div className="flex-1 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <h2 className="text-xl font-semibold text-white">
-                          {currentProject?.name && currentBoard?.name 
-                            ? `${currentProject.name} - ${currentBoard.name}`
-                            : currentBoard?.name ?? 'Без названия'
-                          }
-                        </h2>
-                        {currentBoard && (
-                          <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                            title="Удалить доску"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                      {currentBoard?.description && (
-                        <p className="text-sm text-slate-400 mt-1">{currentBoard.description}</p>
-                      )}
-                      {boardStatus?.statuses && (
-                        <p className="text-sm text-slate-400 mt-1">
-                          {boardStatus.statuses.length} {boardStatus.statuses.length === 1 ? 'колонка' : 'колонок'}
-                        </p>
-                      )}
-                    </div>
-
-                <button
-                  onClick={handleNextBoard}
-                  className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  disabled={boardsList.length <= 1}
-                  aria-label="Следующая доска"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-white">
+                    {currentBoard?.name ?? 'Без названия'}
+                  </h2>
+                  {columnsEditMode && currentBoard && (
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                      title="Удалить доску"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                {currentBoard?.description && (
+                  <p className="text-sm text-slate-400">{currentBoard.description}</p>
+                )}
+                {boardStatus?.statuses && (
+                  <p className="text-sm text-slate-400">
+                    {boardStatus.statuses.length} {boardStatus.statuses.length === 1 ? 'колонка' : 'колонок'}
+                  </p>
+                )}
+              </div>
             )}
           </div>
+
+          {headerControls && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setColumnsEditMode((prev) => !prev)}
+                className={[
+                  'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                  columnsEditMode
+                    ? 'bg-white/15 text-emerald-200 ring-1 ring-emerald-400'
+                    : 'bg-white/6 text-slate-100 hover:bg-white/10'
+                ].join(' ')}
+              >
+                {columnsEditMode ? 'Режим редактирования — вкл.' : 'Режим редактирования'}
+              </button>
+              {columnsEditMode && (
+                <button
+                  onClick={headerControls.openAddColumn}
+                  disabled={addColumnDisabled}
+                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-50"
+                >
+                  {headerControls.isCreating ? 'Создание...' : '+ Столбец'}
+                </button>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={handleNextBoard}
+            className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled={boardsList.length <= 1}
+            aria-label="Следующая доска"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
         {/* Kanban Board */}
-        <KanbanBoard 
-          columns={columns} 
-          onChange={() => {}} 
-          viewportOffset={260}
-          onCreateStatus={handleCreateStatus}
-          isCreatingStatus={isCreatingStatus}
-          onDeleteStatus={handleDeleteStatus}
-          isDeletingStatus={isDeletingStatus}
-          onCreateTask={handleCreateTask}
-          isCreatingTask={isCreatingTask}
-          onUpdateTask={handleUpdateTask}
-          isUpdatingTask={isUpdatingTask}
-          onDeleteTask={handleDeleteTask}
-          isDeletingTask={isDeletingTask}
-          onMoveTask={handleMoveTask}
-          isMovingTask={isMovingTask}
-        />
+        <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
+          <div className="flex h-full min-w-max items-stretch gap-3 pb-2">
+            <KanbanBoard
+              columns={columns}
+              onChange={() => {}}
+              viewportOffset={240}
+              onCreateStatus={handleCreateStatus}
+              isCreatingStatus={isCreatingStatus}
+              onDeleteStatus={handleDeleteStatus}
+              isDeletingStatus={isDeletingStatus}
+              onCreateTask={handleCreateTask}
+              isCreatingTask={isCreatingTask}
+              onUpdateTask={handleUpdateTask}
+              isUpdatingTask={isUpdatingTask}
+              onDeleteTask={handleDeleteTask}
+              isDeletingTask={isDeletingTask}
+              onMoveTask={handleMoveTask}
+              isMovingTask={isMovingTask}
+              hideHeader
+              onHeaderStateChange={handleHeaderStateChange}
+              showColumnActions={columnsEditMode}
+            />
+          </div>
+        </div>
       </Panel>
         {showDeleteModal && currentBoard && (
           <DeleteBoardModal
@@ -461,12 +508,4 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
         )}
       </>
     );
-  }
-
-function safeParse<T>(raw: string, fallback: T): T {
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
 }

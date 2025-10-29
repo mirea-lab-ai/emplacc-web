@@ -48,7 +48,7 @@ export default function ChatWindow({
   };
 
   return (
-    <div className="flex h-[calc(100vh-11rem)] min-h-[520px] flex-col rounded-2xl ring-1 ring-white/5 t-surface bg-white/5 border border-white/10">
+    <div className="flex h-[calc(100vh-11rem)] min-h-[520px] max-h-[85vh] w-full flex-col rounded-2xl border border-white/10 bg-white/5 ring-1 ring-white/5 t-surface">
       {/* header */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
         <div>

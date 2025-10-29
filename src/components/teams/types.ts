@@ -6,17 +6,9 @@ export type Member = {
   avatarSrc?: string;
 };
 
-export type Lead = {
-  id: string;
-  name: string;
-  role?: string;
-  email?: string;
-  avatarSrc?: string;
-};
-
 export type Team = {
   id: string;
   name: string;
-  lead: Lead;
-  members: Member[];          // ← только список сотрудников
+  description?: string;
+  members: Member[];
 };

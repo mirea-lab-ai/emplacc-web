@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { getGravatarUrl } from '@/lib/gravatar';
 
 export default function AvatarEditor({
@@ -44,17 +45,22 @@ export default function AvatarEditor({
 
   const avatarCore = (
     <div className="rounded-full bg-[#0f1422] p-[3px]">
-      {displaySrc ? (
-        <img
-          src={displaySrc}
-          alt="avatar"
-          className="h-32 w-32 rounded-full object-cover"
-        />
-      ) : (
-        <div className="h-32 w-32 rounded-full grid place-items-center bg-[#141c2f] text-3xl font-semibold text-white">
-          {initials || '🙂'}
-        </div>
-      )}
+      <div className="relative h-32 w-32 overflow-hidden rounded-full bg-[#141c2f]">
+        {displaySrc ? (
+          <Image
+            src={displaySrc}
+            alt="avatar"
+            fill
+            sizes="128px"
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-3xl font-semibold text-white">
+            {initials || '🙂'}
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -94,15 +100,18 @@ export default function AvatarEditor({
 
             <div className="flex items-center gap-5">
               <div className="rounded-full p-[3px] bg-gradient-to-br from-indigo-500/80 via-blue-500/80 to-fuchsia-500/80">
-                <div className="h-28 w-28 overflow-hidden rounded-full bg-[#0f1422]">
+                <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[#0f1422]">
                   {(draft ?? gravatarUrl) ? (
-                    <img
+                    <Image
                       src={draft ?? gravatarUrl}
                       alt="preview"
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="112px"
+                      className="object-cover"
+                      unoptimized
                     />
                   ) : (
-                    <div className="h-full w-full grid place-items-center text-slate-400">
+                    <div className="grid h-full w-full place-items-center text-slate-400">
                       нет фото
                     </div>
                   )}

@@ -181,10 +181,10 @@ function ForumContent() {
 
   return (
     <main className="min-h-screen text-white">
-      <div className="mx-auto max-w-6xl p-6 space-y-6">
-        <div className="flex gap-6">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 lg:flex-row">
           {/* левая колонка — проблемы */}
-          <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start min-h-[520px] t-surface border border-white/10">
+          <Panel className="p-4 w-full space-y-3 t-surface border border-white/10 lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:min-h-[520px] lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scroll">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold">Проблемы</h2>
               <button

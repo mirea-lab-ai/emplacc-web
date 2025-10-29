@@ -1,209 +1,195 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import ProjectsNav, { Tab } from '@/components/projects/ProjectsNav';
-import ProjectsBoardPanel from '@/components/projects/ProjectsBoardPanel';
-import ProjectsTeamsPanel from '@/components/projects/ProjectsTeamsPanel';
-import ProjectsSettingsPanel from '@/components/projects/ProjectsSettingsPanel';
-import CreateProjectModal from '@/components/projects/CreateProjectModal';
-import CreateBoardModal from '@/components/projects/CreateBoardModal';
-import type { UIProject } from '@/features/projects/api';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import { useRouter } from 'next/navigation';
+import { useIsClient } from '@/hooks/useIsClient';
 import { getUserId, isAuthed } from '@/lib/auth';
-import { fetchUserProjects } from '@/features/projects/api';
-import ProjectsBoardList from '@/components/projects/ProjectsBoardList';
+import { fetchUserProjects, type UIProject } from '@/features/projects/api';
+import CreateProjectModal from '@/components/projects/CreateProjectModal';
+
+const STATUS_META: Record<string, { emoji: string; label: string }> = {
+  active: { emoji: '🚀', label: 'Активный' },
+  frozen: { emoji: '❄️', label: 'Заморожен' },
+  support: { emoji: '🛟', label: 'Поддержка' },
+};
+
+const RU_TO_EN: Record<string, string> = {
+  'ё': '`', 'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u', 'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']',
+  'ф': 'a', 'ы': 's', 'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l', 'ж': ';', 'э': '\'',
+  'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b', 'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.',
+};
+
+const EN_TO_RU: Record<string, string> = Object.fromEntries(
+  Object.entries(RU_TO_EN).map(([ru, en]) => [en, ru]),
+);
+
+function swapLayout(value: string, map: Record<string, string>) {
+  return value.split('').map((char) => {
+    const lower = char.toLowerCase();
+    const mapped = map[lower];
+    if (!mapped) return char;
+    return char === lower ? mapped : mapped.toUpperCase();
+  }).join('');
+}
+
+function buildVariants(source: string) {
+  const trimmed = source.trim().toLowerCase();
+  if (!trimmed) return [];
+  const noSpaces = trimmed.replace(/\s+/g, '');
+  const asRu = swapLayout(trimmed, EN_TO_RU);
+  const asRuNoSpaces = asRu.replace(/\s+/g, '');
+  const asEn = swapLayout(trimmed, RU_TO_EN);
+  const asEnNoSpaces = asEn.replace(/\s+/g, '');
+  return Array.from(new Set([trimmed, noSpaces, asRu, asRuNoSpaces, asEn, asEnNoSpaces].filter(Boolean)));
+}
 
 export default function ProjectsPage() {
   return (
     <Suspense fallback={<ProjectsPageFallback />}>
-      <ProjectsPageContent />
+      <ProjectsListView />
     </Suspense>
   );
 }
 
-function ProjectsPageContent() {
-  const [tab, setTab] = useState<Tab>('my');
-  const [selected, setSelected] = useState<UIProject | null>(null);
-  const [projects, setProjects] = useState<UIProject[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
-  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
-  const [appliedSearchKey, setAppliedSearchKey] = useState<string | null>(null);
-  const searchParams = useSearchParams();
+function ProjectsListView() {
+  const router = useRouter();
+  const isClient = useIsClient();
+  const hasCreds = isClient && isAuthed() && !!getUserId();
 
-  const loadProjects = () => {
+  const [projects, setProjects] = useState<UIProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    if (!hasCreds) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
     const uid = getUserId();
-    if (!uid || !isAuthed()) return;
+    if (!uid) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     fetchUserProjects(uid)
       .then(setProjects)
       .catch(() => setProjects([]))
       .finally(() => setLoading(false));
-  };
+  }, [hasCreds]);
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
+  const filtered = useMemo(() => {
+    if (!search.trim()) return projects;
+    const variants = buildVariants(search);
+    if (variants.length === 0) return projects;
 
-  useEffect(() => {
-    if (!selected) {
-      setSelectedBoardId(null);
-    }
-  }, [selected]);
+    return projects.filter((project) => {
+      const nameVariants = buildVariants(project.name ?? '');
+      if (nameVariants.length === 0) return false;
+      return variants.some((candidate) =>
+        nameVariants.some((value) => value.includes(candidate) || candidate.includes(value))
+      );
+    });
+  }, [projects, search]);
 
-  useEffect(() => {
-    if (!projects.length) return;
-
-    const projectIdParam = searchParams.get('projectId') ?? null;
-    const boardIdParam = searchParams.get('boardId') ?? null;
-    const tabParam = searchParams.get('tab');
-
-    if (!projectIdParam) return;
-
-    const key = `${projectIdParam}|${boardIdParam ?? ''}|${tabParam ?? ''}`;
-    if (appliedSearchKey === key) return;
-
-    const targetProject = projects.find((project) => project.id === projectIdParam);
-    if (!targetProject) return;
-
-    setSelected(targetProject);
-    setSelectedBoardId(boardIdParam);
-
-    if (tabParam === 'board' || tabParam === 'teams' || tabParam === 'settings' || tabParam === 'my') {
-      setTab(tabParam as Tab);
-    } else {
-      setTab('board');
-    }
-
-    setAppliedSearchKey(key);
-  }, [projects, searchParams, appliedSearchKey]);
+  if (!hasCreds) {
+    return (
+      <main className="flex h-full min-h-0 flex-col text-white">
+        <div className="flex-1 overflow-auto">
+          <div className="flex w-full flex-col gap-4">
+            <Panel className="p-6 t-surface text-slate-300">
+              Авторизуйтесь, чтобы просматривать проекты.
+            </Panel>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto p-6 space-y-6">
+    <main className="flex h-full min-h-0 flex-col text-white">
+      <div className="flex-1 overflow-auto pb-6">
+        <div className="flex w-full flex-col gap-6">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-semibold">Проекты</h1>
+            <p className="text-sm text-slate-300">Выберите проект, чтобы открыть детальную страницу и управлять задачами.</p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110"
+          >
+            + Создать проект
+          </button>
+        </div>
 
-        <div className="flex gap-6">
-            {/* NAV */}
-            <aside className="sticky top-6 h-[calc(100dvh-3rem)] w-[240px] shrink-0 ">
-                {/* свой внутренний скролл, чтобы сайдбар не «ездил» вместе со страницей */}
-                <div className="h-full  overflow-auto custom-scroll space-y-4">
-                    <ProjectsNav tab={tab} onChange={setTab} disabled={!selected} />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Поиск по названию проекта"
+          className="h-11 w-full rounded-xl border border-white/15 bg-white/10 px-4 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+        />
 
-                    {tab === 'board' && selected && (
-                      <ProjectsBoardList
-                        projectId={selected.id}
-                        activeBoardId={selectedBoardId}
-                        onSelect={setSelectedBoardId}
-                        onCreateBoard={() => setShowCreateBoardModal(true)}
-                      />
-                    )}
-                </div>
-            </aside>
+        <Panel className="p-0 t-surface">
+          {loading ? (
+            <div className="p-6 text-slate-400">Загрузка проектов…</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-6 text-slate-400">Проекты не найдены.</div>
+          ) : (
+            <ul className="divide-y divide-white/10">
+              {filtered.map((project) => {
+                const meta = project.status
+                  ? STATUS_META[project.status.toLowerCase().trim()]
+                  : null;
 
-
-            {/* CONTENT */}
-          <section className="flex-1 min-w-0 space-y-6 ">
-            {tab === 'my' && (
-              <Panel className="p-4 t-surface">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold">Мои проекты</h2>
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500 transition-colors"
-                  >
-                    + Создать проект
-                  </button>
-                </div>
-                {loading ? (
-                  <div className="text-slate-400">Загрузка…</div>
-                ) : projects.length ? (
-                  <ul className="space-y-2">
-                    {projects.map((p)=> (
-                      <li key={p.id}>
-                        <button
-                          onClick={()=>{
-                            setSelected(p);
-                            setSelectedBoardId(null);
-                            setTab('board');
-                          }}
-                          className={[
-                            'w-full text-left rounded-xl px-4 py-2 transition-colors',
-                            selected?.id === p.id
-                              ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black font-semibold'
-                              : 'text-slate-300 hover:text-white',
-                          ].join(' ')}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span>{p.name}</span>
-                            {p.status && p.status.trim() !== '' && (
-                              <span className={[
-                                'text-xs px-2 py-1 rounded-full',
-                                selected?.id === p.id 
-                                  ? 'bg-black/20 text-black' 
-                                  : 'bg-white/10 text-slate-400'
-                              ].join(' ')}>
-                                {p.status}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-slate-400">Проектов нет</div>
-                )}
-              </Panel>
-            )}
-            {tab === 'board' && selected && (
-              <ProjectsBoardPanel
-                projectId={selected.id}
-                selectedBoardId={selectedBoardId ?? undefined}
-                onSelectBoard={setSelectedBoardId}
-              />
-            )}
-            {tab === 'teams' && selected && <ProjectsTeamsPanel projectId={selected.id} />}
-            {tab === 'settings' && selected && (
-              <ProjectsSettingsPanel 
-                project={selected} 
-                onProjectUpdate={(updatedProject) => {
-                  // Обновляем выбранный проект
-                  setSelected(updatedProject);
-                  // Обновляем список проектов
-                  setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-                }}
-                onProjectDelete={(projectId) => {
-                  // Удаляем проект из списка
-                  setProjects(prev => prev.filter(p => p.id !== projectId));
-                  // Если удаленный проект был выбран, сбрасываем выбор
-                  if (selected?.id === projectId) {
-                    setSelected(null);
-                    setSelectedBoardId(null);
-                    setTab('my');
-                  }
-                }}
-              />
-            )}
-          </section>
+                return (
+                  <li key={project.id}>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/projects/${project.id}`)}
+                      className="flex w-full flex-col gap-2 rounded-xl px-4 py-4 text-left transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span className="text-lg font-semibold text-white">{project.name ?? 'Без названия'}</span>
+                        {meta && (
+                          <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+                            {meta.emoji} {meta.label}
+                          </span>
+                        )}
+                      </div>
+                      {project.description && (
+                        <p className="line-clamp-2 text-sm text-slate-300">{project.description}</p>
+                      )}
+                      <span className="text-xs text-emerald-200">Открыть страницу проекта →</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Panel>
         </div>
       </div>
 
       {showCreateModal && (
-        <CreateProjectModal 
-          onClose={() => setShowCreateModal(false)} 
+        <CreateProjectModal
+          onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
-            loadProjects();
+            const uid = getUserId();
+            if (!uid) return;
+            setLoading(true);
+            fetchUserProjects(uid)
+              .then(setProjects)
+              .catch(() => setProjects([]))
+              .finally(() => setLoading(false));
           }}
-        />
-      )}
-
-      {showCreateBoardModal && selected && (
-        <CreateBoardModal
-          projectId={selected.id}
-          onClose={() => setShowCreateBoardModal(false)}
         />
       )}
     </main>
@@ -212,9 +198,11 @@ function ProjectsPageContent() {
 
 function ProjectsPageFallback() {
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto p-6">
-        <div className="text-slate-400">Загрузка…</div>
+    <main className="flex h-full min-h-0 flex-col text-white">
+      <div className="flex-1 overflow-auto">
+        <div className="flex w-full flex-col gap-4">
+          <div className="text-slate-400">Загрузка…</div>
+        </div>
       </div>
     </main>
   );

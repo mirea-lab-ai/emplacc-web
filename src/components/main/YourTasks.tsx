@@ -51,10 +51,8 @@ const formatDueDate = (value: string) => {
   const day = pad(date.getDate());
   const month = pad(date.getMonth() + 1);
   const year = date.getFullYear();
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
 
-  return `${day}.${month}.${year} ${hours}:${minutes}`;
+  return `${day}.${month}.${year}`;
 };
 
 const extractLocationFromTask = (task: UITask) => {
@@ -145,13 +143,10 @@ export default function YourTasks() {
     const tasks = (data ?? []) as UITask[];
 
     const navigateToBoard = (projectId: string, boardId?: string) => {
-      const params = new URLSearchParams();
-      params.set('projectId', projectId);
-      params.set('tab', 'board');
-      if (boardId) {
-        params.set('boardId', boardId);
-      }
-      router.push(`/projects?${params.toString()}`);
+      const target = boardId
+        ? `/projects/${projectId}?boardId=${encodeURIComponent(boardId)}`
+        : `/projects/${projectId}`;
+      router.push(target);
     };
 
     const handleTaskOpen = async (task: UITask) => {

@@ -2,6 +2,8 @@
 import '../globals.css';
 import type { Metadata } from 'next';
 import Header from '@/components/Header';
+import Providers from '@/app/providers';
+import AuthGate from '@/components/AuthGate';
 
 export const metadata: Metadata = {
   title: 'Emplacc',
@@ -19,9 +21,13 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-6xl p-6 text-white">
-      <Header items={admin_nav}/>
-      {children}
-    </div>
+    <Providers>
+      <AuthGate>
+        <div className="flex h-full min-h-0 w-full flex-col gap-6 px-4 py-6 text-white sm:px-6 lg:px-10 overflow-hidden">
+          <Header items={admin_nav}/>
+          <div className="flex-1 min-h-0 overflow-auto">{children}</div>
+        </div>
+      </AuthGate>
+    </Providers>
   );
 }

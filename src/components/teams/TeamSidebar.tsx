@@ -20,7 +20,7 @@ export default function TeamSidebar({
   const hasTeams = teams.length > 0;
 
   return (
-    <Panel className="p-4 w-[320px] shrink-0 sticky top-6 self-start max-h-[calc(100vh-7rem)] overflow-auto custom-scroll space-y-3 t-surface">
+    <Panel className="p-4 w-full space-y-3 t-surface lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scroll">
       <h2 className="text-lg font-semibold px-1">Мои команды</h2>
 
       {/* новая плитка «Добавить команду» */}
@@ -49,6 +49,7 @@ export default function TeamSidebar({
         <ul className="space-y-2">
           {teams.map((t) => {
             const active = t.id === activeId;
+            const membersCount = t.members.length;
             return (
               <li key={t.id} className="group relative">
                 <button
@@ -67,22 +68,32 @@ export default function TeamSidebar({
                         : 'opacity-0',
                     ].join(' ')}
                   />
-                  <div className="relative z-[1] pr-8">
-                    <div className={['font-semibold',
-                                     active ? 'text-black' : 'text-white',].join(' ')}>
-                        {t.name}
+                  <div className="relative z-[1] pr-8 space-y-1">
+                    <div className={[
+                      'font-semibold truncate',
+                      active ? 'text-black' : 'text-white',
+                    ].join(' ')}>
+                      {t.name}
                     </div>
-                    <div className={['text-sm',
-                                    active ? 'text-slate-800' : 'text-slate-200',].join(' ')}>
-                        Тимлид: {t.lead.id === 'no-lead'
-                          ? 'не назначен'
-                          : t.lead.role
-                            ? `${t.lead.name} · ${t.lead.role}`
-                            : t.lead.name}
+                    <div className={[
+                      'text-xs flex items-center gap-2 uppercase tracking-wide',
+                      active ? 'text-slate-700' : 'text-slate-400',
+                    ].join(' ')}>
+                      <span className="rounded-full bg-white/10 px-2 py-0.5">
+                        {membersCount} {membersCount === 1 ? 'участник' : 'участников'}
+                      </span>
                     </div>
+                    {t.description && (
+                      <p className={[
+                        'text-xs line-clamp-2',
+                        active ? 'text-slate-700' : 'text-slate-400',
+                      ].join(' ')}>
+                        {t.description}
+                      </p>
+                    )}
                   </div>
                 </button>
-                
+
                 {/* Иконка мусорки при наведении */}
                 <button
                   onClick={(e) => {

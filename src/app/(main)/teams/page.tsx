@@ -143,9 +143,9 @@ function TeamsPageContent() {
 
   return (
     <main className="min-h-screen text-white">
-      <div className="mx-auto p-6 space-y-6">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 
-        <div className="flex gap-6 ">
+        <div className="flex flex-col gap-6 lg:flex-row">
           {/* левая колонка */}
               <TeamSidebar
                 teams={teams}
@@ -213,7 +213,7 @@ function TeamsPageContent() {
 function TeamsPageFallback() {
   return (
     <main className="min-h-screen text-white">
-      <div className="mx-auto p-6">
+      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <Panel className="p-6 t-surface">Загрузка команд...</Panel>
       </div>
     </main>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
@@ -8,9 +8,6 @@ import Panel from '@/components/ui/Panel';
 import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
 import ReportProjectPicker from '@/components/ReportProjectPicker';
-import SlideTrack from '@/components/ReportWizard/SlideTrack';
-import WizardNav from '@/components/ReportWizard/WizardNav';
-import NotesForm from '@/components/ReportWizard/NotesForm';
 import FinalQuestions from '@/components/ReportWizard/FinalQuestions';
 import SuccessModal from '@/components/ReportWizard/SuccessModal';
 import { useAllReports, useCreateReport } from '@/features/reports/hooks';
@@ -19,14 +16,13 @@ import { Employee } from '@/lib/types';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { TaskInfo } from '@/components/ReportProjectPicker';
-import { useImproveTaskReport } from '@/features/tasks/hooks';
+import { useImproveTaskReport, useTasksByIds } from '@/features/tasks/hooks';
 import { fetchTaskById, fetchTaskBoardProject } from '@/features/tasks/api';
 import { fetchBoardById } from '@/features/boards/api';
 import { fetchProjectById } from '@/features/projects/api';
+import { mapTask, type TaskAssignee, type TaskShort, type UITask, getTaskPriorityMeta } from '@/features/tasks/types';
 
 const REPORTS_PAGE_SIZE = 20;
-
-type Notes = Record<string, string>;
 
 type ReportGroup = {
   key: string;
@@ -42,6 +38,22 @@ type ReportWizardViewProps = {
 type ReportDetailsModalProps = {
   report: UIReport | null;
   onClose: () => void;
+};
+
+type CombinedTaskDetails = {
+  taskId?: string;
+  title: string;
+  projectName: string;
+  boardName: string;
+  statusName?: string;
+  statusColor?: string;
+  priority?: number;
+  assignees?: TaskAssignee[];
+  description?: string;
+  creatorName?: string;
+  creatorEmail?: string;
+  loading: boolean;
+  error?: boolean;
 };
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm];
@@ -75,6 +87,63 @@ const markdownComponents: Components = {
 
 const taskInfoCache = new Map<string, TaskInfo>();
 
+type PersonInfo = {
+  name?: string;
+  email?: string;
+};
+
+function extractPersonDetails(input: unknown): PersonInfo | null {
+  if (!input) return null;
+  if (typeof input === 'string') {
+    const cleaned = input.trim();
+    return cleaned ? { name: cleaned } : null;
+  }
+  if (typeof input === 'object') {
+    const data = input as Record<string, unknown>;
+    const first = data.first_name ?? data.firstName ?? data.creator_first_name ?? data.creatorFirstName;
+    const last = data.last_name ?? data.lastName ?? data.creator_last_name ?? data.creatorLastName;
+    const full = data.name ?? data.full_name ?? data.fullName ?? data.display_name ?? data.username;
+    const email = data.email ?? data.mail ?? data.creator_email ?? data.creatorEmail ?? data.email_address;
+    const buildName = (value: unknown) => (typeof value === 'string' && value.trim().length > 0 ? value.trim() : '');
+    const nameCandidate = buildName(full) || [first, last].map(buildName).filter(Boolean).join(' ').trim();
+    return {
+      name: nameCandidate || undefined,
+      email: typeof email === 'string' && email.trim().length > 0 ? email.trim() : undefined,
+    };
+  }
+  return null;
+}
+
+function resolveCreatorInfo(taskData: Record<string, unknown>): PersonInfo | undefined {
+  const creatorCandidates = [
+    taskData.creator,
+    taskData.created_by,
+    taskData.createdBy,
+    taskData.author,
+    taskData.owner,
+    {
+      first_name: taskData.creator_first_name ?? taskData.author_first_name,
+      last_name: taskData.creator_last_name ?? taskData.author_last_name,
+      email: taskData.creator_email ?? taskData.author_email,
+      name: taskData.creator_name ?? taskData.author_name,
+    },
+  ];
+
+  let result: PersonInfo | undefined;
+  for (const candidate of creatorCandidates) {
+    const person = extractPersonDetails(candidate);
+    if (!person) continue;
+    result = {
+      name: person.name ?? result?.name,
+      email: person.email ?? result?.email,
+    };
+    if (result.name && result.email) {
+      break;
+    }
+  }
+  return result;
+}
+
 async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInfo> {
   const trimmedId = taskId.trim();
   if (taskInfoCache.has(trimmedId)) {
@@ -87,14 +156,46 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
   let projectId: string | undefined;
   let projectName: string | undefined;
 
+  let mappedTask: UITask | null = null;
+  let fallbackDescription: string | undefined;
+  let priorityValue: number | undefined;
+  let assignees: TaskAssignee[] | undefined;
+  let statusName: string | undefined;
+  let statusColor: string | undefined;
+  let creatorName: string | undefined;
+  let creatorEmail: string | undefined;
+
   try {
     const task = await fetchTaskById(trimmedId);
-    console.log('loadTaskInfo: fetchTaskById result for', trimmedId, task);
     if (task && typeof task === 'object') {
       const taskData = task as Record<string, unknown>;
       const titleCandidate = taskData.name ?? taskData.title;
       if (typeof titleCandidate === 'string' && titleCandidate.trim().length > 0) {
         taskTitle = titleCandidate.trim();
+      }
+
+      try {
+        mappedTask = mapTask(task as TaskShort);
+      } catch {
+        mappedTask = null;
+      }
+
+      if (mappedTask) {
+        fallbackDescription = mappedTask.description;
+        priorityValue = mappedTask.priority ?? undefined;
+        assignees = mappedTask.assignees;
+        const primaryStatus = Array.isArray(mappedTask.statuses)
+          ? mappedTask.statuses.find((status) => status?.boardId === boardHint) ?? mappedTask.statuses[0]
+          : undefined;
+        statusName = primaryStatus?.name ?? primaryStatus?.key;
+        statusColor = primaryStatus?.color;
+
+        if (!boardIdForLookup && primaryStatus?.boardId) {
+          boardIdForLookup = primaryStatus.boardId;
+        }
+        if (!projectId && primaryStatus?.projectId) {
+          projectId = primaryStatus.projectId;
+        }
       }
 
       const status = taskData.status;
@@ -133,6 +234,49 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
           projectName = projectNameCandidate.trim();
         }
       }
+
+      if (!statusName) {
+        const statusNameCandidate = status && typeof status === 'object'
+          ? (status as Record<string, unknown>).name ?? (status as Record<string, unknown>).title
+          : typeof status === 'string'
+            ? status
+            : undefined;
+        if (typeof statusNameCandidate === 'string' && statusNameCandidate.trim().length > 0) {
+          statusName = statusNameCandidate.trim();
+        }
+      }
+
+      if (!statusColor) {
+        const statusColorCandidate = status && typeof status === 'object'
+          ? (status as Record<string, unknown>).color
+          : undefined;
+        if (typeof statusColorCandidate === 'string' && statusColorCandidate.trim().length > 0) {
+          statusColor = statusColorCandidate.trim();
+        }
+      }
+
+      const descriptionCandidates = [
+        taskData.description,
+        taskData.desc,
+        taskData.details,
+        taskData.body,
+        taskData.content,
+        taskData.summary,
+      ];
+      const description = descriptionCandidates.find((value) => typeof value === 'string' && value.trim().length > 0);
+      if (typeof description === 'string') {
+        fallbackDescription = description.trim();
+      }
+
+      if (taskData.priority && typeof taskData.priority === 'number') {
+        priorityValue = taskData.priority;
+      }
+
+      const creatorInfo = resolveCreatorInfo(taskData);
+      if (creatorInfo) {
+        creatorName = creatorInfo.name ?? creatorName;
+        creatorEmail = creatorInfo.email ?? creatorEmail;
+      }
     }
   } catch (error) {
     console.warn('Не удалось получить данные задачи через fetchTaskById', trimmedId, error);
@@ -142,7 +286,6 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
   if ((!boardIdForLookup || !projectId) && !boardName) {
     try {
       const boardProjectInfo = await fetchTaskBoardProject(trimmedId);
-      console.log('loadTaskInfo: fetchTaskBoardProject result for', trimmedId, boardProjectInfo);
       if (boardProjectInfo.boardId && !boardIdForLookup) {
         boardIdForLookup = boardProjectInfo.boardId;
       }
@@ -190,10 +333,16 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
     taskTitle,
     boardName: boardName ?? (boardIdForLookup ? `Доска ${boardIdForLookup}` : 'Неизвестная доска'),
     projectName: projectName ?? (projectId ? `Проект ${projectId}` : 'Неизвестный проект'),
+    statusName,
+    statusColor,
+    priority: priorityValue,
+    assignees,
+    description: fallbackDescription,
+    creatorName,
+    creatorEmail,
   };
 
   taskInfoCache.set(trimmedId, result);
-  console.log('loadTaskInfo: final result for', trimmedId, result);
   return result;
 }
 
@@ -261,7 +410,7 @@ export default function ReportsPage() {
           }}
         />
       ) : (
-        <div className="mx-auto max-w-6xl p-6 space-y-6">
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
           <Panel className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between p-6">
             <div>
               <h1 className="text-2xl font-semibold">Отчёты команды</h1>
@@ -317,7 +466,6 @@ export default function ReportsPage() {
                         />
                         <div className="min-w-0">
                           <div className="truncate text-base font-semibold text-white">{report.user.name}</div>
-                          <div className="text-xs text-slate-300">{formatDateTime(report.reportDate ?? report.createdAt)}</div>
                         </div>
                       </div>
                       <div className="text-sm text-slate-200">
@@ -366,162 +514,82 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
 
-  const [selectedDone, setSelectedDone] = useState<Set<string>>(new Set());
-  const [selectedPlan, setSelectedPlan] = useState<Set<string>>(new Set());
-  const [doneNotes, setDoneNotes] = useState<Notes>({});
-  const [planNotes, setPlanNotes] = useState<Notes>({});
+  const [doneTaskKeys, setDoneTaskKeys] = useState<string[]>([]);
+  const [planTaskKeys, setPlanTaskKeys] = useState<string[]>([]);
+  const [doneNotes, setDoneNotes] = useState<Record<string, string>>({});
+  const [planNotes, setPlanNotes] = useState<Record<string, string>>({});
+  const [expandedDone, setExpandedDone] = useState<Set<string>>(new Set());
+  const [expandedPlan, setExpandedPlan] = useState<Set<string>>(new Set());
+  const [taskMap, setTaskMap] = useState<Map<string, TaskInfo>>(new Map());
+  const [detailedInfo, setDetailedInfo] = useState<Map<string, TaskInfo>>(new Map());
+  const detailedInfoPendingRef = useRef<Set<string>>(new Set());
+  const [modalMode, setModalMode] = useState<'done' | 'plan' | null>(null);
+  const [improvingKey, setImprovingKey] = useState<string | null>(null);
+  const [typingState, setTypingState] = useState<{ key: string; target: string } | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(new Set());
-  const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>(null);
+  const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>('no');
   const [helpComments, setHelpComments] = useState<Record<string, string>>({});
   const [selectedHelpers, setSelectedHelpers] = useState<Employee[]>([]);
   const [reportDate, setReportDate] = useState<string>(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
-  const [step, setStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [taskMap, setTaskMap] = useState<Map<string, TaskInfo>>(new Map());
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [commentReminderVisible, setCommentReminderVisible] = useState(false);
+
   const improveReportMutation = useImproveTaskReport();
   const createReportMutation = useCreateReport();
-  const [improvingKey, setImprovingKey] = useState<string | null>(null);
-  const [pickerResetToken, setPickerResetToken] = useState(0);
+
+  const trackedTaskIds = useMemo(() => {
+    const ids = new Set<string>();
+    [...doneTaskKeys, ...planTaskKeys].forEach((key) => {
+      const { taskId } = parseTaskKeyValue(key);
+      if (taskId) {
+        ids.add(taskId);
+      }
+    });
+    return Array.from(ids);
+  }, [doneTaskKeys, planTaskKeys]);
+
+  const taskQueries = useTasksByIds(trackedTaskIds, hasCreds && trackedTaskIds.length > 0);
+
+  const queriesByTaskId = useMemo(() => {
+    const map = new Map<string, { ui?: UITask; raw?: any; isLoading: boolean; isError: boolean }>();
+    trackedTaskIds.forEach((taskId, index) => {
+      const query = taskQueries[index];
+      const raw = query?.data;
+      let ui: UITask | undefined;
+      if (raw) {
+        try {
+          ui = mapTask(raw as TaskShort);
+        } catch {
+          ui = undefined;
+        }
+      }
+      map.set(taskId, {
+        ui,
+        raw,
+        isLoading: Boolean(query?.isLoading),
+        isError: Boolean(query?.isError),
+      });
+    });
+    return map;
+  }, [taskQueries, trackedTaskIds]);
 
   const updateTaskMap = useCallback((newTaskMap: Map<string, TaskInfo>) => {
     setTaskMap((prev) => {
-      const combined = new Map(prev);
+      const merged = new Map(prev);
       newTaskMap.forEach((value, key) => {
-        combined.set(key, value);
+        const existing = merged.get(key);
+        merged.set(key, existing ? { ...existing, ...value } : value);
       });
-      return combined;
+      return merged;
     });
   }, []);
 
-  const allSelectedKeys = useMemo(() => {
-    const keys = new Set<string>();
-    selectedDone.forEach((key) => keys.add(key));
-    selectedPlan.forEach((key) => keys.add(key));
-    return Array.from(keys);
-  }, [selectedDone, selectedPlan]);
-
-  const missingTaskKeys = useMemo(() => {
-    return allSelectedKeys.filter((key) => !taskMap.has(key));
-  }, [allSelectedKeys, taskMap]);
-
-  const resolveTaskInfo = useCallback(async (key: string): Promise<TaskInfo | null> => {
-    const parts = key.split(':');
-    const boardPart = parts.length > 1 ? parts[0] : undefined;
-    const taskPart = parts.length > 1 ? parts[1] : parts[0];
-    const taskId = taskPart?.trim();
-
-    if (!taskId) {
-      return null;
-    }
-
-    try {
-      return await loadTaskInfo(taskId, boardPart?.trim());
-    } catch (error) {
-      console.warn('Не удалось получить информацию о задаче', key, error);
-      return null;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!hasCreds) return;
-    if (missingTaskKeys.length === 0) return;
-    let cancelled = false;
-
-    const load = async () => {
-      const updates = new Map<string, TaskInfo>();
-      for (const key of missingTaskKeys) {
-        try {
-          const info = await resolveTaskInfo(key);
-          if (info) {
-            updates.set(key, info);
-          }
-        } catch (error) {
-          console.error('Ошибка при дозагрузке информации о задаче', key, error);
-        }
-        if (cancelled) {
-          return;
-        }
-      }
-
-      if (!cancelled && updates.size > 0) {
-        setTaskMap((prev) => {
-          const merged = new Map(prev);
-          updates.forEach((value, key) => merged.set(key, value));
-          return merged;
-        });
-      }
-    };
-
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [missingTaskKeys, hasCreds, resolveTaskInfo]);
-
-  const doneKeys = useMemo(() => Array.from(selectedDone), [selectedDone]);
-  const planKeys = useMemo(() => Array.from(selectedPlan), [selectedPlan]);
-  const stepsCount = 1 + doneKeys.length + 1 + planKeys.length + 1;
-
-  useEffect(() => {
-    if (step > stepsCount - 1) setStep(stepsCount - 1);
-  }, [stepsCount, step]);
-
-  const resetWizardState = useCallback(() => {
-    setSelectedDone(new Set());
-    setSelectedPlan(new Set());
-    setDoneNotes({});
-    setPlanNotes({});
-    setSelectedProblems(new Set());
-    setNeedHelp(null);
-    setHelpComments({});
-    setSelectedHelpers([]);
-    setReportDate(() => {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    });
-    setStep(0);
-    setTaskMap(new Map());
-    setImprovingKey(null);
-    setShowSuccessModal(false);
-    setPickerResetToken((prev) => prev + 1);
-  }, []);
-
-  const handleClose = useCallback(() => {
-    resetWizardState();
-    onClose();
-  }, [onClose, resetWizardState]);
-
-  const toggleDone = (boardId: string, taskId: string) => {
-    setSelectedDone((prev) => {
-      const next = new Set(prev);
-      const key = `${boardId}:${taskId}`;
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  };
-
-  const togglePlan = (boardId: string, taskId: string) => {
-    setSelectedPlan((prev) => {
-      const next = new Set(prev);
-      const key = `${boardId}:${taskId}`;
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  };
-
-  const toggleProblem = (problemId: string) => {
+  const toggleProblem = useCallback((problemId: string) => {
     setSelectedProblems((prev) => {
       const next = new Set(prev);
       if (next.has(problemId)) {
@@ -531,48 +599,341 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       }
       return next;
     });
-  };
+  }, []);
 
-  const renderTaskLabel = (key: string) => {
-    const taskInfo = taskMap.get(key);
-    if (taskInfo) {
-      return `${taskInfo.projectName} — ${taskInfo.boardName} — ${taskInfo.taskTitle}`;
-    }
-    return 'Загрузка информации о задаче...';
-  };
-
-  const selectHelpers = (helpers: Employee[]) => {
+  const selectHelpers = useCallback((helpers: Employee[]) => {
     setSelectedHelpers(helpers);
-  };
+  }, []);
 
-  const handleImprove = useCallback(async (key: string, currentText: string) => {
-    const parts = key.split(':');
-    const taskId = parts.length > 1 ? parts[1] : parts[0];
-    if (!taskId) {
-      console.warn('Report wizard: нет taskId для улучшения', key);
+  const ensureDetailedInfo = useCallback((taskId: string | null | undefined) => {
+    if (!taskId) return;
+    if (detailedInfoPendingRef.current.has(taskId)) return;
+
+    let shouldFetch = false;
+    setDetailedInfo((prev) => {
+      if (prev.has(taskId)) {
+        return prev;
+      }
+      shouldFetch = true;
+      return prev;
+    });
+    if (!shouldFetch) return;
+
+    detailedInfoPendingRef.current.add(taskId);
+    void (async () => {
+      try {
+        const info = await loadTaskInfo(taskId);
+        setDetailedInfo((prev) => {
+          if (prev.has(taskId)) return prev;
+          const next = new Map(prev);
+          next.set(taskId, info);
+          return next;
+        });
+      } catch (error) {
+        console.warn('Не удалось получить подробности задачи', taskId, error);
+      } finally {
+        detailedInfoPendingRef.current.delete(taskId);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    doneTaskKeys.forEach((key) => {
+      if (expandedDone.has(key)) {
+        const { taskId } = parseTaskKeyValue(key);
+        ensureDetailedInfo(taskId);
+      }
+    });
+  }, [ensureDetailedInfo, expandedDone, doneTaskKeys]);
+
+  useEffect(() => {
+    planTaskKeys.forEach((key) => {
+      if (expandedPlan.has(key)) {
+        const { taskId } = parseTaskKeyValue(key);
+        ensureDetailedInfo(taskId);
+      }
+    });
+  }, [ensureDetailedInfo, expandedPlan, planTaskKeys]);
+
+  useEffect(() => {
+    if (!typingState) return;
+    const { key, target } = typingState;
+    if (!target || target.length === 0) {
+      setDoneNotes((prev) => ({ ...prev, [key]: '' }));
+      setTypingState(null);
+      setImprovingKey((prev) => (prev === key ? null : prev));
       return;
     }
+    let index = 0;
+    const interval = setInterval(() => {
+      index += 1;
+      const nextText = target.slice(0, index);
+      setDoneNotes((prev) => ({ ...prev, [key]: nextText }));
+      if (index >= target.length) {
+        clearInterval(interval);
+        setTypingState(null);
+        setImprovingKey((prev) => (prev === key ? null : prev));
+      }
+    }, 16);
+    return () => clearInterval(interval);
+  }, [typingState]);
 
-    setImprovingKey(key);
-    try {
-      const result = await improveReportMutation.mutateAsync({
-        taskId,
-        userText: currentText,
+  useEffect(() => {
+    if (commentReminderVisible && Object.keys(validationErrors).length === 0) {
+      setCommentReminderVisible(false);
+    }
+  }, [commentReminderVisible, validationErrors]);
+
+  const handleToggleCard = useCallback((mode: 'done' | 'plan', key: string) => {
+    if (mode === 'done') {
+      setExpandedDone((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) {
+          next.delete(key);
+        } else {
+          next.add(key);
+          const { taskId } = parseTaskKeyValue(key);
+          ensureDetailedInfo(taskId);
+        }
+        return next;
       });
+    } else {
+      setExpandedPlan((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) {
+          next.delete(key);
+        } else {
+          next.add(key);
+          const { taskId } = parseTaskKeyValue(key);
+          ensureDetailedInfo(taskId);
+        }
+        return next;
+      });
+    }
+  }, [ensureDetailedInfo]);
+
+  const handleRemoveTask = useCallback((mode: 'done' | 'plan', key: string) => {
+    if (mode === 'done') {
+      setDoneTaskKeys((prev) => prev.filter((item) => item !== key));
+      setDoneNotes((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      setExpandedDone((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+      setValidationErrors((prev) => {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    } else {
+      setPlanTaskKeys((prev) => prev.filter((item) => item !== key));
+      setPlanNotes((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      setExpandedPlan((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }, []);
+
+  const handleNoteChange = useCallback((mode: 'done' | 'plan', key: string, value: string) => {
+    if (mode === 'done') {
+      setDoneNotes((prev) => ({ ...prev, [key]: value }));
+      setValidationErrors((prev) => {
+        if (!(key in prev)) return prev;
+        if (value.trim().length > 0) {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        }
+        return prev;
+      });
+    } else {
+      setPlanNotes((prev) => ({ ...prev, [key]: value }));
+    }
+  }, []);
+
+  const handleCompleteCard = useCallback((mode: 'done' | 'plan', key: string) => {
+    if (mode === 'done') {
+      const note = (doneNotes[key] ?? '').trim();
+      if (!note) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          [key]: 'Добавьте комментарий к выполненной задаче',
+        }));
+        setExpandedDone((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+        return;
+      }
+      setValidationErrors((prev) => {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      setExpandedDone((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    } else {
+      setExpandedPlan((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }, [doneNotes]);
+
+  const handleModalSubmit = useCallback((mode: 'done' | 'plan', keys: string[]) => {
+    const uniqueKeys = Array.from(new Set(keys));
+    if (mode === 'done') {
+      const previousKeys = doneTaskKeys;
+      setDoneTaskKeys(uniqueKeys);
+      setDoneNotes((prev) => {
+        const next: Record<string, string> = {};
+        uniqueKeys.forEach((taskKey) => {
+          next[taskKey] = prev[taskKey] ?? '';
+        });
+        return next;
+      });
+      setExpandedDone((prev) => {
+        const next = new Set<string>();
+        uniqueKeys.forEach((taskKey) => {
+          if (prev.has(taskKey) || !previousKeys.includes(taskKey)) {
+            next.add(taskKey);
+          }
+        });
+        uniqueKeys.forEach((taskKey) => {
+          if (!previousKeys.includes(taskKey)) {
+            next.add(taskKey);
+          }
+        });
+        return next;
+      });
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((taskKey) => {
+          if (!uniqueKeys.includes(taskKey)) {
+            delete next[taskKey];
+          }
+        });
+        return next;
+      });
+    } else {
+      const previousKeys = planTaskKeys;
+      setPlanTaskKeys(uniqueKeys);
+      setPlanNotes((prev) => {
+        const next: Record<string, string> = {};
+        uniqueKeys.forEach((taskKey) => {
+          next[taskKey] = prev[taskKey] ?? '';
+        });
+        return next;
+      });
+      setExpandedPlan((prev) => {
+        const next = new Set<string>();
+        uniqueKeys.forEach((taskKey) => {
+          if (prev.has(taskKey) || !previousKeys.includes(taskKey)) {
+            next.add(taskKey);
+          }
+        });
+        uniqueKeys.forEach((taskKey) => {
+          if (!previousKeys.includes(taskKey)) {
+            next.add(taskKey);
+          }
+        });
+        return next;
+      });
+    }
+    setModalMode(null);
+  }, [doneTaskKeys, planTaskKeys]);
+
+  const handleImprove = useCallback(async (key: string, currentText: string) => {
+    const { taskId } = parseTaskKeyValue(key);
+    if (!taskId) {
+      console.warn('Report wizard: отсутствует taskId для генерации', key);
+      return;
+    }
+    setImprovingKey(key);
+    setTypingState(null);
+    try {
+      const result = await improveReportMutation.mutateAsync({ taskId, userText: currentText });
       const improvedText = typeof result?.improved_text === 'string' && result.improved_text.trim().length > 0
-        ? result.improved_text
+        ? result.improved_text.trim()
         : currentText;
       setDoneNotes((prev) => ({
         ...prev,
-        [key]: improvedText,
+        [key]: '',
       }));
+      setTypingState({ key, target: improvedText });
     } catch (error) {
       console.error('Ошибка при генерации комментария отчёта', error);
       alert('Не удалось сгенерировать комментарий. Попробуйте позже.');
-    } finally {
       setImprovingKey((prev) => (prev === key ? null : prev));
     }
   }, [improveReportMutation]);
+
+  const getTaskDetails = useCallback((key: string): CombinedTaskDetails => {
+    const { taskId } = parseTaskKeyValue(key);
+    const base = taskMap.get(key);
+    const extra = taskId ? detailedInfo.get(taskId) : undefined;
+    const queryInfo = taskId ? queriesByTaskId.get(taskId) : undefined;
+    const ui = queryInfo?.ui;
+
+    const projectName = extra?.projectName ?? base?.projectName ?? 'Проект не указан';
+    const boardName = extra?.boardName ?? base?.boardName ?? 'Доска не указана';
+    const statusName = extra?.statusName
+      ?? base?.statusName
+      ?? (Array.isArray(ui?.statuses) && ui.statuses.length > 0
+        ? ui.statuses[0]?.name ?? ui.statuses[0]?.key
+        : undefined);
+    const statusColor = extra?.statusColor
+      ?? base?.statusColor
+      ?? (Array.isArray(ui?.statuses) && ui.statuses.length > 0 ? ui.statuses[0]?.color : undefined);
+    const priority = extra?.priority ?? base?.priority ?? ui?.priority ?? undefined;
+    const assignees = extra?.assignees ?? base?.assignees ?? ui?.assignees;
+    const description = extra?.description ?? base?.description ?? ui?.description;
+    let creatorName = extra?.creatorName ?? base?.creatorName;
+    let creatorEmail = extra?.creatorEmail ?? base?.creatorEmail;
+    const title = base?.taskTitle ?? extra?.taskTitle ?? ui?.title ?? (taskId ? `Задача ${taskId}` : 'Задача');
+
+    if ((!creatorName || !creatorEmail) && queryInfo?.raw && typeof queryInfo.raw === 'object' && queryInfo.raw !== null) {
+      const creatorInfo = resolveCreatorInfo(queryInfo.raw as Record<string, unknown>);
+      if (creatorInfo) {
+        creatorName = creatorName ?? creatorInfo.name;
+        creatorEmail = creatorEmail ?? creatorInfo.email;
+      }
+    }
+
+    return {
+      taskId: taskId ?? undefined,
+      title,
+      projectName,
+      boardName,
+      statusName,
+      statusColor,
+      priority,
+      assignees,
+      description,
+      creatorName,
+      creatorEmail,
+      loading: Boolean(queryInfo?.isLoading && !ui && !extra),
+      error: Boolean(queryInfo?.isError),
+    };
+  }, [taskMap, detailedInfo, queriesByTaskId]);
 
   const handleSubmit = async () => {
     const userId = getUserId();
@@ -581,46 +942,78 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       return;
     }
 
-    try {
-      const completeWork = doneKeys.map((key) => {
-        const taskId = key.includes(':') ? key.split(':')[1] : key;
-        return {
-          task_id: taskId,
-          description: doneNotes[key] || '',
-        };
+    if (doneTaskKeys.length === 0 || planTaskKeys.length === 0) {
+      setSubmitError('Добавьте хотя бы одну задачу в разделы «Сделано сегодня» и «План на завтра».');
+      setCommentReminderVisible(false);
+      return;
+    }
+
+    const incomplete = doneTaskKeys.filter((key) => !(doneNotes[key]?.trim()));
+    if (incomplete.length > 0) {
+      setCommentReminderVisible(true);
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        incomplete.forEach((taskKey) => {
+          next[taskKey] = 'Добавьте комментарий к выполненной задаче';
+        });
+        return next;
       });
+      setExpandedDone((prev) => {
+        const next = new Set(prev);
+        incomplete.forEach((taskKey) => next.add(taskKey));
+        return next;
+      });
+      const firstKey = incomplete[0];
+      const element = typeof document !== 'undefined' ? document.querySelector(`[data-task-key="${firstKey}"]`) : null;
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      setSubmitError('Заполните комментарии для всех задач в разделе «Сделано сегодня».');
+      return;
+    }
 
-      const planTomorrow = planKeys
-        .map((key) => ({
-          description: planNotes[key] || '',
-        }))
-        .filter((plan) => plan.description.trim().length > 0);
+    setCommentReminderVisible(false);
+    setSubmitError(null);
 
-      console.log('Plan data:', { planKeys, planNotes, planTomorrow });
+    const completeWork = doneTaskKeys.map((key) => ({
+      task_id: resolveTaskIdFromKey(key) ?? '',
+      description: doneNotes[key].trim(),
+    }));
 
-      const helpRequests = selectedHelpers.map((helper) => ({
-        helper_id: helper.id,
-        description: helpComments[helper.id] || '',
-        status: 'pending',
-      }));
+    const planTomorrow = planTaskKeys
+      .map((key) => {
+        const note = (planNotes[key] ?? '').trim();
+        if (!note) {
+          return null;
+        }
+        const taskId = resolveTaskIdFromKey(key);
+        return {
+          description: note,
+          ...(taskId ? { task_id: taskId } : {}),
+        };
+      })
+      .filter((item): item is { description: string; task_id?: string } => item !== null);
 
-      // Создаем дату в UTC, чтобы избежать проблем с часовыми поясами
-      const [year, month, day] = reportDate.split('-').map(Number);
-      const reportDateISO = new Date(Date.UTC(year, month - 1, day)).toISOString();
+    const helpRequests = selectedHelpers.map((helper) => ({
+      helper_id: helper.id,
+      description: helpComments[helper.id] || '',
+      status: 'pending',
+    }));
 
-      const payload = {
-        complete_work: completeWork,
-        help: helpRequests,
-        plan_tomorrow: planTomorrow,
-        problems: Array.from(selectedProblems),
-        report_date: reportDateISO,
-        user_id: userId,
-      };
+    const [year, month, day] = reportDate.split('-').map(Number);
+    const reportDateISO = new Date(Date.UTC(year, month - 1, day)).toISOString();
 
-      console.log('Creating report with payload:', payload);
+    const payload = {
+      complete_work: completeWork,
+      plan_tomorrow: planTomorrow,
+      help: helpRequests,
+      problems: Array.from(selectedProblems),
+      report_date: reportDateISO,
+      user_id: userId,
+    };
 
+    try {
       await createReportMutation.mutateAsync(payload);
-
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Ошибка при создании отчета:', error);
@@ -628,9 +1021,165 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
     }
   };
 
-  const handleSuccessClose = () => {
+  const handleSuccessClose = useCallback(() => {
+    setShowSuccessModal(false);
     onCreated();
-    handleClose();
+    onClose();
+  }, [onClose, onCreated]);
+
+  const renderTaskCard = (mode: 'done' | 'plan', key: string) => {
+    const details = getTaskDetails(key);
+    const expanded = mode === 'done' ? expandedDone.has(key) : expandedPlan.has(key);
+    const note = mode === 'done' ? doneNotes[key] ?? '' : planNotes[key] ?? '';
+    const error = validationErrors[key];
+    const priorityMeta = getTaskPriorityMeta(details.priority ?? undefined);
+    const primaryAssignee = details.assignees?.[0];
+    const assigneeLabel = primaryAssignee?.name ?? primaryAssignee?.email ?? 'Не назначен';
+    const assigneeEmail = primaryAssignee?.email;
+    const aiWriting = typingState?.key === key;
+    const generating = improvingKey === key;
+    const cardClass = [
+      'rounded-2xl bg-white/5 transition-shadow ring-1',
+      error ? 'border border-rose-500/60 ring-rose-500/40 hover:ring-rose-400/40' : 'border border-white/10 ring-transparent hover:ring-emerald-500/30',
+    ].join(' ');
+
+    return (
+      <div key={key} data-task-key={key} className={cardClass}>
+        <button
+          type="button"
+          onClick={() => handleToggleCard(mode, key)}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+          aria-expanded={expanded}
+        >
+          <span className="font-semibold text-base text-white truncate">{details.title}</span>
+          <svg
+            className={`h-5 w-5 text-slate-300 transition-transform ${expanded ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+
+        {expanded && (
+          <div className="border-t border-white/10 px-4 py-4 space-y-4">
+            {details.loading && (
+              <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs text-slate-300">
+                Загрузка информации о задаче…
+              </div>
+            )}
+
+            <div className="grid gap-3 text-sm text-slate-300 md:grid-cols-2">
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Проект</span>
+                <span className="mt-1 text-slate-200">{details.projectName}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Доска</span>
+                <span className="mt-1 text-slate-200">{details.boardName}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Статус</span>
+                <span className="mt-1 inline-flex items-center gap-2 text-slate-200">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: details.statusColor ?? '#34d399' }}
+                  />
+                  {details.statusName ?? 'Не указан'}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Срочность</span>
+                <span className={`mt-1 inline-flex w-max items-center rounded-lg px-2 py-0.5 text-xs font-semibold ring-1 ${priorityMeta.badgeClass}`}>
+                  {priorityMeta.label}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Исполнитель</span>
+                <span className="mt-1 text-slate-200">
+                  {assigneeLabel}
+                  {assigneeEmail ? <span className="ml-2 text-xs text-slate-400">{assigneeEmail}</span> : null}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Создатель</span>
+                <span className="mt-1 text-slate-200">
+                  {details.creatorName ?? 'Не указан'}
+                  {details.creatorEmail ? <span className="ml-2 text-xs text-slate-400">{details.creatorEmail}</span> : null}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-sm text-slate-300">
+              <span className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Описание задачи</span>
+              <p className="whitespace-pre-wrap text-slate-200">
+                {details.description?.trim() ? details.description : 'Описание отсутствует'}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-wide text-slate-500">
+                {mode === 'done' ? 'Комментарий к выполненной работе*' : 'Комментарий к плану'}
+              </label>
+              <textarea
+                value={note}
+                onChange={(event) => handleNoteChange(mode, key, event.target.value)}
+                placeholder={mode === 'done' ? 'Опишите, что было сделано сегодня…' : 'Что планируете сделать в следующий рабочий день…'}
+                className="w-full min-h-[96px] rounded-xl bg-black/20 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y"
+              />
+              {error ? (
+                <div className="text-xs text-rose-300">{error}</div>
+              ) : null}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {mode === 'done' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleImprove(key, note)}
+                    disabled={generating}
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/40 px-4 py-2 text-sm text-emerald-200 transition hover:border-emerald-400 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {generating ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-300 border-t-transparent" />
+                        ИИ пишет комментарий…
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-4-9m-5 7a7 7 0 110-14 7 7 0 010 14z" />
+                        </svg>
+                        Сгенерировать комментарий
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <span />
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTask(mode, key)}
+                    className="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 hover:border-rose-400/40 hover:text-rose-200"
+                  >
+                    Удалить
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCompleteCard(mode, key)}
+                    className="rounded-lg bg-emerald-500/80 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-500 disabled:opacity-60"
+                    disabled={generating || aiWriting}
+                  >
+                    Готово
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (!hasCreds) {
@@ -641,130 +1190,226 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
     );
   }
 
-  const steps: React.ReactNode[] = [];
-  let idx = 0;
-
-  const goToStep = (index: number) => {
-    const safe = Math.max(0, Math.min(index, stepsCount - 1));
-    setStep(safe);
-    // Автопрокрутка вверх при переключении шагов
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Step 0: выбор задач, над которыми работали
-  const firstStepIndex = idx;
-  steps.push(
-    <div key={`slide-${firstStepIndex}`} className="flex flex-col justify-between">
-      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6">
-        <ReportProjectPicker
-          key={`done-${pickerResetToken}`}
-          selected={selectedDone}
-          onToggle={toggleDone}
-          onTaskInfoUpdate={updateTaskMap}
-          title="Выберите задачи, по которым вы сегодня работали"
-          description="Выберите задачи из ваших проектов и досок."
-        />
-      </div>
-      <WizardNav onNext={() => selectedDone.size > 0 && goToStep(firstStepIndex + 1)} nextDisabled={selectedDone.size === 0} />
-    </div>
-  );
-  idx += 1;
-
-  doneKeys.forEach((key) => {
-    const index = idx;
-    steps.push(
-      <div key={`slide-${index}`} className="flex flex-col justify-between">
-        <NotesForm
-          title="Напишите, что вы сделали по задаче:"
-          taskLabel={renderTaskLabel(key)}
-          value={doneNotes[key] ?? ''}
-          placeholder="Опишите выполненную работу…"
-          onChange={(value) => setDoneNotes((prev) => ({ ...prev, [key]: value }))}
-          onImproveClick={() => { void handleImprove(key, doneNotes[key] ?? ''); }}
-          isImproving={improvingKey === key && improveReportMutation.isPending}
-        />
-        <WizardNav onPrev={() => goToStep(index - 1)} onNext={() => goToStep(index + 1)} />
-      </div>
-    );
-    idx += 1;
-  });
-
-  const planPickerIndex = idx;
-  steps.push(
-    <div key={`slide-${planPickerIndex}`} className="flex flex-col justify-between">
-      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6">
-        <ReportProjectPicker
-          key={`plan-${pickerResetToken}`}
-          selected={selectedPlan}
-          onToggle={togglePlan}
-          onTaskInfoUpdate={updateTaskMap}
-          title="Выберите задачи для плана на завтра"
-          description="Выберите задачи из ваших проектов и досок."
-        />
-      </div>
-      <WizardNav onPrev={() => goToStep(planPickerIndex - 1)} onNext={() => selectedPlan.size > 0 && goToStep(planPickerIndex + 1)} nextDisabled={selectedPlan.size === 0} />
-    </div>
-  );
-  idx += 1;
-
-  planKeys.forEach((key) => {
-    const index = idx;
-    steps.push(
-      <div key={`slide-${index}`} className="flex flex-col justify-between">
-        <NotesForm
-          title="План на завтра по задаче:"
-          taskLabel={renderTaskLabel(key)}
-          value={planNotes[key] ?? ''}
-          placeholder="Что планируете сделать завтра…"
-          onChange={(value) => setPlanNotes((prev) => ({ ...prev, [key]: value }))}
-        />
-        <WizardNav onPrev={() => goToStep(index - 1)} onNext={() => goToStep(index + 1)} />
-      </div>
-    );
-    idx += 1;
-  });
-
-  const finalStepIndex = idx;
-  steps.push(
-    <div key={`slide-${finalStepIndex}`} className="flex flex-col justify-between">
-      <FinalQuestions
-        selectedProblems={selectedProblems}
-        onToggleProblem={toggleProblem}
-        needHelp={needHelp}
-        setNeedHelp={setNeedHelp}
-        helpComments={helpComments}
-        setHelpComments={setHelpComments}
-        onHelpersChange={selectHelpers}
-        reportDate={reportDate}
-        setReportDate={setReportDate}
-      />
-      <WizardNav
-        onPrev={() => goToStep(finalStepIndex - 1)}
-        onFinish={() => { void handleSubmit(); }}
-        isLoading={createReportMutation.isPending}
-      />
-    </div>
-  );
-
   return (
     <div className="min-h-screen text-white">
-      <div className="mx-auto max-w-6xl p-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <button
             type="button"
-            onClick={handleClose}
+            onClick={onClose}
             className="rounded-xl border border-white/15 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10"
           >
             Назад к списку отчётов
           </button>
+          <button
+            type="button"
+          onClick={handleSubmit}
+          disabled={createReportMutation.isPending || doneTaskKeys.length === 0 || planTaskKeys.length === 0}
+            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-60"
+          >
+            {createReportMutation.isPending ? 'Сохраняем…' : 'Создать отчёт'}
+          </button>
         </div>
 
-        <SlideTrack step={step}>{steps}</SlideTrack>
+        {submitError && (
+          <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {submitError}
+          </div>
+        )}
+
+        <Panel className="p-6 space-y-5 t-surface">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold">Сделано сегодня</h2>
+              <p className="text-sm text-slate-300">Выберите задачи и опишите, что было выполнено.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setModalMode('done')}
+              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110"
+            >
+              + Добавить задачи
+            </button>
+          </div>
+
+          {doneTaskKeys.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
+              Пока ничего не добавлено. Нажмите «Добавить задачи», чтобы начать.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {doneTaskKeys.map((key) => renderTaskCard('done', key))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel className="p-6 space-y-5 t-surface">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold">План на завтра</h2>
+              <p className="text-sm text-slate-300">Укажите задачи, на которых сосредоточитесь в следующий рабочий день.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setModalMode('plan')}
+              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110"
+            >
+              + Добавить задачи
+            </button>
+          </div>
+
+          {planTaskKeys.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
+              Запланируйте задачи, чтобы держать команду в курсе ваших планов.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {planTaskKeys.map((key) => renderTaskCard('plan', key))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel className="p-6 t-surface">
+          <FinalQuestions
+            selectedProblems={selectedProblems}
+            onToggleProblem={toggleProblem}
+            needHelp={needHelp}
+            setNeedHelp={setNeedHelp}
+            helpComments={helpComments}
+            setHelpComments={setHelpComments}
+            onHelpersChange={selectHelpers}
+            reportDate={reportDate}
+            setReportDate={setReportDate}
+          />
+        </Panel>
+
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          {commentReminderVisible ? (
+            <span className="text-sm font-medium text-rose-300">Сначала заполните все комментарии</span>
+          ) : null}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={createReportMutation.isPending || doneTaskKeys.length === 0 || planTaskKeys.length === 0}
+            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-6 py-3 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-60"
+          >
+            {createReportMutation.isPending ? 'Сохраняем…' : 'Сохранить отчёт'}
+          </button>
+        </div>
       </div>
+
+      <TaskPickerModal
+        mode="done"
+        open={modalMode === 'done'}
+        initialSelected={doneTaskKeys}
+        onClose={() => setModalMode(null)}
+        onSubmit={(keys) => handleModalSubmit('done', keys)}
+        onTaskInfoUpdate={updateTaskMap}
+      />
+      <TaskPickerModal
+        mode="plan"
+        open={modalMode === 'plan'}
+        initialSelected={planTaskKeys}
+        onClose={() => setModalMode(null)}
+        onSubmit={(keys) => handleModalSubmit('plan', keys)}
+        onTaskInfoUpdate={updateTaskMap}
+      />
 
       <SuccessModal open={showSuccessModal} onClose={handleSuccessClose} />
     </div>
   );
+}
+
+type TaskPickerModalProps = {
+  mode: 'done' | 'plan';
+  open: boolean;
+  initialSelected: string[];
+  onClose: () => void;
+  onSubmit: (keys: string[]) => void;
+  onTaskInfoUpdate: (map: Map<string, TaskInfo>) => void;
+};
+
+function TaskPickerModal({ mode, open, initialSelected, onClose, onSubmit, onTaskInfoUpdate }: TaskPickerModalProps) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(initialSelected));
+
+  useEffect(() => {
+    setSelected(new Set(initialSelected));
+  }, [initialSelected, open]);
+
+  const handleToggle = (boardId: string, taskId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const key = `${boardId}:${taskId}`;
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const handleSubmit = () => {
+    onSubmit(Array.from(selected));
+  };
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <div className="max-h-[80vh] overflow-hidden rounded-2xl border border-white/15 bg-[#03150f] p-6 text-white shadow-2xl">
+        <div className="max-h-[64vh] overflow-y-auto pr-2 custom-scroll">
+          <ReportProjectPicker
+            selected={selected}
+            onToggle={handleToggle}
+            onTaskInfoUpdate={onTaskInfoUpdate}
+            title={mode === 'done' ? 'Сделано сегодня' : 'План на завтра'}
+            description={mode === 'done'
+              ? 'Выберите задачи, по которым сегодня была выполнена работа.'
+              : 'Выберите задачи, которые хотите запланировать на следующий рабочий день.'}
+          />
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-white/20 px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
+          >
+            Отмена
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="rounded-lg bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 text-sm font-semibold text-black hover:brightness-110"
+          >
+            Добавить
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function parseTaskKeyValue(key: string): { boardId: string | null; taskId: string | null } {
+  if (!key) return { boardId: null, taskId: null };
+  const parts = key.split(':');
+  if (parts.length === 1) {
+    const taskId = parts[0]?.trim() ?? '';
+    return {
+      boardId: null,
+      taskId: taskId.length > 0 ? taskId : null,
+    };
+  }
+  const [boardPart, taskPart] = parts;
+  const boardId = boardPart?.trim() ?? '';
+  const taskId = taskPart?.trim() ?? '';
+  return {
+    boardId: boardId.length > 0 ? boardId : null,
+    taskId: taskId.length > 0 ? taskId : null,
+  };
+}
+
+function resolveTaskIdFromKey(key: string): string | undefined {
+  const { taskId } = parseTaskKeyValue(key);
+  return taskId ?? undefined;
 }
 
 function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
@@ -788,11 +1433,6 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
       if (id) uniqueTaskIds.add(id);
     });
 
-    console.log('ReportDetailsModal: uniqueTaskIds', Array.from(uniqueTaskIds));
-    console.log('ReportDetailsModal: report.completedWork', report.completedWork);
-    console.log('ReportDetailsModal: report.tomorrowPlans', report.tomorrowPlans);
-    console.log('ReportDetailsModal: report.helpRequests', report.helpRequests);
-    console.log('ReportDetailsModal: report.problems', report.problems);
 
     if (uniqueTaskIds.size === 0) {
       setTaskInfo({});
@@ -847,7 +1487,6 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
       );
     }
     const info = taskInfo[taskId];
-    console.log('renderTaskMeta: taskId', taskId, 'info', info);
     if (!info) {
       return (
         <div className="mt-2 text-xs text-slate-400">
@@ -870,7 +1509,9 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-xl font-semibold">{report.user.name}</div>
-              <div className="text-sm text-slate-300">{formatDateTime(report.reportDate ?? report.createdAt)}</div>
+              <div className="text-sm text-slate-300">
+                {report.reportDate ? formatReportDate(report.reportDate) : formatDateTime(report.createdAt)}
+              </div>
             </div>
             <Avatar name={report.user.name} url={report.user.avatarUrl} email={report.user.email} fallbackKey={report.user.id ?? report.user.name} size="md" />
           </div>
@@ -960,22 +1601,54 @@ function ReportDetailSection({ title, emptyLabel, children }: { title: string; e
   );
 }
 
+function extractDatePart(raw?: string): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (dateOnlyMatch) {
+    return `${dateOnlyMatch[1]}-${dateOnlyMatch[2]}-${dateOnlyMatch[3]}`;
+  }
+  const prefixMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
+  if (prefixMatch) {
+    return `${prefixMatch[1]}-${prefixMatch[2]}-${prefixMatch[3]}`;
+  }
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateKey(key?: string): Date | null {
+  if (!key) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+  return new Date(year, month - 1, day);
+}
+
 function normalizeDateKey(raw?: string) {
   if (!raw) return 'unknown';
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) {
-    return raw;
-  }
-  return date.toISOString().split('T')[0];
+  const datePart = extractDatePart(raw);
+  return datePart ?? raw;
 }
 
 function compareDateKeys(a: string, b: string) {
   if (a === b) return 0;
   if (a === 'unknown') return 1;
   if (b === 'unknown') return -1;
-  const dateA = new Date(a);
-  const dateB = new Date(b);
-  if (Number.isNaN(dateA.getTime()) || Number.isNaN(dateB.getTime())) {
+  const dateA = parseDateKey(a);
+  const dateB = parseDateKey(b);
+  if (!dateA || !dateB) {
     return b.localeCompare(a);
   }
   return dateA.getTime() - dateB.getTime();
@@ -985,15 +1658,16 @@ function formatDateLabel(key: string) {
   if (!key || key === 'unknown') {
     return 'Без даты';
   }
-  const date = new Date(key);
-  if (Number.isNaN(date.getTime())) {
-    const altDate = new Date(Date.parse(key));
-    if (!Number.isNaN(altDate.getTime())) {
-      return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }).format(altDate);
-    }
-    return key;
+  const parsed = parseDateKey(key);
+  if (parsed) {
+    return withWeekdayLabel(parsed);
   }
-  return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+
+  const fallback = new Date(key);
+  if (!Number.isNaN(fallback.getTime())) {
+    return withWeekdayLabel(fallback);
+  }
+  return key;
 }
 
 function formatDateTime(value?: string) {
@@ -1007,4 +1681,28 @@ function formatDateTime(value?: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function formatReportDate(value?: string) {
+  const datePart = extractDatePart(value);
+  if (!datePart) {
+    return value ?? 'Дата не указана';
+  }
+  const parsed = parseDateKey(datePart);
+  if (parsed) {
+    return withWeekdayLabel(parsed);
+  }
+  return datePart;
+}
+
+function withWeekdayLabel(date: Date) {
+  const base = new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+  const weekday = new Intl.DateTimeFormat('ru-RU', {
+    weekday: 'long',
+  }).format(date);
+  return `${base}, ${weekday}`;
 }

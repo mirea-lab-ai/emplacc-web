@@ -2,17 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
+import Avatar from '@/components/ui/Avatar';
 import { clearTokens, getRefreshToken, getUserId, isAuthed } from '@/lib/auth';
 import { apiLogout } from '@/features/auth/api';
-import { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/features/user/hooks';
 import { useUserRole } from '@/features/roles/hooks';
-import Avatar from '@/components/ui/Avatar';
 
 type Props = {
   items: { label: string; href: string }[];
 };
+
+const GUEST_BLOCKED_LABELS = ['мои задачи', 'команды'];
+const GUEST_BLOCKED_PATHS = ['/tasks', '/teams'];
 
 export default function Header({ items }: Props) {
   const router = useRouter();
@@ -87,10 +90,14 @@ export default function Header({ items }: Props) {
   const isActive = (href: string) => pathname === href;
 
   const navigationItems = items
-    .filter(
-      ({ href, label }) => !(href === '/settings' || label.toLowerCase().includes('настрой'))
-    )
-    .filter(({ href }) => !(isGuest && (href === '/projects' || href === '/teams')));
+    .filter(({ href, label }) => !(href === '/settings' || label.toLowerCase().includes('настрой')))
+    .filter(({ href, label }) => {
+      if (!isGuest) return true;
+      const lowerLabel = label.toLowerCase();
+      const blockedByLabel = GUEST_BLOCKED_LABELS.some((candidate) => lowerLabel.includes(candidate));
+      const blockedByPath = GUEST_BLOCKED_PATHS.includes(href);
+      return !blockedByLabel && !blockedByPath;
+    });
 
   return (
     <header className="relative mx-auto w-full max-w-6xl border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8">
@@ -127,6 +134,7 @@ export default function Header({ items }: Props) {
               );
             })}
           </nav>
+
           {hasCreds && user ? (
             <div className="relative" ref={profileRef}>
               <button
@@ -152,7 +160,7 @@ export default function Header({ items }: Props) {
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-48 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl bg-[#091a14] p-2 shadow-lg ring-1 ring-emerald-400/30">
+                <div className="absolute right-0 z-50 mt-2 max-h-[calc(100vh-6rem)] w-48 overflow-y-auto rounded-xl bg-[#091a14] p-2 shadow-lg ring-1 ring-emerald-400/30">
                   <Link
                     href="/settings"
                     className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"

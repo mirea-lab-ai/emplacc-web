@@ -7,10 +7,6 @@ import ReportDownload from '@/components/main/ReportDownload';
 import TodayPlan, { PlanItem } from '@/components/main/TodayPlan';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
-// демо-данные удалены: блок использует только API
-
-
-
 
 const demoPlan: PlanItem[] = [
   { id: 'pl1', task: 'Emplacc', subtask: 'фронт', text: 'доделать панель админа' },
@@ -21,37 +17,34 @@ export default function Home() {
   const hasCreds = isAuthed();
   const { data: userRole } = useUserRole(userId, hasCreds);
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
-  const showFullDashboard = normalizedRole !== 'guest';
-  const layoutClasses = [
-    'grid gap-6',
-    showFullDashboard
-      ? 'lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(420px,480px)_minmax(0,1fr)]'
-      : 'justify-items-start',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const wrapperClasses = ['flex w-full flex-col gap-6', showFullDashboard ? '' : 'items-start']
-    .filter(Boolean)
-    .join(' ');
-  const secondaryGridClasses = ['grid min-h-0 gap-6', showFullDashboard ? 'sm:grid-cols-2' : '']
-    .filter(Boolean)
-    .join(' ');
+  const isGuest = normalizedRole === 'guest';
+
+  if (isGuest) {
+    return (
+      <main className="flex h-full min-h-0 flex-col text-white">
+        <div className="flex-1 overflow-auto pb-6">
+          <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
+            <ForumUpdates />
+            <ReportDownload />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex h-full min-h-0 flex-col text-white">
       <div className="flex-1 overflow-auto pb-6">
-        <div className={wrapperClasses}>
-          <div className={layoutClasses}>
-            {showFullDashboard && (
-              <div className="min-h-0">
-                <YourTasks />
-              </div>
-            )}
-            <div className={secondaryGridClasses}>
-              {showFullDashboard && <HelpRequests />}
+        <div className="flex w-full flex-col gap-6">
+          <div className="grid gap-6 lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(420px,480px)_minmax(0,1fr)]">
+            <div className="min-h-0">
+              <YourTasks />
+            </div>
+            <div className="grid min-h-0 gap-6 sm:grid-cols-2">
+              <HelpRequests />
               <ForumUpdates />
               <ReportDownload />
-              {showFullDashboard && <TodayPlan items={demoPlan} />}
+              <TodayPlan items={demoPlan} />
             </div>
           </div>
         </div>
@@ -59,4 +52,3 @@ export default function Home() {
     </main>
   );
 }
-

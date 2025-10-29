@@ -7,6 +7,7 @@ import { clearTokens, getRefreshToken, getUserId, isAuthed } from '@/lib/auth';
 import { apiLogout } from '@/features/auth/api';
 import { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/features/user/hooks';
+import { useUserRole } from '@/features/roles/hooks';
 import Avatar from '@/components/ui/Avatar';
 
 type Props = {
@@ -20,8 +21,11 @@ export default function Header({ items }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hasCreds = isAuthed();
   const { data: user } = useUser(userId, hasCreds);
+  const { data: userRole } = useUserRole(userId, hasCreds);
   const profileRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
+  const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
+  const isGuest = normalizedRole === 'guest';
 
   useEffect(() => {
     if (!profileOpen) return;
@@ -82,9 +86,11 @@ export default function Header({ items }: Props) {
 
   const isActive = (href: string) => pathname === href;
 
-  const navigationItems = items.filter(
-    ({ href, label }) => !(href === '/settings' || label.toLowerCase().includes('настрой'))
-  );
+  const navigationItems = items
+    .filter(
+      ({ href, label }) => !(href === '/settings' || label.toLowerCase().includes('настрой'))
+    )
+    .filter(({ href }) => !(isGuest && (href === '/projects' || href === '/teams')));
 
   return (
     <header className="relative mx-auto w-full max-w-6xl border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8">

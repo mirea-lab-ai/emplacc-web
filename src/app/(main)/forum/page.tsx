@@ -10,6 +10,7 @@ import { useForumMessagesByProblem, useCreateForumMessage } from '@/features/for
 import { useAllUsers } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
+import { useUserRole } from '@/features/roles/hooks';
 import TrashIcon from '@/components/ui/icons/TrashIcon';
 import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
 
@@ -25,6 +26,10 @@ function ForumContent() {
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
+  const userId = isClient ? getUserId() : null;
+  const { data: userRole } = useUserRole(userId, hasCreds);
+  const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
+  const isGuest = normalizedRole === 'guest';
   const router = useRouter();
   const pathname = usePathname();
   
@@ -179,9 +184,13 @@ function ForumContent() {
     setDeleteModal({ open: false, problemId: '', problemName: '' });
   };
 
+  const containerClasses = ['w-full space-y-6 px-4 py-6 sm:px-6 lg:px-8', isGuest ? '' : 'mx-auto max-w-6xl']
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <main className="min-h-screen text-white">
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className={containerClasses}>
         <div className="flex flex-col gap-6 lg:flex-row">
           {/* левая колонка — проблемы */}
           <Panel className="p-4 w-full space-y-3 t-surface border border-white/10 lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:min-h-[520px] lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scroll">

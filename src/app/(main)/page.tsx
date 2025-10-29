@@ -11,25 +11,28 @@ import TodayPlan, { PlanItem } from '@/components/main/TodayPlan';
 
 
 const demoPlan: PlanItem[] = [
-  { id: 'pl1', task: 'Emplacc', subtask: 'фронт', text:'доделать панель админа' },
+  { id: 'pl1', task: 'Emplacc', subtask: 'фронт', text: 'доделать панель админа' },
 ];
 
 export default function Home() {
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid gap-6 xl:grid-cols-[480px_minmax(0,1fr)] xl:items-start">
-          <YourTasks />
-          <div className="grid gap-6 sm:grid-cols-2 lg:min-h-[680px]">
-            <HelpRequests />
-            <ForumUpdates />
-            <ReportDownload />
-            <TodayPlan items={demoPlan} />
+    <main className="flex h-full min-h-0 flex-col text-white">
+      <div className="flex-1 overflow-auto pb-6">
+        <div className="flex w-full flex-col gap-6">
+          <div className="grid gap-6 lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(420px,480px)_minmax(0,1fr)]">
+            <div className="min-h-0">
+              <YourTasks />
+            </div>
+            <div className="grid min-h-0 gap-6 sm:grid-cols-2">
+              <HelpRequests />
+              <ForumUpdates />
+              <ReportDownload />
+              <TodayPlan items={demoPlan} />
+            </div>
           </div>
         </div>
       </div>
     </main>
   );
 }
-
 

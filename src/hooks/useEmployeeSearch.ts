@@ -8,8 +8,14 @@ export function useEmployeeSearch(
     excludeIds?: string[],
 ) {
     // безопасные значения по умолчанию
-    const list = Array.isArray(employees) ? employees : [];
-    const exclude = new Set(Array.isArray(excludeIds) ? excludeIds : []);
+    const list = useMemo(
+        () => (Array.isArray(employees) ? employees : []),
+        [employees]
+    );
+    const exclude = useMemo(
+        () => new Set(Array.isArray(excludeIds) ? excludeIds : []),
+        [excludeIds]
+    );
     const q = (query ?? '').trim().toLowerCase();
 
     return useMemo(() => {
@@ -24,5 +30,5 @@ export function useEmployeeSearch(
             )
             .slice(0, 20);
         // В зависимостях оставляем оригинальные ссылки:
-    }, [list, q, excludeIds]);
+    }, [list, q, exclude]);
 }

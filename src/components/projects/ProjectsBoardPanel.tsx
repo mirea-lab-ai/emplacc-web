@@ -384,9 +384,9 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
 
   return (
     <>
-      <Panel className="p-4 t-surface">
+      <Panel className="flex w-full min-h-[calc(100vh-200px)] flex-1 flex-col gap-4 p-4 t-surface">
         {/* Board Navigation Header */}
-        <div className="mb-4 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={handlePrevBoard}
             className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -473,26 +473,30 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
         </div>
 
         {/* Kanban Board */}
-        <KanbanBoard 
-          columns={columns} 
-          onChange={() => {}} 
-          viewportOffset={220}
-          onCreateStatus={handleCreateStatus}
-          isCreatingStatus={isCreatingStatus}
-          onDeleteStatus={handleDeleteStatus}
-          isDeletingStatus={isDeletingStatus}
-          onCreateTask={handleCreateTask}
-          isCreatingTask={isCreatingTask}
-          onUpdateTask={handleUpdateTask}
-          isUpdatingTask={isUpdatingTask}
-          onDeleteTask={handleDeleteTask}
-          isDeletingTask={isDeletingTask}
-          onMoveTask={handleMoveTask}
-          isMovingTask={isMovingTask}
-          hideHeader
-          onHeaderStateChange={handleHeaderStateChange}
-          showColumnActions={columnsEditMode}
-        />
+        <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
+          <div className="flex h-full min-w-max items-stretch gap-3 pb-2">
+            <KanbanBoard
+              columns={columns}
+              onChange={() => {}}
+              viewportOffset={240}
+              onCreateStatus={handleCreateStatus}
+              isCreatingStatus={isCreatingStatus}
+              onDeleteStatus={handleDeleteStatus}
+              isDeletingStatus={isDeletingStatus}
+              onCreateTask={handleCreateTask}
+              isCreatingTask={isCreatingTask}
+              onUpdateTask={handleUpdateTask}
+              isUpdatingTask={isUpdatingTask}
+              onDeleteTask={handleDeleteTask}
+              isDeletingTask={isDeletingTask}
+              onMoveTask={handleMoveTask}
+              isMovingTask={isMovingTask}
+              hideHeader
+              onHeaderStateChange={handleHeaderStateChange}
+              showColumnActions={columnsEditMode}
+            />
+          </div>
+        </div>
       </Panel>
         {showDeleteModal && currentBoard && (
           <DeleteBoardModal

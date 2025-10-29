@@ -21,17 +21,12 @@ const STATUS_META: Record<string, { emoji: string; label: string }> = {
 };
 
 type Props = {
-  params: Promise<{ projectId: string }> | { projectId: string };
+  params: Promise<{ projectId: string }>;
 };
-
-function isPromise<T>(value: unknown): value is Promise<T> {
-  return typeof value === 'object' && value !== null && 'then' in (value as object) && typeof (value as { then?: unknown }).then === 'function';
-}
 
 export default function ProjectDetailPage({ params }: Props) {
   const router = useRouter();
-  const resolvedParams = isPromise<{ projectId: string }>(params) ? use(params) : params;
-  const projectId = resolvedParams.projectId;
+  const { projectId } = use(params);
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
   const [project, setProject] = useState<UIProject | null>(null);
@@ -72,18 +67,20 @@ export default function ProjectDetailPage({ params }: Props) {
 
   if (!hasCreds) {
     return (
-      <main className="min-h-screen text-white">
-        <div className="mx-auto max-w-6xl p-6 space-y-6">
-          <button
-            type="button"
-            onClick={() => router.push('/projects')}
-            className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-100"
-          >
-            ← Назад к списку проектов
-          </button>
-          <Panel className="p-6 t-surface text-slate-300">
-            Авторизуйтесь, чтобы просматривать проекты.
-          </Panel>
+      <main className="flex h-full min-h-0 flex-col text-white">
+        <div className="flex-1 overflow-auto">
+          <div className="flex w-full flex-col gap-4">
+            <button
+              type="button"
+              onClick={() => router.push('/projects')}
+              className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-100"
+            >
+              ← Назад к списку проектов
+            </button>
+            <Panel className="p-6 t-surface text-slate-300">
+              Авторизуйтесь, чтобы просматривать проекты.
+            </Panel>
+          </div>
         </div>
       </main>
     );
@@ -94,29 +91,32 @@ export default function ProjectDetailPage({ params }: Props) {
     : undefined;
 
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto max-w-6xl p-6 space-y-4">
-        <button
-          type="button"
-          onClick={() => router.push('/projects')}
-          className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-100 transition"
-        >
-          ← Назад к списку проектов
-        </button>
+    <main className="flex h-full min-h-0 flex-col bg-transparent text-white">
+      <div className="flex h-full min-h-0 w-full flex-col gap-4">
+        <div className="flex-none">
+          <button
+            type="button"
+            onClick={() => router.push('/projects')}
+            className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-100 transition"
+          >
+            ← Назад к списку проектов
+          </button>
+        </div>
 
-        {loading ? (
-          <Panel className="p-6 t-surface text-slate-300">Загрузка проекта…</Panel>
-        ) : !project ? (
-          <Panel className="p-6 t-surface text-slate-300">
-            Проект не найден или доступ к нему отсутствует.
-          </Panel>
-        ) : (
-          <div className="flex gap-6">
-            <aside className="w-[260px] shrink-0 space-y-4">
-              <Panel className="p-4 t-surface space-y-3">
-                <h1 className="text-2xl font-semibold leading-tight break-words">
-                  {project.name ?? 'Без названия'}
-                </h1>
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {loading ? (
+            <Panel className="p-6 t-surface text-slate-300">Загрузка проекта…</Panel>
+          ) : !project ? (
+            <Panel className="p-6 t-surface text-slate-300">
+              Проект не найден или доступ к нему отсутствует.
+            </Panel>
+          ) : (
+            <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden lg:flex-row lg:gap-4">
+              <aside className="flex w-full flex-none flex-col gap-4 overflow-auto lg:w-[260px]">
+                <Panel className="p-4 t-surface space-y-3">
+                  <h1 className="text-2xl font-semibold leading-tight break-words">
+                    {project.name ?? 'Без названия'}
+                  </h1>
                 {statusMeta && (
                   <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
                     <span>{statusMeta.emoji}</span>
@@ -130,12 +130,12 @@ export default function ProjectDetailPage({ params }: Props) {
                 )}
               </Panel>
 
-              <Panel className="p-3 t-surface">
-                <DetailNavButton
-                  label="Доска"
-                  active={section === 'board'}
-                  onClick={() => setSection('board')}
-                />
+                <Panel className="p-3 t-surface">
+                  <DetailNavButton
+                    label="Доска"
+                    active={section === 'board'}
+                    onClick={() => setSection('board')}
+                  />
                 <DetailNavButton
                   label="Команды"
                   active={section === 'teams'}
@@ -146,39 +146,40 @@ export default function ProjectDetailPage({ params }: Props) {
                   active={section === 'settings'}
                   onClick={() => setSection('settings')}
                 />
-              </Panel>
+                </Panel>
 
-              {section === 'board' && (
-                <ProjectsBoardList
-                  projectId={projectId}
-                  activeBoardId={selectedBoardId}
-                  onSelect={(boardId) => handleSelectBoard(boardId)}
-                  onCreateBoard={() => setShowCreateBoardModal(true)}
-                />
-              )}
-            </aside>
+                {section === 'board' && (
+                  <ProjectsBoardList
+                    projectId={projectId}
+                    activeBoardId={selectedBoardId}
+                    onSelect={(boardId) => handleSelectBoard(boardId)}
+                    onCreateBoard={() => setShowCreateBoardModal(true)}
+                  />
+                )}
+              </aside>
 
-            <section className="min-w-0 flex-1 space-y-6">
-              {section === 'board' && (
-                <ProjectsBoardPanel
-                  projectId={projectId}
-                  selectedBoardId={selectedBoardId ?? undefined}
-                  onSelectBoard={handleSelectBoard}
-                />
-              )}
-              {section === 'teams' && (
-                <ProjectsTeamsPanel projectId={projectId} />
-              )}
-              {section === 'settings' && (
-                <ProjectsSettingsPanel
-                  project={project}
-                  onProjectUpdate={(updated) => setProject(updated)}
-                  onProjectDelete={() => router.push('/projects')}
-                />
-              )}
-            </section>
-          </div>
-        )}
+              <section className="flex-1 min-h-0 min-w-0 space-y-4 overflow-hidden">
+                {section === 'board' && (
+                  <ProjectsBoardPanel
+                    projectId={projectId}
+                    selectedBoardId={selectedBoardId ?? undefined}
+                    onSelectBoard={handleSelectBoard}
+                  />
+                )}
+                {section === 'teams' && (
+                  <ProjectsTeamsPanel projectId={projectId} />
+                )}
+                {section === 'settings' && (
+                  <ProjectsSettingsPanel
+                    project={project}
+                    onProjectUpdate={(updated) => setProject(updated)}
+                    onProjectDelete={() => router.push('/projects')}
+                  />
+                )}
+              </section>
+            </div>
+          )}
+        </div>
       </div>
 
       {showCreateBoardModal && project && (

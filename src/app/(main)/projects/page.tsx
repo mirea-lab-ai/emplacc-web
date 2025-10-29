@@ -99,19 +99,22 @@ function ProjectsListView() {
 
   if (!hasCreds) {
     return (
-      <main className="min-h-screen text-white">
-        <div className="mx-auto max-w-4xl p-6">
-          <Panel className="p-6 t-surface text-slate-300">
-            Авторизуйтесь, чтобы просматривать проекты.
-          </Panel>
+      <main className="flex h-full min-h-0 flex-col text-white">
+        <div className="flex-1 overflow-auto">
+          <div className="flex w-full flex-col gap-4">
+            <Panel className="p-6 t-surface text-slate-300">
+              Авторизуйтесь, чтобы просматривать проекты.
+            </Panel>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto max-w-4xl p-6 space-y-6">
+    <main className="flex h-full min-h-0 flex-col text-white">
+      <div className="flex-1 overflow-auto pb-6">
+        <div className="flex w-full flex-col gap-6">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold">Проекты</h1>
@@ -171,6 +174,7 @@ function ProjectsListView() {
             </ul>
           )}
         </Panel>
+        </div>
       </div>
 
       {showCreateModal && (
@@ -194,9 +198,11 @@ function ProjectsListView() {
 
 function ProjectsPageFallback() {
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto max-w-4xl p-6">
-        <div className="text-slate-400">Загрузка…</div>
+    <main className="flex h-full min-h-0 flex-col text-white">
+      <div className="flex-1 overflow-auto">
+        <div className="flex w-full flex-col gap-4">
+          <div className="text-slate-400">Загрузка…</div>
+        </div>
       </div>
     </main>
   );

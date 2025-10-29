@@ -109,7 +109,7 @@ export default function Column({
             </div>
             
             <Panel
-                className="t-surface text-white flex flex-col h-full min-h-0 flex-1 mx-3"
+                className="t-surface text-white flex flex-col h-full min-h-0 flex-1"
                 onDragOver={(e: React.DragEvent) => e.preventDefault()}
                 onDrop={handleDrop}
             >

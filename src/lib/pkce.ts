@@ -10,14 +10,7 @@ function toBase64Url(bytes: Uint8Array): string {
 export function generateCodeVerifier(length = 64): string {
     const l = Math.max(43, Math.min(128, length));
     const bytes = new Uint8Array(l);
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-        crypto.getRandomValues(bytes);
-    } else {
-        // fallback for non-browser; should not happen on client
-        const nodeCrypto = require('crypto');
-        const buf: Buffer = nodeCrypto.randomBytes(l);
-        for (let i = 0; i < l; i++) bytes[i] = buf[i];
-    }
+    fillRandomBytes(bytes);
     return toBase64Url(bytes);
 }
 
@@ -30,6 +23,34 @@ export async function generateCodeChallenge(verifier: string): Promise<string> {
 
 export function generateState(length = 32): string {
     return generateCodeVerifier(length);
+}
+
+function fillRandomBytes(buffer: Uint8Array) {
+    const globalCrypto = globalThis.crypto as unknown;
+
+    if (hasGetRandomValues(globalCrypto)) {
+        globalCrypto.getRandomValues(buffer);
+        return;
+    }
+
+    const webcrypto = (globalCrypto as { webcrypto?: unknown })?.webcrypto;
+    if (hasGetRandomValues(webcrypto)) {
+        webcrypto.getRandomValues(buffer);
+        return;
+    }
+
+    const randomBytes = (globalCrypto as { randomBytes?: (size: number) => Uint8Array })?.randomBytes;
+    if (typeof randomBytes === 'function') {
+        const bytes = randomBytes(buffer.length);
+        buffer.set(bytes);
+        return;
+    }
+
+    throw new Error('Secure random number generator is not available.');
+}
+
+function hasGetRandomValues(value: unknown): value is Crypto {
+    return typeof value === 'object' && value !== null && 'getRandomValues' in value;
 }
 
 const KEY_VERIFIER = 'kc_pkce_verifier';
@@ -53,5 +74,3 @@ export function readAndClearAuthState(): { verifier: string | null; state: strin
     } catch {}
     return { verifier, state };
 }
-
-

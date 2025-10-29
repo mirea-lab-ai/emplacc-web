@@ -87,6 +87,63 @@ const markdownComponents: Components = {
 
 const taskInfoCache = new Map<string, TaskInfo>();
 
+type PersonInfo = {
+  name?: string;
+  email?: string;
+};
+
+function extractPersonDetails(input: unknown): PersonInfo | null {
+  if (!input) return null;
+  if (typeof input === 'string') {
+    const cleaned = input.trim();
+    return cleaned ? { name: cleaned } : null;
+  }
+  if (typeof input === 'object') {
+    const data = input as Record<string, unknown>;
+    const first = data.first_name ?? data.firstName ?? data.creator_first_name ?? data.creatorFirstName;
+    const last = data.last_name ?? data.lastName ?? data.creator_last_name ?? data.creatorLastName;
+    const full = data.name ?? data.full_name ?? data.fullName ?? data.display_name ?? data.username;
+    const email = data.email ?? data.mail ?? data.creator_email ?? data.creatorEmail ?? data.email_address;
+    const buildName = (value: unknown) => (typeof value === 'string' && value.trim().length > 0 ? value.trim() : '');
+    const nameCandidate = buildName(full) || [first, last].map(buildName).filter(Boolean).join(' ').trim();
+    return {
+      name: nameCandidate || undefined,
+      email: typeof email === 'string' && email.trim().length > 0 ? email.trim() : undefined,
+    };
+  }
+  return null;
+}
+
+function resolveCreatorInfo(taskData: Record<string, unknown>): PersonInfo | undefined {
+  const creatorCandidates = [
+    taskData.creator,
+    taskData.created_by,
+    taskData.createdBy,
+    taskData.author,
+    taskData.owner,
+    {
+      first_name: taskData.creator_first_name ?? taskData.author_first_name,
+      last_name: taskData.creator_last_name ?? taskData.author_last_name,
+      email: taskData.creator_email ?? taskData.author_email,
+      name: taskData.creator_name ?? taskData.author_name,
+    },
+  ];
+
+  let result: PersonInfo | undefined;
+  for (const candidate of creatorCandidates) {
+    const person = extractPersonDetails(candidate);
+    if (!person) continue;
+    result = {
+      name: person.name ?? result?.name,
+      email: person.email ?? result?.email,
+    };
+    if (result.name && result.email) {
+      break;
+    }
+  }
+  return result;
+}
+
 async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInfo> {
   const trimmedId = taskId.trim();
   if (taskInfoCache.has(trimmedId)) {
@@ -107,29 +164,6 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
   let statusColor: string | undefined;
   let creatorName: string | undefined;
   let creatorEmail: string | undefined;
-
-  const extractPerson = (input: unknown): { name?: string; email?: string } | null => {
-    if (!input) return null;
-    if (typeof input === 'string') {
-      const cleaned = input.trim();
-      return cleaned ? { name: cleaned } : null;
-    }
-    if (typeof input === 'object') {
-      const data = input as Record<string, unknown>;
-      const first = data.first_name ?? data.firstName ?? data.creator_first_name ?? data.creatorFirstName;
-      const last = data.last_name ?? data.lastName ?? data.creator_last_name ?? data.creatorLastName;
-      const full = data.name ?? data.full_name ?? data.fullName ?? data.display_name ?? data.username;
-      const email = data.email ?? data.mail ?? data.creator_email ?? data.creatorEmail ?? data.email_address;
-      const nameCandidate = typeof full === 'string' && full.trim().length > 0
-        ? full.trim()
-        : [first, last].map((value) => (typeof value === 'string' ? value.trim() : '')).filter(Boolean).join(' ');
-      return {
-        name: nameCandidate || undefined,
-        email: typeof email === 'string' && email.trim().length > 0 ? email.trim() : undefined,
-      };
-    }
-    return null;
-  };
 
   try {
     const task = await fetchTaskById(trimmedId);
@@ -238,29 +272,10 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
         priorityValue = taskData.priority;
       }
 
-      const creatorCandidates = [
-        taskData.creator,
-        taskData.created_by,
-        taskData.createdBy,
-        taskData.author,
-        taskData.owner,
-        {
-          first_name: taskData.creator_first_name ?? taskData.author_first_name,
-          last_name: taskData.creator_last_name ?? taskData.author_last_name,
-          email: taskData.creator_email ?? taskData.author_email,
-          name: taskData.creator_name ?? taskData.author_name,
-        },
-      ];
-
-      for (const candidate of creatorCandidates) {
-        const person = extractPerson(candidate);
-        if (person?.name || person?.email) {
-          creatorName = person.name ?? creatorName;
-          creatorEmail = person.email ?? creatorEmail;
-          if (creatorName && creatorEmail) {
-            break;
-          }
-        }
+      const creatorInfo = resolveCreatorInfo(taskData);
+      if (creatorInfo) {
+        creatorName = creatorInfo.name ?? creatorName;
+        creatorEmail = creatorInfo.email ?? creatorEmail;
       }
     }
   } catch (error) {
@@ -513,7 +528,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
   const [typingState, setTypingState] = useState<{ key: string; target: string } | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(new Set());
-  const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>(null);
+  const [needHelp, setNeedHelp] = useState<'yes' | 'no' | null>('no');
   const [helpComments, setHelpComments] = useState<Record<string, string>>({});
   const [selectedHelpers, setSelectedHelpers] = useState<Employee[]>([]);
   const [reportDate, setReportDate] = useState<string>(() => {
@@ -522,6 +537,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [commentReminderVisible, setCommentReminderVisible] = useState(false);
 
   const improveReportMutation = useImproveTaskReport();
   const createReportMutation = useCreateReport();
@@ -661,6 +677,12 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
     }, 16);
     return () => clearInterval(interval);
   }, [typingState]);
+
+  useEffect(() => {
+    if (commentReminderVisible && Object.keys(validationErrors).length === 0) {
+      setCommentReminderVisible(false);
+    }
+  }, [commentReminderVisible, validationErrors]);
 
   const handleToggleCard = useCallback((mode: 'done' | 'plan', key: string) => {
     if (mode === 'done') {
@@ -884,9 +906,17 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
     const priority = extra?.priority ?? base?.priority ?? ui?.priority ?? undefined;
     const assignees = extra?.assignees ?? base?.assignees ?? ui?.assignees;
     const description = extra?.description ?? base?.description ?? ui?.description;
-    const creatorName = extra?.creatorName ?? base?.creatorName;
-    const creatorEmail = extra?.creatorEmail ?? base?.creatorEmail;
+    let creatorName = extra?.creatorName ?? base?.creatorName;
+    let creatorEmail = extra?.creatorEmail ?? base?.creatorEmail;
     const title = base?.taskTitle ?? extra?.taskTitle ?? ui?.title ?? (taskId ? `Задача ${taskId}` : 'Задача');
+
+    if ((!creatorName || !creatorEmail) && queryInfo?.raw && typeof queryInfo.raw === 'object' && queryInfo.raw !== null) {
+      const creatorInfo = resolveCreatorInfo(queryInfo.raw as Record<string, unknown>);
+      if (creatorInfo) {
+        creatorName = creatorName ?? creatorInfo.name;
+        creatorEmail = creatorEmail ?? creatorInfo.email;
+      }
+    }
 
     return {
       taskId: taskId ?? undefined,
@@ -914,11 +944,13 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
 
     if (doneTaskKeys.length === 0 || planTaskKeys.length === 0) {
       setSubmitError('Добавьте хотя бы одну задачу в разделы «Сделано сегодня» и «План на завтра».');
+      setCommentReminderVisible(false);
       return;
     }
 
     const incomplete = doneTaskKeys.filter((key) => !(doneNotes[key]?.trim()));
     if (incomplete.length > 0) {
+      setCommentReminderVisible(true);
       setValidationErrors((prev) => {
         const next = { ...prev };
         incomplete.forEach((taskKey) => {
@@ -940,6 +972,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       return;
     }
 
+    setCommentReminderVisible(false);
     setSubmitError(null);
 
     const completeWork = doneTaskKeys.map((key) => ({
@@ -1005,9 +1038,13 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
     const assigneeEmail = primaryAssignee?.email;
     const aiWriting = typingState?.key === key;
     const generating = improvingKey === key;
+    const cardClass = [
+      'rounded-2xl bg-white/5 transition-shadow ring-1',
+      error ? 'border border-rose-500/60 ring-rose-500/40 hover:ring-rose-400/40' : 'border border-white/10 ring-transparent hover:ring-emerald-500/30',
+    ].join(' ');
 
     return (
-      <div key={key} data-task-key={key} className="rounded-2xl border border-white/10 bg-white/5 ring-1 ring-transparent transition-shadow hover:ring-emerald-500/30">
+      <div key={key} data-task-key={key} className={cardClass}>
         <button
           type="button"
           onClick={() => handleToggleCard(mode, key)}
@@ -1246,11 +1283,14 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
           />
         </Panel>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          {commentReminderVisible ? (
+            <span className="text-sm font-medium text-rose-300">Сначала заполните все комментарии</span>
+          ) : null}
           <button
             type="button"
-          onClick={handleSubmit}
-          disabled={createReportMutation.isPending || doneTaskKeys.length === 0 || planTaskKeys.length === 0}
+            onClick={handleSubmit}
+            disabled={createReportMutation.isPending || doneTaskKeys.length === 0 || planTaskKeys.length === 0}
             className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-6 py-3 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-60"
           >
             {createReportMutation.isPending ? 'Сохраняем…' : 'Сохранить отчёт'}
@@ -1469,7 +1509,9 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-xl font-semibold">{report.user.name}</div>
-              <div className="text-sm text-slate-300">{formatDateTime(report.reportDate ?? report.createdAt)}</div>
+              <div className="text-sm text-slate-300">
+                {report.reportDate ? formatReportDate(report.reportDate) : formatDateTime(report.createdAt)}
+              </div>
             </div>
             <Avatar name={report.user.name} url={report.user.avatarUrl} email={report.user.email} fallbackKey={report.user.id ?? report.user.name} size="md" />
           </div>
@@ -1559,22 +1601,54 @@ function ReportDetailSection({ title, emptyLabel, children }: { title: string; e
   );
 }
 
+function extractDatePart(raw?: string): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (dateOnlyMatch) {
+    return `${dateOnlyMatch[1]}-${dateOnlyMatch[2]}-${dateOnlyMatch[3]}`;
+  }
+  const prefixMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
+  if (prefixMatch) {
+    return `${prefixMatch[1]}-${prefixMatch[2]}-${prefixMatch[3]}`;
+  }
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateKey(key?: string): Date | null {
+  if (!key) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+  return new Date(year, month - 1, day);
+}
+
 function normalizeDateKey(raw?: string) {
   if (!raw) return 'unknown';
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) {
-    return raw;
-  }
-  return date.toISOString().split('T')[0];
+  const datePart = extractDatePart(raw);
+  return datePart ?? raw;
 }
 
 function compareDateKeys(a: string, b: string) {
   if (a === b) return 0;
   if (a === 'unknown') return 1;
   if (b === 'unknown') return -1;
-  const dateA = new Date(a);
-  const dateB = new Date(b);
-  if (Number.isNaN(dateA.getTime()) || Number.isNaN(dateB.getTime())) {
+  const dateA = parseDateKey(a);
+  const dateB = parseDateKey(b);
+  if (!dateA || !dateB) {
     return b.localeCompare(a);
   }
   return dateA.getTime() - dateB.getTime();
@@ -1584,15 +1658,16 @@ function formatDateLabel(key: string) {
   if (!key || key === 'unknown') {
     return 'Без даты';
   }
-  const date = new Date(key);
-  if (Number.isNaN(date.getTime())) {
-    const altDate = new Date(Date.parse(key));
-    if (!Number.isNaN(altDate.getTime())) {
-      return withWeekdayLabel(altDate);
-    }
-    return key;
+  const parsed = parseDateKey(key);
+  if (parsed) {
+    return withWeekdayLabel(parsed);
   }
-  return withWeekdayLabel(date);
+
+  const fallback = new Date(key);
+  if (!Number.isNaN(fallback.getTime())) {
+    return withWeekdayLabel(fallback);
+  }
+  return key;
 }
 
 function formatDateTime(value?: string) {
@@ -1606,6 +1681,18 @@ function formatDateTime(value?: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function formatReportDate(value?: string) {
+  const datePart = extractDatePart(value);
+  if (!datePart) {
+    return value ?? 'Дата не указана';
+  }
+  const parsed = parseDateKey(datePart);
+  if (parsed) {
+    return withWeekdayLabel(parsed);
+  }
+  return datePart;
 }
 
 function withWeekdayLabel(date: Date) {

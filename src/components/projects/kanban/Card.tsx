@@ -2,6 +2,7 @@
 
 import Avatar from '@/components/ui/Avatar';
 import { getTaskPriorityMeta, type UITask } from '@/features/tasks/types';
+import Link from "next/link";
 
 const formatDate = (value: string) => {
     const date = new Date(value);
@@ -27,6 +28,7 @@ export default function Card({
     const priorityMeta = getTaskPriorityMeta(task.priority);
 
     return (
+        <Link href={`/task/${task.id}`}>
         <div
             draggable
             onDragStart={onDragStart}
@@ -111,5 +113,6 @@ export default function Card({
                 <div className="mt-3 text-xs text-slate-400">Исполнитель не назначен</div>
             )}
         </div>
+        </Link>
     );
 }

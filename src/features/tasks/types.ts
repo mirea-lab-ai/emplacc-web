@@ -93,6 +93,22 @@ export type UITask = {
     assignees?: TaskAssignee[];
 };
 
+export type Task = {
+    assigned_to?: {id: string, first_name: string, last_name: string};
+    community?: number;
+    created_at: string;
+    created_by: {id: string, first_name: string, last_name: string};
+    deadline?: string;
+    description?: string;
+    id: string;
+    name: string;
+    priority?: number;
+    start_date: string;
+    status_id?: string;
+    time_spent?: string;
+    updated_at?: string;
+};
+
 export function mapTask(dto: TaskShort): UITask {
     type TaskShortExtended = TaskShort & {
         assigned_to?: unknown;

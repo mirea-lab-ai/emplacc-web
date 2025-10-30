@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, Suspense, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import Panel from '@/components/ui/Panel';
 import ChatWindow, { Message } from '@/components/forum/ChatWindow';
@@ -23,6 +23,7 @@ function ForumContent() {
     problemId: '',
     problemName: ''
   });
+  const pendingProblemRef = useRef<string | null>(null);
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
@@ -37,12 +38,12 @@ function ForumContent() {
   const { data: problems, isLoading: problemsLoading, error: problemsError } = useAllProblems(1, 50, hasCreds);
   
   // Загружаем сообщения для активной проблемы
-  const { data: forumMessages, isLoading: messagesLoading, error: messagesError } = useForumMessagesByProblem(
-    activeProblemId, 
-    1, 
-    50, 
-    hasCreds
-  );
+  const {
+    data: forumMessages,
+    isLoading: messagesLoading,
+    error: messagesError,
+    isFetching: messagesFetching,
+  } = useForumMessagesByProblem(activeProblemId, 1, 50, hasCreds);
 
   const { data: users } = useAllUsers(1, 500, hasCreds);
 
@@ -75,28 +76,39 @@ function ForumContent() {
 
   // Устанавливаем активную проблему из URL или первую доступную
   useEffect(() => {
-    if (!problems || problems.length === 0) {
-      if (activeProblemId) {
-        setActiveProblemId('');
-      }
-      updateProblemInQuery(null);
-      return;
-    }
-
     const problemFromUrl = searchParams.get('problem');
-    if (problemFromUrl) {
-      const exists = problems.some((p) => p.id === problemFromUrl);
-      if (exists) {
-        setActiveProblemId((prev) => (prev === problemFromUrl ? prev : problemFromUrl));
+    const pendingSelection = pendingProblemRef.current;
+
+    if (pendingSelection) {
+      if (problemFromUrl === pendingSelection) {
+        pendingProblemRef.current = null;
+      } else {
         return;
       }
     }
 
-    const fallback = activeProblemId && problems.some((p) => p.id === activeProblemId)
-      ? activeProblemId
-      : problems[0].id;
+    if (!problems || problems.length === 0) {
+      pendingProblemRef.current = null;
+      if (activeProblemId) {
+        setActiveProblemId('');
+      }
+      if (problemFromUrl) {
+        updateProblemInQuery(null);
+      }
+      return;
+    }
 
-    if (fallback !== activeProblemId) {
+    if (problemFromUrl && problems.some((p) => p.id === problemFromUrl)) {
+      if (activeProblemId !== problemFromUrl) {
+        setActiveProblemId(problemFromUrl);
+      }
+      return;
+    }
+
+    const hasActive = activeProblemId && problems.some((p) => p.id === activeProblemId);
+    const fallback = hasActive ? activeProblemId : problems[0].id;
+
+    if (activeProblemId !== fallback) {
       setActiveProblemId(fallback);
     }
 
@@ -106,6 +118,8 @@ function ForumContent() {
   }, [problems, searchParams, updateProblemInQuery, activeProblemId]);
 
   const handleProblemSelect = (problemId: string) => {
+    if (!problemId || problemId === activeProblemId) return;
+    pendingProblemRef.current = problemId;
     setActiveProblemId(problemId);
     updateProblemInQuery(problemId);
   };
@@ -120,26 +134,32 @@ function ForumContent() {
     if (!forumMessages) return [];
     const currentUserId = getUserId();
 
-    return forumMessages.map((msg) => {
-      const baseName = msg.authorName?.trim();
-      const lookup = msg.authorId ? usersMap.get(msg.authorId) : undefined;
-      const selfLookup = currentUserId ? usersMap.get(currentUserId) : undefined;
-      const isSelf = msg.authorId === currentUserId;
-      const resolvedName = baseName || lookup?.name || (isSelf ? selfLookup?.name ?? 'Я' : 'Неизвестно');
+    return forumMessages
+      .filter((msg) => msg.problemId === activeProblemId)
+      .map((msg) => {
+        const baseName = msg.authorName?.trim();
+        const lookup = msg.authorId ? usersMap.get(msg.authorId) : undefined;
+        const selfLookup = currentUserId ? usersMap.get(currentUserId) : undefined;
+        const isSelf = msg.authorId === currentUserId;
+        const resolvedName = baseName || lookup?.name || (isSelf ? selfLookup?.name ?? 'Я' : 'Неизвестно');
 
-      return {
-        id: msg.id,
-        author: {
-          id: msg.authorId || currentUserId || '',
-          name: resolvedName,
-          email: lookup?.email ?? (isSelf ? selfLookup?.email ?? null : null),
-        },
-        text: msg.content,
-        ts: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
-        self: isSelf,
-      };
-    });
-  }, [forumMessages, usersMap]);
+        return {
+          id: msg.id,
+          author: {
+            id: msg.authorId || currentUserId || '',
+            name: resolvedName,
+            email: lookup?.email ?? (isSelf ? selfLookup?.email ?? null : null),
+          },
+          text: msg.content,
+          ts: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
+          self: isSelf,
+        };
+      });
+  }, [forumMessages, usersMap, activeProblemId]);
+
+  const hasMessagesForActiveProblem =
+    !!forumMessages && forumMessages.some((msg) => msg.problemId === activeProblemId);
+  const chatLoading = messagesLoading || (messagesFetching && !hasMessagesForActiveProblem);
 
   const sendMessage = (text: string) => {
     if (!activeProblemId || !text.trim()) return;
@@ -272,7 +292,7 @@ function ForumContent() {
                 taskTitle={activeProblem?.name || 'Проблема'} 
                 messages={messages} 
                 onSend={sendMessage}
-                isLoading={messagesLoading}
+                isLoading={chatLoading}
                 error={messagesError}
                 isSending={isSending}
               />

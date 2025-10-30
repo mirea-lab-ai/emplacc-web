@@ -330,9 +330,13 @@ async function loadTaskInfo(taskId: string, boardHint?: string): Promise<TaskInf
   }
 
   const result: TaskInfo = {
+    taskId: trimmedId,
+    boardId: boardIdForLookup,
+    projectId,
     taskTitle,
     boardName: boardName ?? (boardIdForLookup ? `Доска ${boardIdForLookup}` : 'Неизвестная доска'),
     projectName: projectName ?? (projectId ? `Проект ${projectId}` : 'Неизвестный проект'),
+    due: mappedTask?.due ?? undefined,
     statusName,
     statusColor,
     priority: priorityValue,

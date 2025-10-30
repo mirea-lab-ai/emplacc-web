@@ -7,8 +7,8 @@ import AddStatusModal from './modals/AddStatusModal';
 import RenameColumnModal from './modals/RenameColumnModal';
 import AddTaskModal from './modals/AddTaskModal';
 import EditTaskModal from './modals/EditTaskModal';
-import { KBColumn } from './types';
 import { uid } from '@/lib/uid';
+import { type KBColumn } from './types';
 import { type UITask } from '@/features/tasks/types';
 
 type HeaderState = {
@@ -75,8 +75,13 @@ export default function KanbanBoard({
   readOnly = false,
 }: Props) {
   const [local, setLocal] = useState<KBColumn[]>(columns);
+
   useEffect(() => setLocal(columns), [columns]);
-  useEffect(() => onChange(local), [local, onChange]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    onChange(local);
+  }, [local, onChange, readOnly]);
 
   const columnIndex = useMemo(
     () => Object.fromEntries(local.map((column, index) => [column.id, index])) as Record<string, number>,
@@ -87,22 +92,25 @@ export default function KanbanBoard({
     if (readOnly) return;
     if (onCreateStatus) {
       onCreateStatus(betweenIndex, title, color);
-    } else {
-      const trimmed = title.trim();
-      if (!trimmed || local.length < 2) return;
-      const at = Math.max(1, Math.min(betweenIndex, local.length - 1));
-      setLocal((prev) => {
-        const copy = [...prev];
-        copy.splice(at, 0, { id: uid(), title: trimmed, tasks: [], color });
-        return copy;
-      });
+      return;
     }
+
+    const trimmed = title.trim();
+    if (!trimmed || local.length < 2) return;
+
+    const at = Math.max(1, Math.min(betweenIndex, local.length - 1));
+    setLocal((prev) => {
+      const copy = [...prev];
+      copy.splice(at, 0, { id: uid(), title: trimmed, tasks: [], color });
+      return copy;
+    });
   };
 
   const renameColumn = (id: string, title: string) => {
     if (readOnly) return;
     const trimmed = title.trim();
     if (!trimmed) return;
+
     setLocal((prev) => prev.map((column) => (column.id === id ? { ...column, title: trimmed } : column)));
   };
 
@@ -110,9 +118,10 @@ export default function KanbanBoard({
     if (readOnly) return;
     if (onDeleteStatus) {
       onDeleteStatus(id);
-    } else {
-      setLocal((prev) => prev.filter((column) => column.id !== id));
+      return;
     }
+
+    setLocal((prev) => prev.filter((column) => column.id !== id));
   };
 
   const addTask = async (
@@ -135,9 +144,9 @@ export default function KanbanBoard({
     const task: UITask = {
       id: uid(),
       title: trimmed,
+      description: desc?.trim() || undefined,
       due: deadline,
       priority,
-      statuses: undefined,
       assignees: assignedTo ? [{ id: assignedTo, name: assignedTo }] : undefined,
     };
 
@@ -150,13 +159,32 @@ export default function KanbanBoard({
     if (readOnly) return;
     if (onDeleteTask) {
       onDeleteTask(taskId);
-    } else {
-      setLocal((prev) =>
-        prev.map((column) =>
-          column.id === colId ? { ...column, tasks: column.tasks.filter((task) => task.id !== taskId) } : column,
-        ),
-      );
+      return;
     }
+
+    setLocal((prev) =>
+      prev.map((column) =>
+        column.id === colId
+          ? { ...column, tasks: column.tasks.filter((task) => task.id !== taskId) }
+          : column,
+      ),
+    );
+  };
+
+  const moveTaskLocally = (taskId: string, fromColId: string, toColId: string) => {
+    setLocal((prev) => {
+      const copy = prev.map((column) => ({ ...column, tasks: [...column.tasks] }));
+      const fromColumn = copy.find((column) => column.id === fromColId);
+      const toColumn = copy.find((column) => column.id === toColId);
+      if (!fromColumn || !toColumn) return prev;
+
+      const index = fromColumn.tasks.findIndex((task) => task.id === taskId);
+      if (index === -1) return prev;
+
+      const [moved] = fromColumn.tasks.splice(index, 1);
+      toColumn.tasks.push(moved);
+      return copy;
+    });
   };
 
   const onDropCard = (toColId: string, payload: { taskId: string; fromColId: string }) => {
@@ -173,23 +201,46 @@ export default function KanbanBoard({
       return;
     }
 
-    setLocal((prev) => {
-      const copy = prev.map((column) => ({ ...column, tasks: [...column.tasks] }));
-      const fromColumn = copy.find((column) => column.id === payload.fromColId);
-      const toColumn = copy.find((column) => column.id === toColId);
-      if (!fromColumn || !toColumn) return prev;
-      const index = fromColumn.tasks.findIndex((task) => task.id === payload.taskId);
-      if (index === -1) return prev;
-      const [moved] = fromColumn.tasks.splice(index, 1);
-      toColumn.tasks.push(moved);
-      return copy;
-    });
+    moveTaskLocally(payload.taskId, payload.fromColId, toColId);
+  };
+
+  const updateTaskLocally = (
+    taskId: string,
+    colId: string,
+    title: string,
+    description?: string,
+    assignedTo?: string,
+    deadline?: string,
+    priority?: number,
+  ) => {
+    setLocal((prev) =>
+      prev.map((column) =>
+        column.id === colId
+          ? {
+              ...column,
+              tasks: column.tasks.map((task) =>
+                task.id === taskId
+                  ? {
+                      ...task,
+                      title: title.trim() || task.title,
+                      description: description?.trim() || undefined,
+                      due: deadline,
+                      priority,
+                      assignees: assignedTo ? [{ id: assignedTo, name: assignedTo }] : task.assignees,
+                    }
+                  : task,
+              ),
+            }
+          : column,
+      ),
+    );
   };
 
   const [addColumnOpen, setAddColumnOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<null | { id: string; title: string }>(null);
   const [addTaskFor, setAddTaskFor] = useState<null | string>(null);
   const [editTask, setEditTask] = useState<null | { taskId: string; colId: string }>(null);
+
   const canAddColumn = local.length >= 2;
 
   const handleOpenAddColumn = useCallback(() => {
@@ -205,58 +256,23 @@ export default function KanbanBoard({
     setEditTask(null);
   }, [readOnly]);
 
-    useEffect(() => {
-        if (onHeaderStateChange) {
-            onHeaderStateChange({
-                openAddColumn: handleOpenAddColumn,
-                canAdd: canAddColumn,
-                isCreating: isCreatingStatus,
-            });
-        }
-    }, [onHeaderStateChange, handleOpenAddColumn, canAddColumn, isCreatingStatus]);
+  useEffect(() => {
+    if (!onHeaderStateChange) return;
+    onHeaderStateChange({
+      openAddColumn: handleOpenAddColumn,
+      canAdd: canAddColumn,
+      isCreating: isCreatingStatus,
+    });
+  }, [onHeaderStateChange, handleOpenAddColumn, canAddColumn, isCreatingStatus]);
 
-    return (
-        <div
-            className="flex h-full min-h-0 flex-col gap-4"
-            style={{ maxHeight: `calc(100dvh - ${viewportOffset}px)` }}
-        >
-            {!hideHeader && (
-                <KanbanHeader 
-                    canAdd={canAddColumn} 
-                    onAddColumn={handleOpenAddColumn}
-                    isCreating={isCreatingStatus}
-                />
-            )}
-
-            <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
-                <div className="flex h-full min-w-max items-stretch gap-3 pb-2">
-                    {local.map((col, index) => (
-                        <Column
-                            key={col.id}
-                            column={col}
-                            onDrop={(payload) => onDropCard(col.id, payload)}
-                            onAddTask={() => setAddTaskFor(col.id)}
-                            onRename={() => setRename({ id: col.id, title: col.title })}
-                            onRemove={() => removeColumn(col.id)}
-                            onRemoveTask={(taskId) => removeTask(col.id, taskId)}
-                            onEditTask={(taskId) => setEditTask({ taskId, colId: col.id })}
-                            isDeleting={isDeletingStatus}
-                            isCreatingTask={isCreatingTask}
-                            isDeletingTask={isDeletingTask}
-                            canEdit={index > 0 && index < local.length - 1}
-                            showActions={showColumnActions}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* модалки */}
-            <AddStatusModal
-                open={addOpen}
-                onClose={() => setAddOpen(false)}
-                columns={local}
-                onSubmit={(betweenIndex, title, color) => insertBetween(betweenIndex, title, color)}
-            />
+  const addStatusModal = (
+    <AddStatusModal
+      open={addColumnOpen}
+      onClose={() => setAddColumnOpen(false)}
+      columns={local}
+      onSubmit={(betweenIndex, title, color) => insertBetween(betweenIndex, title, color)}
+    />
+  );
 
   const renameModal = (
     <RenameColumnModal
@@ -283,11 +299,19 @@ export default function KanbanBoard({
     <EditTaskModal
       open={!!editTask}
       onClose={() => setEditTask(null)}
-      task={editTask ? local.find((column) => column.id === editTask.colId)?.tasks.find((t) => t.id === editTask.taskId) ?? null : null}
+      task={
+        editTask
+          ? local.find((column) => column.id === editTask.colId)?.tasks.find((task) => task.id === editTask.taskId) ??
+            null
+          : null
+      }
       isSubmitting={isUpdatingTask}
       onUpdate={async (title, desc, assignedTo, deadline, priority) => {
-        if (editTask && onUpdateTask) {
+        if (!editTask) return;
+        if (onUpdateTask) {
           await onUpdateTask(editTask.taskId, title, desc, assignedTo, deadline, priority);
+        } else {
+          updateTaskLocally(editTask.taskId, editTask.colId, title, desc, assignedTo, deadline, priority);
         }
       }}
     />
@@ -296,11 +320,7 @@ export default function KanbanBoard({
   return (
     <div className="flex flex-col gap-4" style={{ height: `calc(100dvh - ${viewportOffset}px)` }}>
       {!hideHeader && !readOnly && (
-        <KanbanHeader
-          canAdd={canAddColumn}
-          onAddColumn={handleOpenAddColumn}
-          isCreating={isCreatingStatus}
-        />
+        <KanbanHeader canAdd={canAddColumn} onAddColumn={handleOpenAddColumn} isCreating={isCreatingStatus} />
       )}
 
       <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
@@ -324,6 +344,7 @@ export default function KanbanBoard({
               canEdit={index > 0 && index < local.length - 1}
               showActions={showColumnActions && !readOnly}
               readOnly={readOnly}
+              isMovingTask={isMovingTask}
             />
           ))}
         </div>

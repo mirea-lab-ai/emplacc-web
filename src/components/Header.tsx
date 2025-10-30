@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ type Props = {
   items: { label: string; href: string }[];
 };
 
-const GUEST_BLOCKED_LABELS = ['мои задачи', 'команды'];
+const GUEST_BLOCKED_LABELS = ['РјРѕРё Р·Р°РґР°С‡Рё', 'РєРѕРјР°РЅРґС‹'];
 const GUEST_BLOCKED_PATHS = ['/tasks', '/teams'];
 
 export default function Header({ items }: Props) {
@@ -81,7 +81,7 @@ export default function Header({ items }: Props) {
       const rt = getRefreshToken();
       if (rt) await apiLogout(rt);
     } catch {
-      // игнорируем ошибки выхода
+      // РёРіРЅРѕСЂРёСЂСѓРµРј РѕС€РёР±РєРё РІС‹С…РѕРґР°
     }
     clearTokens();
     router.replace('/login');
@@ -89,8 +89,8 @@ export default function Header({ items }: Props) {
 
   const isActive = (href: string) => pathname === href;
 
-  const navigationItems = items
-    .filter(({ href, label }) => !(href === '/settings' || label.toLowerCase().includes('настрой')))
+  const filteredItems = items
+    .filter(({ href, label }) => !(href === '/settings' || label.toLowerCase().includes('настройки')))
     .filter(({ href, label }) => {
       if (!isGuest) return true;
       const lowerLabel = label.toLowerCase();
@@ -99,13 +99,39 @@ export default function Header({ items }: Props) {
       return !blockedByLabel && !blockedByPath;
     });
 
+  let navigationItems: Props['items'] = filteredItems;
+  if (isGuest) {
+    navigationItems = filteredItems.map((item) => {
+      if (item.href === '/report') {
+        return { ...item, label: 'Отчеты' };
+      }
+      if (item.href === '/reporting') {
+        return { ...item, label: 'Выгрузка' };
+      }
+      return item;
+    });
+
+    const hasReporting = navigationItems.some(({ href }) => href === '/reporting');
+    if (!hasReporting) {
+      const augmented = [...navigationItems];
+      const reportIndex = augmented.findIndex(({ href }) => href === '/report');
+      const reportingItem = { label: 'Выгрузка', href: '/reporting' };
+      if (reportIndex >= 0) {
+        augmented.splice(reportIndex + 1, 0, reportingItem);
+      } else {
+        augmented.push(reportingItem);
+      }
+      navigationItems = augmented;
+    }
+  }
+
   return (
     <header className="relative mx-auto w-full max-w-6xl border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-4">
         <Link
           href="/"
           className="group inline-flex items-center gap-3 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-          aria-label="На главную Emplacc"
+          aria-label="РќР° РіР»Р°РІРЅСѓСЋ Emplacc"
         >
           <Logo className="h-9 w-auto sm:h-10" variant="colored" priority />
           <span className="hidden bg-gradient-to-r from-emerald-500 to-lime-400 bg-clip-text text-3xl font-semibold text-transparent sm:inline md:text-4xl lg:text-5xl">
@@ -176,7 +202,7 @@ export default function Header({ items }: Props) {
                     }}
                     className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-red-200 transition hover:bg-red-500/10"
                   >
-                    Выход
+                    Выйти
                   </button>
                 </div>
               )}
@@ -194,7 +220,7 @@ export default function Header({ items }: Props) {
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-200 ring-1 ring-white/10 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 lg:hidden"
             aria-expanded={mobileMenuOpen}
-            aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
+            aria-label={mobileMenuOpen ? 'Р—Р°РєСЂС‹С‚СЊ РјРµРЅСЋ' : 'РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ'}
           >
             {mobileMenuOpen ? (
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -249,7 +275,8 @@ export default function Header({ items }: Props) {
             }}
             className="rounded-xl bg-red-500/10 px-3 py-2 text-left text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
           >
-            Выйти из аккаунта
+                    Выйти из системы
+
           </button>
         </div>
       )}
@@ -261,7 +288,7 @@ function formatUserLabel(user: { firstName: string; lastName: string }) {
   const firstInitial = user.firstName?.trim().charAt(0).toUpperCase() ?? '';
   const lastName = user.lastName?.trim() ?? '';
   if (!lastName && !firstInitial) {
-    return 'Профиль';
+    return 'РџСЂРѕС„РёР»СЊ';
   }
   return [lastName, firstInitial ? `${firstInitial}.` : ''].join(' ').trim();
 }

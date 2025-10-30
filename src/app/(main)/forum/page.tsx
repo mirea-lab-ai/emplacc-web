@@ -47,10 +47,13 @@ function ForumContent() {
   const { data: users } = useAllUsers(1, 500, hasCreds);
 
   const usersMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, { name: string; email?: string | null }>();
     (users ?? []).forEach((u) => {
-      const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
-      map.set(u.id, name.trim());
+      const name = [u.firstName, u.lastName].filter(Boolean).join(' ').trim();
+      map.set(u.id, {
+        name: name || u.email || 'Неизвестно',
+        email: u.email ?? null,
+      });
     });
     return map;
   }, [users]);
@@ -119,15 +122,21 @@ function ForumContent() {
 
     return forumMessages.map((msg) => {
       const baseName = msg.authorName?.trim();
-      const lookupName = msg.authorId ? usersMap.get(msg.authorId) : undefined;
-      const resolvedName = baseName || lookupName || (msg.authorId === currentUserId ? 'Вы' : 'Аноним');
+      const lookup = msg.authorId ? usersMap.get(msg.authorId) : undefined;
+      const selfLookup = currentUserId ? usersMap.get(currentUserId) : undefined;
+      const isSelf = msg.authorId === currentUserId;
+      const resolvedName = baseName || lookup?.name || (isSelf ? selfLookup?.name ?? 'Я' : 'Неизвестно');
 
       return {
         id: msg.id,
-        author: { id: msg.authorId || '', name: resolvedName },
+        author: {
+          id: msg.authorId || currentUserId || '',
+          name: resolvedName,
+          email: lookup?.email ?? (isSelf ? selfLookup?.email ?? null : null),
+        },
         text: msg.content,
         ts: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
-        self: msg.authorId === currentUserId,
+        self: isSelf,
       };
     });
   }, [forumMessages, usersMap]);

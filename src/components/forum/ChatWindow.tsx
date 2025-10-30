@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Avatar from '@/components/ui/Avatar';
 
 export type Message = {
   id: string;
-  author: { id: string; name: string };
+  author: { id: string; name: string; email?: string | null; avatarUrl?: string | null };
   text: string;
   ts: number;      // unix ms
   self?: boolean;  // сообщение текущего пользователя
@@ -104,9 +105,20 @@ function Bubble({ msg }: { msg: Message }) {
     return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   }, [msg.ts]);
 
+  const displayName = msg.author.name || 'Неизвестно';
+  const avatarNode = (
+    <Avatar
+      name={displayName}
+      email={msg.author.email ?? undefined}
+      url={msg.author.avatarUrl ?? undefined}
+      fallbackKey={msg.author.email ?? msg.author.id}
+      size="sm"
+    />
+  );
+
   return (
     <div className={['flex items-end gap-2', isSelf ? 'justify-end' : ''].join(' ')}>
-      {!isSelf && <Avatar name={msg.author.name} />}
+      {!isSelf && avatarNode}
       <div
         className={[
           'max-w-[70%] rounded-2xl px-4 py-2 ring-1',
@@ -115,28 +127,13 @@ function Bubble({ msg }: { msg: Message }) {
             : 't-accent-grad/20 text-slate-100 ring-white/10',
         ].join(' ')}
       >
-        {!isSelf && <div className="text-xs text-slate-300 mb-1">{msg.author.name}</div>}
+        {!isSelf && <div className="text-xs text-slate-300 mb-1">{displayName}</div>}
         <div className="whitespace-pre-wrap">{msg.text}</div>
         <div className={['mt-1 text-[11px]', isSelf ? 'text-white/80' : 'text-slate-400'].join(' ')}>
           {time}
         </div>
       </div>
-      {isSelf && <Avatar name={msg.author.name} self />}
-    </div>
-  );
-}
-
-function Avatar({ name, self }: { name: string; self?: boolean }) {
-  const initials = useMemo(() => {
-    const parts = name.trim().split(/\s+/).slice(0, 2);
-    return parts.map((p) => p[0]?.toUpperCase() ?? '').join('');
-  }, [name]);
-
-  return (
-    <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
-      <div className="h-8 w-8 rounded-full grid place-items-center bg-[#0f1422] text-xs font-semibold text-white">
-        {initials || (self ? 'Я' : '🙂')}
-      </div>
+      {isSelf && avatarNode}
     </div>
   );
 }

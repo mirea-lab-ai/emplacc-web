@@ -123,7 +123,7 @@ function ProjectExportPanel() {
       <header>
         <h2 className="text-lg font-semibold">Выгрузка заданий по проекту</h2>
         <p className="mt-1 text-sm text-slate-300">
-          Выберите проект и получите XLSX-файл по маршруту /boards/project/{'{projectId}'}/export/xlsx
+          Выберите проект по которому нужно выгрузить задачи
         </p>
       </header>
 
@@ -215,7 +215,7 @@ function ActiveTasksExportPanel() {
     <Panel className="t-surface flex flex-col gap-4 p-5">
       <header>
         <h2 className="text-lg font-semibold">Активные задачи пользователей</h2>
-        <p className="mt-1 text-sm text-slate-300">Выгрузка по маршруту /task/export/active-tasks/xlsx</p>
+        <p className="mt-1 text-sm text-slate-300">Файл с активными задачами пользователей</p>
       </header>
 
       <button
@@ -263,7 +263,7 @@ function TomorrowPlansExportPanel() {
     <Panel className="t-surface flex flex-col gap-4 p-5">
       <header>
         <h2 className="text-lg font-semibold">Планы на сегодня</h2>
-        <p className="mt-1 text-sm text-slate-300">Выгрузка по маршруту /report/export/tomorrow-plans/xlsx</p>
+        <p className="mt-1 text-sm text-slate-300">Выгрузка планов по всем сотрудникам </p>
       </header>
 
       <button

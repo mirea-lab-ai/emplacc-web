@@ -1,8 +1,25 @@
 'use client';
 
+import type { DragEvent } from 'react';
 import Panel from '@/components/ui/Panel';
 import Card from './Card';
 import { KBColumn } from './types';
+
+type Props = {
+  column: KBColumn;
+  onAddTask: () => void;
+  onDrop: (payload: { taskId: string; fromColId: string }) => void;
+  onRename: () => void;
+  onRemove: () => void;
+  onRemoveTask: (taskId: string) => void;
+  onEditTask: (taskId: string) => void;
+  isDeleting?: boolean;
+  isCreatingTask?: boolean;
+  isDeletingTask?: boolean;
+  canEdit?: boolean;
+  showActions?: boolean;
+  readOnly?: boolean;
+};
 
 export default function Column({
     column,

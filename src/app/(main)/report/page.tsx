@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -15,6 +15,7 @@ import type { UIReport } from '@/features/reports/api';
 import { Employee } from '@/lib/types';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
+import { useUserRole } from '@/features/roles/hooks';
 import { TaskInfo } from '@/components/ReportProjectPicker';
 import { useImproveTaskReport, useTasksByIds } from '@/features/tasks/hooks';
 import { fetchTaskById, fetchTaskBoardProject } from '@/features/tasks/api';
@@ -369,6 +370,16 @@ export default function ReportsPage() {
   const [page, setPage] = useState(1);
   const [showWizard, setShowWizard] = useState(false);
   const [selectedReport, setSelectedReport] = useState<UIReport | null>(null);
+  const userId = getUserId();
+  const { data: userRole } = useUserRole(userId, hasCreds);
+  const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
+  const isGuest = normalizedRole === 'guest';
+
+  useEffect(() => {
+    if (isGuest && showWizard) {
+      setShowWizard(false);
+    }
+  }, [isGuest, showWizard]);
 
   const { data, isLoading, error, refetch } = useAllReports(page, REPORTS_PAGE_SIZE, hasCreds);
 
@@ -403,6 +414,13 @@ export default function ReportsPage() {
     void refetch();
   }, [refetch]);
 
+  const containerClasses = ['w-full space-y-6 px-4 py-6 sm:px-6 lg:px-8', isGuest ? '' : 'mx-auto max-w-6xl']
+    .filter(Boolean)
+    .join(' ');
+  const headerPanelClasses = ['flex flex-col gap-4 p-6', isGuest ? '' : 'md:flex-row md:items-center md:justify-between']
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <main className="min-h-screen text-white">
       {showWizard ? (
@@ -414,19 +432,21 @@ export default function ReportsPage() {
           }}
         />
       ) : (
-        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-          <Panel className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between p-6">
+        <div className={containerClasses}>
+          <Panel className={headerPanelClasses}>
             <div>
               <h1 className="text-2xl font-semibold">Отчёты команды</h1>
               <p className="text-sm text-slate-300">Просматривайте ежедневные отчёты сотрудников и переходите к деталям одним кликом.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowWizard(true)}
-              className="self-start rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 font-semibold text-black transition hover:brightness-110"
-            >
-              Создать отчёт
-            </button>
+            {!isGuest && (
+              <button
+                type="button"
+                onClick={() => setShowWizard(true)}
+                className="self-start rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 font-semibold text-black transition hover:brightness-110"
+              >
+                Создать отчёт
+              </button>
+            )}
           </Panel>
 
           {!hasCreds ? (
@@ -1710,3 +1730,4 @@ function withWeekdayLabel(date: Date) {
   }).format(date);
   return `${base}, ${weekday}`;
 }
+

@@ -9,8 +9,9 @@ import ProjectsSettingsPanel from '@/components/projects/ProjectsSettingsPanel';
 import ProjectsBoardList from '@/components/projects/ProjectsBoardList';
 import CreateBoardModal from '@/components/projects/CreateBoardModal';
 import { useIsClient } from '@/hooks/useIsClient';
-import { isAuthed } from '@/lib/auth';
+import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchProjectById, type UIProject } from '@/features/projects/api';
+import { useUserRole } from '@/features/roles/hooks';
 
 type ProjectSection = 'board' | 'teams' | 'settings';
 
@@ -28,7 +29,11 @@ export default function ProjectDetailPage({ params }: Props) {
   const router = useRouter();
   const { projectId } = use(params);
   const isClient = useIsClient();
+  const userId = isClient ? getUserId() : null;
   const hasCreds = isClient && isAuthed();
+  const { data: userRole } = useUserRole(userId, hasCreds);
+  const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
+  const isGuest = normalizedRole === 'guest';
   const [project, setProject] = useState<UIProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<ProjectSection>('board');
@@ -45,7 +50,7 @@ export default function ProjectDetailPage({ params }: Props) {
 
     setLoading(true);
     fetchProjectById(projectId)
-      .then((p) => setProject(p))
+      .then((data) => setProject(data))
       .catch(() => setProject(null))
       .finally(() => setLoading(false));
   }, [hasCreds, projectId]);
@@ -58,6 +63,12 @@ export default function ProjectDetailPage({ params }: Props) {
     const boardIdParam = searchParams.get('boardId');
     setSelectedBoardId(boardIdParam);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!isGuest) return;
+    setSection('board');
+    setShowCreateBoardModal(false);
+  }, [isGuest]);
 
   const handleSelectBoard = (boardId: string | null) => {
     setSelectedBoardId(boardId);
@@ -73,11 +84,11 @@ export default function ProjectDetailPage({ params }: Props) {
             <button
               type="button"
               onClick={() => router.push('/projects')}
-              className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-100"
+              className="inline-flex items-center gap-2 text-sm text-emerald-300 transition hover:text-emerald-100"
             >
               ← Назад к списку проектов
             </button>
-            <Panel className="p-6 t-surface text-slate-300">
+            <Panel className="t-surface p-6 text-slate-300">
               Авторизуйтесь, чтобы просматривать проекты.
             </Panel>
           </div>
@@ -86,9 +97,7 @@ export default function ProjectDetailPage({ params }: Props) {
     );
   }
 
-  const statusMeta = project?.status
-    ? STATUS_META[project.status.toLowerCase().trim()]
-    : undefined;
+  const statusMeta = project?.status ? STATUS_META[project.status.toLowerCase().trim()] : undefined;
 
   return (
     <main className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent text-white">
@@ -97,7 +106,7 @@ export default function ProjectDetailPage({ params }: Props) {
           <button
             type="button"
             onClick={() => router.push('/projects')}
-            className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-100 transition"
+            className="inline-flex items-center gap-2 text-sm text-emerald-300 transition hover:text-emerald-100"
           >
             ← Назад к списку проектов
           </button>
@@ -105,55 +114,51 @@ export default function ProjectDetailPage({ params }: Props) {
 
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
           {loading ? (
-            <Panel className="p-6 t-surface text-slate-300">Загрузка проекта…</Panel>
+            <Panel className="t-surface p-6 text-slate-300">Загрузка проекта…</Panel>
           ) : !project ? (
-            <Panel className="p-6 t-surface text-slate-300">
+            <Panel className="t-surface p-6 text-slate-300">
               Проект не найден или доступ к нему отсутствует.
             </Panel>
           ) : (
             <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden lg:flex-row lg:gap-4">
               <aside className="flex w-full flex-none flex-col gap-4 overflow-auto lg:w-[260px]">
-                <Panel className="p-4 t-surface space-y-3">
-                  <h1 className="text-2xl font-semibold leading-tight break-words">
+                <Panel className="t-surface space-y-3 p-4">
+                  <h1 className="break-words text-2xl font-semibold leading-tight">
                     {project.name ?? 'Без названия'}
                   </h1>
-                {statusMeta && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
-                    <span>{statusMeta.emoji}</span>
-                    <span>{statusMeta.label}</span>
-                  </div>
-                )}
-                {project.description && (
-                  <p className="text-sm text-slate-300 whitespace-pre-wrap break-words">
-                    {project.description}
-                  </p>
-                )}
-              </Panel>
+                  {statusMeta && (
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+                      <span>{statusMeta.emoji}</span>
+                      <span>{statusMeta.label}</span>
+                    </div>
+                  )}
+                  {project.description && (
+                    <p className="whitespace-pre-wrap break-words text-sm text-slate-300">
+                      {project.description}
+                    </p>
+                  )}
+                </Panel>
 
-                <Panel className="p-3 t-surface">
-                  <DetailNavButton
-                    label="Доска"
-                    active={section === 'board'}
-                    onClick={() => setSection('board')}
-                  />
-                <DetailNavButton
-                  label="Команды"
-                  active={section === 'teams'}
-                  onClick={() => setSection('teams')}
-                />
-                <DetailNavButton
-                  label="Настройки"
-                  active={section === 'settings'}
-                  onClick={() => setSection('settings')}
-                />
+                <Panel className="t-surface p-3">
+                  <DetailNavButton label="Доска" active={section === 'board'} onClick={() => setSection('board')} />
+                  {!isGuest && (
+                    <>
+                      <DetailNavButton label="Команды" active={section === 'teams'} onClick={() => setSection('teams')} />
+                      <DetailNavButton
+                        label="Настройки"
+                        active={section === 'settings'}
+                        onClick={() => setSection('settings')}
+                      />
+                    </>
+                  )}
                 </Panel>
 
                 {section === 'board' && (
                   <ProjectsBoardList
                     projectId={projectId}
                     activeBoardId={selectedBoardId}
-                    onSelect={(boardId) => handleSelectBoard(boardId)}
-                    onCreateBoard={() => setShowCreateBoardModal(true)}
+                    onSelect={handleSelectBoard}
+                    onCreateBoard={isGuest ? undefined : () => setShowCreateBoardModal(true)}
                   />
                 )}
               </aside>
@@ -164,12 +169,11 @@ export default function ProjectDetailPage({ params }: Props) {
                     projectId={projectId}
                     selectedBoardId={selectedBoardId ?? undefined}
                     onSelectBoard={handleSelectBoard}
+                    readOnly={isGuest}
                   />
                 )}
-                {section === 'teams' && (
-                  <ProjectsTeamsPanel projectId={projectId} />
-                )}
-                {section === 'settings' && (
+                {!isGuest && section === 'teams' && <ProjectsTeamsPanel projectId={projectId} />}
+                {!isGuest && section === 'settings' && (
                   <ProjectsSettingsPanel
                     project={project}
                     onProjectUpdate={(updated) => setProject(updated)}
@@ -182,11 +186,8 @@ export default function ProjectDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {showCreateBoardModal && project && (
-        <CreateBoardModal
-          projectId={project.id}
-          onClose={() => setShowCreateBoardModal(false)}
-        />
+      {!isGuest && showCreateBoardModal && project && (
+        <CreateBoardModal projectId={project.id} onClose={() => setShowCreateBoardModal(false)} />
       )}
     </main>
   );
@@ -206,10 +207,8 @@ function DetailNavButton({
       type="button"
       onClick={onClick}
       className={[
-        'w-full text-left rounded-xl px-4 py-2 font-semibold transition-colors',
-        active
-          ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black'
-          : 'text-slate-300 hover:text-white',
+        'w-full rounded-xl px-4 py-2 text-left font-semibold transition-colors',
+        active ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black' : 'text-slate-300 hover:text-white',
       ].join(' ')}
     >
       {label}

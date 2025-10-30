@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import KanbanBoard, { KBColumn } from '@/components/projects/kanban';
 import { useProjectBoards, useDeleteBoard } from '@/features/boards/hooks';
 import { useBoardStatus, useCreateStatus, useDeleteStatus } from '@/features/status/hooks';
 import { useCreateTask, useDeleteTask, useMoveTask, useUpdateTask } from '@/features/tasks/hooks';
-import { getUserId } from '@/lib/auth';
+import { getUserId, isAuthed } from '@/lib/auth';
 import { getErrorMessage } from '@/lib/errors';
 import { useIsClient } from '@/hooks/useIsClient';
-import { isAuthed } from '@/lib/auth';
 import DeleteBoardModal from './DeleteBoardModal';
 import type { UIBoard } from '@/features/boards/api';
 
@@ -33,9 +32,9 @@ function normalizeTaskErrorMessage(raw: string): string {
       }
       if (parsed && typeof parsed === 'object') {
         const candidate =
-          (parsed as { message?: unknown }).message
-          ?? (parsed as { error?: unknown }).error
-          ?? (parsed as { detail?: unknown }).detail;
+          (parsed as { message?: unknown }).message ??
+          (parsed as { error?: unknown }).error ??
+          (parsed as { detail?: unknown }).detail;
 
         if (typeof candidate === 'string' && candidate.trim()) {
           return candidate.trim();
@@ -65,7 +64,7 @@ function normalizeTaskErrorMessage(raw: string): string {
         }
       }
     } catch {
-      // ignore JSON parse issues and fall back to base message
+      // игнорируем ошибки парсинга
     }
   }
 
@@ -76,6 +75,7 @@ type Props = {
   projectId: string;
   selectedBoardId?: string;
   onSelectBoard?: (boardId: string | null) => void;
+  readOnly?: boolean;
 };
 
 type HeaderControls = {
@@ -84,7 +84,12 @@ type HeaderControls = {
   isCreating: boolean;
 };
 
-export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelectBoard }: Props) {
+export default function ProjectsBoardPanel({
+  projectId,
+  selectedBoardId,
+  onSelectBoard,
+  readOnly = false,
+}: Props) {
   const [internalBoardId, setInternalBoardId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [headerControls, setHeaderControls] = useState<HeaderControls | null>(null);
@@ -95,12 +100,21 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
   const { data: boards, isLoading, error } = useProjectBoards(projectId, hasCreds);
   const { mutate: deleteBoard, isPending: isDeleting } = useDeleteBoard();
   const { mutate: createStatus, isPending: isCreatingStatus } = useCreateStatus();
-  const { mutate: deleteStatus, isPending: isDeletingStatus } = useDeleteStatus();
+  const { mutate: removeStatus, isPending: isDeletingStatus } = useDeleteStatus();
   const { mutateAsync: createTaskAsync, isPending: isCreatingTask } = useCreateTask();
-  const { mutate: deleteTask, isPending: isDeletingTask } = useDeleteTask();
+  const { mutate: removeTask, isPending: isDeletingTask } = useDeleteTask();
   const { mutate: moveTask, isPending: isMovingTask } = useMoveTask();
   const { mutateAsync: updateTaskAsync, isPending: isUpdatingTask } = useUpdateTask();
-  const boardsList: UIBoard[] = React.useMemo(() => boards ?? [], [boards]);
+
+  const boardsList: UIBoard[] = useMemo(() => boards ?? [], [boards]);
+
+  useEffect(() => {
+    if (readOnly) {
+      setColumnsEditMode(false);
+      setShowDeleteModal(false);
+      setHeaderControls(null);
+    }
+  }, [readOnly]);
 
   const resolveActiveBoardId = useCallback((): string | null => {
     if (selectedBoardId !== undefined) return selectedBoardId;
@@ -113,34 +127,11 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     ? boardsList.findIndex((board) => board.id === activeBoardId)
     : -1;
   const currentBoard = currentBoardIndex >= 0 ? boardsList[currentBoardIndex] : boardsList[0];
-  // Загружаем статусы/колонки для текущей доски
+
   const { data: boardStatus, isLoading: statusLoading, error: statusError } = useBoardStatus(
-    currentBoard?.id ?? null, 
-    hasCreds && !!currentBoard?.id && !isLoading
+    currentBoard?.id ?? null,
+    hasCreds && !!currentBoard?.id && !isLoading,
   );
-
-
-  // Вычисляем колонки на основе данных из React Query
-  const columns: KBColumn[] = React.useMemo(() => {
-    if (boardStatus?.statuses && boardStatus.statuses.length > 0) {
-      return boardStatus.statuses.map(status => ({
-        id: status.id,
-        title: status.name,
-        tasks: status.tasks || [], // Используем задачи из статуса
-        color: status.color,
-        order: status.order,
-      }));
-    } else if (!statusLoading && !statusError && currentBoard?.id) {
-      // Если нет статусов, но доска есть, используем demo колонки
-      return demoColumns;
-    }
-    return [];
-  }, [boardStatus, statusLoading, statusError, currentBoard?.id]);
-
-  // Сбрасываем индекс доски при смене проекта
-  useEffect(() => {
-    setInternalBoardId(null);
-  }, [projectId]);
 
   useEffect(() => {
     if (!boardsList.length) {
@@ -149,58 +140,72 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     }
 
     if (selectedBoardId !== undefined) {
-      // Управляется родителем — никаких действий
+      setInternalBoardId(selectedBoardId);
       return;
     }
 
     if (!internalBoardId || !boardsList.some((board) => board.id === internalBoardId)) {
-      setInternalBoardId(boardsList[0].id);
+      setInternalBoardId(boardsList[0]?.id ?? null);
     }
   }, [boardsList, selectedBoardId, internalBoardId]);
 
+  const columns: KBColumn[] = useMemo(() => {
+    if (boardStatus?.statuses && boardStatus.statuses.length > 0) {
+      return boardStatus.statuses.map((status) => ({
+        id: status.id,
+        title: status.name,
+        tasks: status.tasks ?? [],
+        color: status.color,
+        order: status.order,
+      }));
+    }
+    if (!statusLoading && !statusError && currentBoard?.id) {
+      return demoColumns;
+    }
+    return [];
+  }, [boardStatus, statusLoading, statusError, currentBoard?.id]);
+
   const handleSelectBoard = useCallback(
-    (boardId: string) => {
+    (boardId: string | null) => {
       onSelectBoard?.(boardId);
       if (selectedBoardId === undefined) {
         setInternalBoardId(boardId);
       }
     },
-    [onSelectBoard, selectedBoardId]
+    [onSelectBoard, selectedBoardId],
   );
 
-  // Сохраняем колонки в localStorage для совместимости
   useEffect(() => {
-    if (columns.length > 0) {
+    if (columns.length === 0) return;
+    try {
       localStorage.setItem('proj_kanban_v2', JSON.stringify(columns));
+    } catch {
+      // игнорируем ошибки доступа к localStorage
     }
   }, [columns]);
 
-  // Функция для создания нового статуса
   const handleCreateStatus = (betweenIndex: number, title: string, color: string) => {
+    if (readOnly) return;
     if (!currentBoard?.id) return;
 
-    // Вычисляем order как среднее арифметическое между соседними столбцами
-    const sortedColumns = [...columns].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    let newOrder = 1024; // Значение по умолчанию
+    const sorted = [...columns].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    let newOrder = 1024;
 
-    if (sortedColumns.length >= 2 && betweenIndex > 0 && betweenIndex < sortedColumns.length) {
-      const prevColumn = sortedColumns[betweenIndex - 1];
-      const nextColumn = sortedColumns[betweenIndex];
-      const prevOrder = prevColumn.order ?? 0;
-      const nextOrder = nextColumn.order ?? 1024;
+    if (sorted.length >= 2 && betweenIndex > 0 && betweenIndex < sorted.length) {
+      const prev = sorted[betweenIndex - 1];
+      const next = sorted[betweenIndex];
+      const prevOrder = prev.order ?? 0;
+      const nextOrder = next.order ?? prevOrder + 2048;
       newOrder = Math.floor((prevOrder + nextOrder) / 2);
-    } else if (sortedColumns.length === 1) {
-      // Если только один столбец, добавляем после него
-      const existingOrder = sortedColumns[0].order ?? 0;
-      newOrder = existingOrder + 1024;
-    } else if (sortedColumns.length === 0) {
-      // Если нет столбцов, начинаем с 0
+    } else if (sorted.length === 1) {
+      newOrder = (sorted[0].order ?? 0) + 1024;
+    } else if (sorted.length === 0) {
       newOrder = 0;
     }
 
     createStatus({
       name: title,
-      color: color,
+      color,
       board_id: currentBoard.id,
       order: newOrder,
       is_active: true,
@@ -209,12 +214,11 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     });
   };
 
-  // Функция для удаления статуса
   const handleDeleteStatus = (statusId: string) => {
-    deleteStatus(statusId);
+    if (readOnly) return;
+    removeStatus(statusId);
   };
 
-  // Функция для создания задачи
   const handleCreateTask = async (
     statusId: string,
     title: string,
@@ -223,49 +227,32 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     deadline?: string,
     priority?: number,
   ): Promise<void> => {
+    if (readOnly) return;
     const userId = getUserId();
     if (!userId) {
-      console.error('User ID not found');
-      throw new Error('Не удалось определить пользователя для создания задачи');
+      throw new Error('Не удалось определить текущего пользователя.');
     }
-    
-    const currentTime = new Date().toISOString(); // Timestamp формат
-    
-    const taskData: any = {
+
+    const payload = {
       name: title,
+      description: description?.trim() ? description : undefined,
       status_id: statusId,
       creator_id: userId,
-      start_date: currentTime,
+      priority: priority ?? 0,
+      start_date: new Date().toISOString(),
+      deadline: deadline ? new Date(deadline).toISOString() : new Date().toISOString(),
+      assigned_to: assignedTo,
       category: 0,
     };
 
-    // Добавляем только непустые поля
-    if (description && description.trim()) {
-      taskData.description = description;
-    }
-    
-    if (assignedTo) {
-      taskData.assigned_to = assignedTo;
-    }
-    
-    if (priority) {
-      taskData.priority = priority;
-    }
-    
-    if (deadline) {
-      taskData.deadline = new Date(deadline).toISOString();
-    }
-
     try {
-      await createTaskAsync(taskData);
+      await createTaskAsync(payload);
     } catch (err) {
       const message = normalizeTaskErrorMessage(getErrorMessage(err));
-      console.error('Проекты: ошибка создания задачи', err);
       throw new Error(message.startsWith('Не удалось') ? message : `Не удалось создать задачу: ${message}`);
     }
   };
 
-  // Функция для обновления задачи
   const handleUpdateTask = async (
     taskId: string,
     title: string,
@@ -274,113 +261,79 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
     deadline?: string,
     priority?: number,
   ): Promise<void> => {
-    const userId = getUserId();
-    if (!userId) {
-      console.error('User ID not found');
-      throw new Error('Не удалось определить пользователя для обновления задачи');
-    }
-    
-    const taskData: any = {
+    const payload: Record<string, unknown> = {
       name: title,
     };
 
-    // Добавляем только непустые поля
-    if (description && description.trim()) {
-      taskData.description = description;
-    }
-    
-    if (assignedTo) {
-      taskData.assigned_to = assignedTo;
-    }
-    
-    if (priority) {
-      taskData.priority = priority;
-    }
-    
-    if (deadline) {
-      taskData.deadline = new Date(deadline).toISOString();
-    }
+    if (description !== undefined) payload.description = description;
+    if (assignedTo !== undefined) payload.assigned_to = assignedTo;
+    if (priority !== undefined) payload.priority = priority;
+    if (deadline) payload.deadline = new Date(deadline).toISOString();
 
     try {
-      await updateTaskAsync({ taskId, payload: taskData });
+      await updateTaskAsync({ taskId, payload });
     } catch (err) {
       const message = normalizeTaskErrorMessage(getErrorMessage(err));
-      console.error('Проекты: ошибка обновления задачи', err);
       throw new Error(message.startsWith('Не удалось') ? message : `Не удалось обновить задачу: ${message}`);
     }
   };
 
-  // Функция для удаления задачи
   const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
+    if (readOnly) return;
+    removeTask(taskId);
   };
 
-  // Функция для перемещения задачи
   const handleMoveTask = (taskId: string, statusId: string) => {
-    moveTask({
-      task_id: taskId,
-      status_id: statusId,
-    });
+    if (readOnly) return;
+    moveTask({ task_id: taskId, status_id: statusId });
   };
 
   const handlePrevBoard = () => {
     if (!boardsList.length || currentBoardIndex < 0) return;
     const nextIndex = currentBoardIndex === 0 ? boardsList.length - 1 : currentBoardIndex - 1;
-    const nextBoardId = boardsList[nextIndex]?.id;
-    if (nextBoardId) {
-      handleSelectBoard(nextBoardId);
-    }
+    handleSelectBoard(boardsList[nextIndex]?.id ?? null);
   };
 
   const handleNextBoard = () => {
     if (!boardsList.length || currentBoardIndex < 0) return;
     const nextIndex = currentBoardIndex === boardsList.length - 1 ? 0 : currentBoardIndex + 1;
-    const nextBoardId = boardsList[nextIndex]?.id;
-    if (nextBoardId) {
-      handleSelectBoard(nextBoardId);
-    }
+    handleSelectBoard(boardsList[nextIndex]?.id ?? null);
   };
 
   const handleDeleteBoard = () => {
+    if (readOnly) return;
     if (!currentBoard) return;
+
     deleteBoard(
       { boardId: currentBoard.id, projectId },
       {
         onSuccess: () => {
           setShowDeleteModal(false);
-          const remaining = boardsList.filter((board) => board.id !== currentBoard.id);
-          const fallbackBoard = remaining[currentBoardIndex]
-            ?? remaining[currentBoardIndex - 1]
-            ?? remaining[0];
-
-          if (fallbackBoard) {
-            handleSelectBoard(fallbackBoard.id);
+          if (boardsList.length <= 1) {
+            handleSelectBoard(null);
           } else {
-            if (selectedBoardId === undefined) {
-              setInternalBoardId(null);
-            }
-            onSelectBoard?.(null);
+            const nextIndex = currentBoardIndex === boardsList.length - 1 ? 0 : currentBoardIndex;
+            handleSelectBoard(boardsList[nextIndex]?.id ?? null);
           }
         },
-      }
+        onError: () => setShowDeleteModal(false),
+      },
     );
   };
 
-  const handleHeaderStateChange = useCallback((controls: HeaderControls) => {
-    setHeaderControls((prev) => {
-      if (
-        prev &&
-        prev.openAddColumn === controls.openAddColumn &&
-        prev.canAdd === controls.canAdd &&
-        prev.isCreating === controls.isCreating
-      ) {
-        return prev;
+  const handleHeaderStateChange = useCallback(
+    (state: HeaderControls) => {
+      if (readOnly) {
+        setHeaderControls(null);
+        return;
       }
-      return controls;
-    });
-  }, []);
+      setHeaderControls(state);
+    },
+    [readOnly],
+  );
 
-  const addColumnDisabled = headerControls ? (!headerControls.canAdd || headerControls.isCreating) : true;
+  const addColumnDisabled =
+    !headerControls || !headerControls.canAdd || headerControls.isCreating || readOnly;
 
   return (
     <>
@@ -389,36 +342,39 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrevBoard}
-            className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="rounded-lg p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
             disabled={boardsList.length <= 1}
             aria-label="Предыдущая доска"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
           <div className="flex-1 text-left">
             {isLoading ? (
-              <div className="text-slate-400">Загрузка досок...</div>
+              <div className="text-slate-400">Загрузка досок…</div>
             ) : error ? (
-              <div className="text-red-400">Ошибка загрузки досок</div>
+              <div className="text-red-400">Не удалось загрузить доски</div>
             ) : !boardsList.length ? (
-              <div className="text-slate-400">Нет досок</div>
+              <div className="text-slate-400">Доски не найдены</div>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold text-white">
-                    {currentBoard?.name ?? 'Без названия'}
-                  </h2>
-                  {columnsEditMode && currentBoard && (
+                  <h2 className="text-xl font-semibold text-white">{currentBoard?.name ?? 'Без названия'}</h2>
+                  {!readOnly && columnsEditMode && currentBoard && (
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                      className="p-1 text-slate-400 transition-colors hover:text-red-500"
                       title="Удалить доску"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   )}
@@ -428,14 +384,15 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
                 )}
                 {boardStatus?.statuses && (
                   <p className="text-sm text-slate-400">
-                    {boardStatus.statuses.length} {boardStatus.statuses.length === 1 ? 'колонка' : 'колонок'}
+                    {boardStatus.statuses.length}{' '}
+                    {boardStatus.statuses.length === 1 ? 'колонка' : 'колонок'}
                   </p>
                 )}
               </div>
             )}
           </div>
 
-          {headerControls && (
+          {!readOnly && headerControls && (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setColumnsEditMode((prev) => !prev)}
@@ -443,18 +400,18 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
                   'rounded-xl px-4 py-2 text-sm font-semibold transition',
                   columnsEditMode
                     ? 'bg-white/15 text-emerald-200 ring-1 ring-emerald-400'
-                    : 'bg-white/6 text-slate-100 hover:bg-white/10'
+                    : 'bg-white/6 text-slate-100 hover:bg-white/10',
                 ].join(' ')}
               >
-                {columnsEditMode ? 'Режим редактирования — вкл.' : 'Режим редактирования'}
+                {columnsEditMode ? 'Редактирование включено' : 'Режим редактирования'}
               </button>
               {columnsEditMode && (
                 <button
                   onClick={headerControls.openAddColumn}
                   disabled={addColumnDisabled}
-                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-50"
+                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {headerControls.isCreating ? 'Создание...' : '+ Столбец'}
+                  {headerControls.isCreating ? 'Создание…' : '+ Столбец'}
                 </button>
               )}
             </div>
@@ -462,11 +419,11 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
 
           <button
             onClick={handleNextBoard}
-            className="rounded-lg p-2 text-white hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="rounded-lg p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
             disabled={boardsList.length <= 1}
             aria-label="Следующая доска"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -493,19 +450,21 @@ export default function ProjectsBoardPanel({ projectId, selectedBoardId, onSelec
               isMovingTask={isMovingTask}
               hideHeader
               onHeaderStateChange={handleHeaderStateChange}
-              showColumnActions={columnsEditMode}
+              showColumnActions={columnsEditMode && !readOnly}
+              readOnly={readOnly}
             />
           </div>
         </div>
       </Panel>
-        {showDeleteModal && currentBoard && (
-          <DeleteBoardModal
-            boardName={currentBoard.name}
-            onConfirm={handleDeleteBoard}
-            onCancel={() => setShowDeleteModal(false)}
-            isDeleting={isDeleting}
-          />
-        )}
-      </>
-    );
+
+      {!readOnly && showDeleteModal && currentBoard && (
+        <DeleteBoardModal
+          boardName={currentBoard.name}
+          onConfirm={handleDeleteBoard}
+          onCancel={() => setShowDeleteModal(false)}
+          isDeleting={isDeleting}
+        />
+      )}
+    </>
+  );
 }

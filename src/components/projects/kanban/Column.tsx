@@ -60,6 +60,7 @@ export default function Column({
     return (
         <div className={`group flex flex-col h-full min-h-0 flex-1 min-w-[320px]`}>
             <div className="mb-2 flex items-center justify-between px-3">
+                {/* заголовок */}
                 <div className="font-semibold flex items-center gap-2 min-w-0 flex-1">
                     {column.color && (
                         <div
@@ -124,13 +125,14 @@ export default function Column({
                 </div>
             </div>
 
-            <Panel
-                className={`t-surface text-white flex flex-col h-full min-h-0 flex-1`}
+            {/* контейнер колонки с подсветкой и отступом */}
+            <div
+                className={`border-r border-l border-cyan-200 text-white flex flex-col h-full min-h-0 flex-1 ${isOver ? 'bg-[linear-gradient(180deg,_var(--surface-bg),_rgba(255,255,255,0.01))] backdrop-blur-[8px]' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                <div className={`flex-1 min-h-0 overflow-auto custom-scroll space-y-2 p-3 ${isOver ? 'ring-2 ring-cyan-500 rounded-lg' : ''}`}>
+                <div className="flex-1 min-h-0 overflow-auto custom-scroll space-y-2 p-3">
                     {column.tasks.map((t) => (
                         <Card
                             key={t.id}
@@ -142,7 +144,7 @@ export default function Column({
                         />
                     ))}
                 </div>
-            </Panel>
+            </div>
         </div>
     );
 }

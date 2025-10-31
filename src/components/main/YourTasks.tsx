@@ -1,7 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
@@ -9,6 +9,8 @@ import type { TaskStatusSummary, UITask } from '@/features/tasks/types';
 import { getTaskPriorityMeta } from '@/features/tasks/types';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchTaskBoardProject } from '@/features/tasks/api';
+import { fetchProjectById } from '@/features/projects/api';
+import { useAllUserProjects } from '@/features/projects/hooks';
 
 const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
 
@@ -137,10 +139,195 @@ export default function YourTasks() {
   const router = useRouter();
   const [resolvingTaskId, setResolvingTaskId] = useState<string | null>(null);
   const [resolvedLocations, setResolvedLocations] = useState<Record<string, { projectId: string; boardId?: string } | null>>({});
+  const autoResolvingRef = useRef<Set<string>>(new Set());
+  const [projectNames, setProjectNames] = useState<Record<string, string>>({});
+  const projectFetchRef = useRef<Set<string>>(new Set());
 
     const hasCreds = isClient && isAuthed() && !!getUserId();
     const { data, isLoading, error } = useMyTasks(1, 20, hasCreds);
     const tasks = (data ?? []) as UITask[];
+    const rememberProjectName = useCallback((projectId: string | undefined | null, name?: string | null) => {
+        const trimmedId = typeof projectId === 'string' ? projectId.trim() : '';
+        if (!trimmedId) return;
+        const trimmedName = typeof name === 'string' ? name.trim() : '';
+        if (!trimmedName) {
+            return;
+        }
+        setProjectNames((prev) => {
+            if (prev[trimmedId] === trimmedName) {
+                return prev;
+            }
+            return {
+                ...prev,
+                [trimmedId]: trimmedName,
+            };
+        });
+    }, []);
+    const shouldLoadProjects = useMemo(() => {
+        if (!hasCreds) return false;
+        return tasks.some((task) => {
+            if (task.projectName) return false;
+            const immediate = extractLocationFromTask(task);
+            const cached = resolvedLocations[task.id];
+            const candidate = immediate.projectId ?? cached?.projectId;
+            return typeof candidate === 'string' && candidate.trim().length > 0;
+        });
+    }, [hasCreds, tasks, resolvedLocations]);
+    const { data: userProjects } = useAllUserProjects(shouldLoadProjects);
+    const projectLookup = useMemo(() => {
+        if (!Array.isArray(userProjects)) return {};
+        return userProjects.reduce<Record<string, string>>((acc, project) => {
+            if (!project) return acc;
+            const id = typeof project.id === 'string' ? project.id.trim() : '';
+            if (!id) return acc;
+            const name = typeof project.name === 'string' ? project.name.trim() : '';
+            if (!name) return acc;
+            acc[id] = name;
+            return acc;
+        }, {});
+    }, [userProjects]);
+    const combinedProjectNames = useMemo(() => {
+        const merged: Record<string, string> = { ...projectLookup };
+        for (const [id, name] of Object.entries(projectNames)) {
+            merged[id] = name;
+        }
+        return merged;
+    }, [projectLookup, projectNames]);
+    const ensureProjectName = useCallback(async (projectId: string | undefined | null) => {
+        const trimmedId = typeof projectId === 'string' ? projectId.trim() : '';
+        if (!trimmedId) return;
+
+        const known = combinedProjectNames[trimmedId];
+        if (typeof known === 'string' && known.trim().length > 0) {
+            if (!projectNames[trimmedId]) {
+                rememberProjectName(trimmedId, known);
+            }
+            return;
+        }
+
+        if (projectFetchRef.current.has(trimmedId)) {
+            return;
+        }
+        projectFetchRef.current.add(trimmedId);
+        try {
+            const project = await fetchProjectById(trimmedId);
+            if (project?.name) {
+                rememberProjectName(trimmedId, project.name);
+            }
+        } catch (err) {
+            console.warn('Ваши задачи: не удалось получить данные проекта', trimmedId, err);
+        } finally {
+            projectFetchRef.current.delete(trimmedId);
+        }
+    }, [combinedProjectNames, projectNames, rememberProjectName]);
+    useEffect(() => {
+        if (!Array.isArray(tasks) || tasks.length === 0) return;
+        setProjectNames((prev) => {
+            let next = prev;
+            for (const task of tasks) {
+                const rawId = typeof task.projectId === 'string' ? task.projectId.trim() : '';
+                const rawName = typeof task.projectName === 'string' ? task.projectName.trim() : '';
+                if (!rawId || !rawName) continue;
+                if (next[rawId] === rawName) continue;
+                if (next === prev) {
+                    next = { ...prev };
+                }
+                next[rawId] = rawName;
+            }
+            return next === prev ? prev : next;
+        });
+    }, [tasks]);
+    useEffect(() => {
+        if (!hasCreds) return;
+        if (!Array.isArray(tasks) || tasks.length === 0) return;
+
+        const ids = new Set<string>();
+        for (const task of tasks) {
+            const immediate = extractLocationFromTask(task);
+            const immediateId = typeof immediate.projectId === 'string' ? immediate.projectId.trim() : '';
+            if (immediateId) ids.add(immediateId);
+            const cached = resolvedLocations[task.id];
+            const cachedId = typeof cached?.projectId === 'string' ? cached.projectId.trim() : '';
+            if (cachedId) ids.add(cachedId);
+        }
+
+        ids.forEach((id) => { void ensureProjectName(id); });
+    }, [tasks, resolvedLocations, hasCreds, ensureProjectName]);
+
+    // Подтягиваем проект/доску для задач, где API их не вернуло напрямую
+    useEffect(() => {
+      if (!hasCreds) return;
+      if (!Array.isArray(tasks) || tasks.length === 0) return;
+
+      const pendingTasks = tasks.filter((task) => {
+        const immediate = extractLocationFromTask(task);
+        if (typeof immediate.projectId === 'string' && immediate.projectId.trim().length > 0) {
+          return false;
+        }
+        const cacheEntry = resolvedLocations[task.id];
+        if (cacheEntry === null) return false;
+        if (cacheEntry && typeof cacheEntry.projectId === 'string' && cacheEntry.projectId.trim().length > 0) {
+          return false;
+        }
+        if (autoResolvingRef.current.has(task.id)) return false;
+        return true;
+      });
+
+      if (pendingTasks.length === 0) {
+        return;
+      }
+
+      pendingTasks.forEach((task) => autoResolvingRef.current.add(task.id));
+
+      let cancelled = false;
+
+      const resolveProjects = async () => {
+        for (const task of pendingTasks) {
+          if (cancelled) break;
+          try {
+            const remote = await fetchTaskBoardProject(task.id);
+            if (cancelled) break;
+            const remoteProjectId = remote.projectId?.trim();
+            const remoteBoardId = remote.boardId?.trim();
+            if (remoteProjectId) {
+              void ensureProjectName(remoteProjectId);
+            }
+
+            setResolvedLocations((prev) => {
+              const existing = prev[task.id];
+              if (remoteProjectId) {
+                if (existing && existing.projectId === remoteProjectId && existing.boardId === remoteBoardId) {
+                  return prev;
+                }
+                return {
+                  ...prev,
+                  [task.id]: { projectId: remoteProjectId, boardId: remoteBoardId },
+                };
+              }
+
+              return existing === null
+                ? prev
+                : { ...prev, [task.id]: null };
+            });
+          } catch (err) {
+            if (cancelled) break;
+            setResolvedLocations((prev) => (
+              prev[task.id] === null
+                ? prev
+                : { ...prev, [task.id]: null }
+            ));
+          } finally {
+            autoResolvingRef.current.delete(task.id);
+          }
+        }
+      };
+
+      void resolveProjects();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [hasCreds, tasks, resolvedLocations, ensureProjectName]);
 
     const navigateToBoard = (projectId: string, boardId?: string) => {
       const target = boardId
@@ -160,6 +347,9 @@ export default function YourTasks() {
 
       const projectId = immediate.projectId ?? cached?.projectId;
       const boardId = immediate.boardId ?? cached?.boardId;
+      if (projectId) {
+        void ensureProjectName(projectId);
+      }
 
       if (projectId) {
         setResolvedLocations((prev) => {
@@ -188,6 +378,7 @@ export default function YourTasks() {
         const resolvedBoardId = remote.boardId ?? immediate.boardId ?? cached?.boardId;
 
         if (resolvedProjectId) {
+          void ensureProjectName(resolvedProjectId);
           setResolvedLocations((prev) => {
             const existing = prev[task.id];
             if (existing && existing.projectId === resolvedProjectId && existing.boardId === resolvedBoardId) {
@@ -276,9 +467,13 @@ export default function YourTasks() {
             {sortedTasks.map((t) => {
               const immediate = extractLocationFromTask(t);
               const cached = resolvedLocations[t.id];
-              const projectId = immediate.projectId ?? cached?.projectId;
-              const boardId = immediate.boardId ?? cached?.boardId;
+              const rawProjectId = immediate.projectId ?? cached?.projectId;
+              const rawBoardId = immediate.boardId ?? cached?.boardId;
+              const projectId = typeof rawProjectId === 'string' ? rawProjectId.trim() : rawProjectId;
+              const boardId = typeof rawBoardId === 'string' ? rawBoardId.trim() : rawBoardId;
               const isResolving = resolvingTaskId === t.id;
+              const derivedProjectName = t.projectName
+                ?? (typeof projectId === 'string' ? combinedProjectNames[projectId] : undefined);
 
               return (
                 <TaskRow
@@ -287,6 +482,7 @@ export default function YourTasks() {
                   resolving={isResolving}
                   projectId={projectId}
                   boardId={boardId}
+                  projectName={derivedProjectName}
                   onOpen={() => { void handleTaskOpen(t); }}
                 />
               );
@@ -304,12 +500,14 @@ function TaskRow({
   resolving,
   projectId,
   boardId,
+  projectName,
 }: {
   t: UITask;
   onOpen: () => void;
   resolving: boolean;
   projectId?: string;
   boardId?: string;
+  projectName?: string;
 }) {
   const priorityMeta = getTaskPriorityMeta(t.priority);
   const hasLocation = Boolean(projectId);
@@ -337,6 +535,9 @@ function TaskRow({
       }
     }
   };
+  const normalizedProjectId = typeof projectId === 'string' ? projectId.trim() : projectId;
+  const projectLabel = projectName
+    ?? (normalizedProjectId ? `ID ${normalizedProjectId}` : (resolving ? 'Определяем проект…' : 'Проект не определён'));
 
   return (
     <div
@@ -360,6 +561,11 @@ function TaskRow({
       <div className="relative z-[1] flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="font-semibold">{t.title}</div>
+          {projectLabel && (
+            <div className="text-slate-200 text-sm mt-0.5">
+              Проект: {projectLabel}
+            </div>
+          )}
           {t.due && (
             <div className="text-slate-400 text-sm mt-0.5">
               Срок: {formatDueDate(t.due)}

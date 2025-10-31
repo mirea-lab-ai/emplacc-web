@@ -87,6 +87,9 @@ const markdownComponents: Components = {
 };
 
 const taskInfoCache = new Map<string, TaskInfo>();
+const DONE_TASK_NOTE_ERROR = 'Добавьте комментарий к выполненной задаче';
+const PLAN_TASK_NOTE_ERROR = 'Добавьте комментарий к задаче из плана';
+const MAX_TASK_NOTE_LENGTH = 5_000;
 
 type PersonInfo = {
   name?: string;
@@ -751,6 +754,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       });
       setValidationErrors((prev) => {
         if (!(key in prev)) return prev;
+        if (prev[key] !== DONE_TASK_NOTE_ERROR) return prev;
         const next = { ...prev };
         delete next[key];
         return next;
@@ -767,6 +771,12 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
         next.delete(key);
         return next;
       });
+      setValidationErrors((prev) => {
+        if (prev[key] !== PLAN_TASK_NOTE_ERROR) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
     }
   }, []);
 
@@ -775,6 +785,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       setDoneNotes((prev) => ({ ...prev, [key]: value }));
       setValidationErrors((prev) => {
         if (!(key in prev)) return prev;
+        if (prev[key] !== DONE_TASK_NOTE_ERROR) return prev;
         if (value.trim().length > 0) {
           const next = { ...prev };
           delete next[key];
@@ -784,6 +795,16 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       });
     } else {
       setPlanNotes((prev) => ({ ...prev, [key]: value }));
+      setValidationErrors((prev) => {
+        if (!(key in prev)) return prev;
+        if (prev[key] !== PLAN_TASK_NOTE_ERROR) return prev;
+        if (value.trim().length > 0) {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        }
+        return prev;
+      });
     }
   }, []);
 
@@ -793,7 +814,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       if (!note) {
         setValidationErrors((prev) => ({
           ...prev,
-          [key]: 'Добавьте комментарий к выполненной задаче',
+          [key]: DONE_TASK_NOTE_ERROR,
         }));
         setExpandedDone((prev) => {
           const next = new Set(prev);
@@ -804,6 +825,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       }
       setValidationErrors((prev) => {
         if (!(key in prev)) return prev;
+        if (prev[key] !== DONE_TASK_NOTE_ERROR) return prev;
         const next = { ...prev };
         delete next[key];
         return next;
@@ -814,13 +836,33 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
         return next;
       });
     } else {
+      const note = (planNotes[key] ?? '').trim();
+      if (!note) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          [key]: PLAN_TASK_NOTE_ERROR,
+        }));
+        setExpandedPlan((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+        return;
+      }
+      setValidationErrors((prev) => {
+        if (!(key in prev)) return prev;
+        if (prev[key] !== PLAN_TASK_NOTE_ERROR) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
       setExpandedPlan((prev) => {
         const next = new Set(prev);
         next.delete(key);
         return next;
       });
     }
-  }, [doneNotes]);
+  }, [doneNotes, planNotes]);
 
   const handleModalSubmit = useCallback((mode: 'done' | 'plan', keys: string[]) => {
     const uniqueKeys = Array.from(new Set(keys));
@@ -851,7 +893,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       setValidationErrors((prev) => {
         const next = { ...prev };
         Object.keys(next).forEach((taskKey) => {
-          if (!uniqueKeys.includes(taskKey)) {
+          if (next[taskKey] === DONE_TASK_NOTE_ERROR && !uniqueKeys.includes(taskKey)) {
             delete next[taskKey];
           }
         });
@@ -877,6 +919,15 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
         uniqueKeys.forEach((taskKey) => {
           if (!previousKeys.includes(taskKey)) {
             next.add(taskKey);
+          }
+        });
+        return next;
+      });
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((taskKey) => {
+          if (next[taskKey] === PLAN_TASK_NOTE_ERROR && !uniqueKeys.includes(taskKey)) {
+            delete next[taskKey];
           }
         });
         return next;
@@ -972,27 +1023,45 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       return;
     }
 
-    const incomplete = doneTaskKeys.filter((key) => !(doneNotes[key]?.trim()));
-    if (incomplete.length > 0) {
+    const missingDone = doneTaskKeys.filter((key) => !(doneNotes[key]?.trim()));
+    const missingPlan = planTaskKeys.filter((key) => !(planNotes[key]?.trim()));
+    if (missingDone.length > 0 || missingPlan.length > 0) {
       setCommentReminderVisible(true);
       setValidationErrors((prev) => {
         const next = { ...prev };
-        incomplete.forEach((taskKey) => {
-          next[taskKey] = 'Добавьте комментарий к выполненной задаче';
+        missingDone.forEach((taskKey) => {
+          next[taskKey] = DONE_TASK_NOTE_ERROR;
+        });
+        missingPlan.forEach((taskKey) => {
+          next[taskKey] = PLAN_TASK_NOTE_ERROR;
         });
         return next;
       });
-      setExpandedDone((prev) => {
-        const next = new Set(prev);
-        incomplete.forEach((taskKey) => next.add(taskKey));
-        return next;
-      });
-      const firstKey = incomplete[0];
+      if (missingDone.length > 0) {
+        setExpandedDone((prev) => {
+          const next = new Set(prev);
+          missingDone.forEach((taskKey) => next.add(taskKey));
+          return next;
+        });
+      }
+      if (missingPlan.length > 0) {
+        setExpandedPlan((prev) => {
+          const next = new Set(prev);
+          missingPlan.forEach((taskKey) => next.add(taskKey));
+          return next;
+        });
+      }
+      const firstKey = missingDone[0] ?? missingPlan[0];
       const element = typeof document !== 'undefined' ? document.querySelector(`[data-task-key="${firstKey}"]`) : null;
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-      setSubmitError('Заполните комментарии для всех задач в разделе «Сделано сегодня».');
+      const submitErrorMessage = missingDone.length > 0 && missingPlan.length > 0
+        ? 'Заполните комментарии для всех задач в разделах «Сделано сегодня» и «План на завтра».'
+        : missingDone.length > 0
+          ? 'Заполните комментарии для всех задач в разделе «Сделано сегодня».'
+          : 'Заполните комментарии для всех задач в разделе «План на завтра».';
+      setSubmitError(submitErrorMessage);
       return;
     }
 
@@ -1001,7 +1070,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
 
     const completeWork = doneTaskKeys.map((key) => ({
       task_id: resolveTaskIdFromKey(key) ?? '',
-      description: doneNotes[key].trim(),
+      description: (doneNotes[key] ?? '').trim(),
     }));
 
     const planTomorrow = planTaskKeys
@@ -1155,6 +1224,13 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
               {error ? (
                 <div className="text-xs text-rose-300">{error}</div>
               ) : null}
+              <div className="flex justify-end">
+                <span
+                  className={`text-xs ${note.length >= MAX_TASK_NOTE_LENGTH ? 'text-rose-300' : 'text-slate-400'}`}
+                >
+                  {note.length}/{MAX_TASK_NOTE_LENGTH}
+                </span>
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {mode === 'done' ? (
                   <button
@@ -1730,4 +1806,3 @@ function withWeekdayLabel(date: Date) {
   }).format(date);
   return `${base}, ${weekday}`;
 }
-

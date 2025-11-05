@@ -10,7 +10,6 @@ import { getTaskPriorityMeta } from '@/features/tasks/types';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchTaskBoardProject } from '@/features/tasks/api';
 import { fetchProjectById } from '@/features/projects/api';
-import { useAllUserProjects } from '@/features/projects/hooks';
 
 const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
 
@@ -138,7 +137,8 @@ export default function YourTasks() {
     const isClient = useIsClient();
   const router = useRouter();
   const [resolvingTaskId, setResolvingTaskId] = useState<string | null>(null);
-  const [resolvedLocations, setResolvedLocations] = useState<Record<string, { projectId: string; boardId?: string } | null>>({});
+  const [taskProjects, setTaskProjects] = useState<Record<string, string | null>>({});
+  const [autoResolvingMap, setAutoResolvingMap] = useState<Record<string, boolean>>({});
   const autoResolvingRef = useRef<Set<string>>(new Set());
   const [projectNames, setProjectNames] = useState<Record<string, string>>({});
   const projectFetchRef = useRef<Set<string>>(new Set());
@@ -163,41 +163,11 @@ export default function YourTasks() {
             };
         });
     }, []);
-    const shouldLoadProjects = useMemo(() => {
-        if (!hasCreds) return false;
-        return tasks.some((task) => {
-            if (task.projectName) return false;
-            const immediate = extractLocationFromTask(task);
-            const cached = resolvedLocations[task.id];
-            const candidate = immediate.projectId ?? cached?.projectId;
-            return typeof candidate === 'string' && candidate.trim().length > 0;
-        });
-    }, [hasCreds, tasks, resolvedLocations]);
-    const { data: userProjects } = useAllUserProjects(shouldLoadProjects);
-    const projectLookup = useMemo(() => {
-        if (!Array.isArray(userProjects)) return {};
-        return userProjects.reduce<Record<string, string>>((acc, project) => {
-            if (!project) return acc;
-            const id = typeof project.id === 'string' ? project.id.trim() : '';
-            if (!id) return acc;
-            const name = typeof project.name === 'string' ? project.name.trim() : '';
-            if (!name) return acc;
-            acc[id] = name;
-            return acc;
-        }, {});
-    }, [userProjects]);
-    const combinedProjectNames = useMemo(() => {
-        const merged: Record<string, string> = { ...projectLookup };
-        for (const [id, name] of Object.entries(projectNames)) {
-            merged[id] = name;
-        }
-        return merged;
-    }, [projectLookup, projectNames]);
     const ensureProjectName = useCallback(async (projectId: string | undefined | null) => {
         const trimmedId = typeof projectId === 'string' ? projectId.trim() : '';
         if (!trimmedId) return;
 
-        const known = combinedProjectNames[trimmedId];
+        const known = projectNames[trimmedId];
         if (typeof known === 'string' && known.trim().length > 0) {
             if (!projectNames[trimmedId]) {
                 rememberProjectName(trimmedId, known);
@@ -219,7 +189,7 @@ export default function YourTasks() {
         } finally {
             projectFetchRef.current.delete(trimmedId);
         }
-    }, [combinedProjectNames, projectNames, rememberProjectName]);
+    }, [projectNames, rememberProjectName]);
     useEffect(() => {
         if (!Array.isArray(tasks) || tasks.length === 0) return;
         setProjectNames((prev) => {
@@ -238,6 +208,22 @@ export default function YourTasks() {
         });
     }, [tasks]);
     useEffect(() => {
+        if (!Array.isArray(tasks) || tasks.length === 0) return;
+        setTaskProjects((prev) => {
+            let next = prev;
+            for (const task of tasks) {
+                const trimmedId = typeof task.projectId === 'string' ? task.projectId.trim() : '';
+                if (!trimmedId) continue;
+                if (next[task.id] === trimmedId) continue;
+                if (next === prev) {
+                    next = { ...prev };
+                }
+                next[task.id] = trimmedId;
+            }
+            return next === prev ? prev : next;
+        });
+    }, [tasks]);
+    useEffect(() => {
         if (!hasCreds) return;
         if (!Array.isArray(tasks) || tasks.length === 0) return;
 
@@ -246,13 +232,13 @@ export default function YourTasks() {
             const immediate = extractLocationFromTask(task);
             const immediateId = typeof immediate.projectId === 'string' ? immediate.projectId.trim() : '';
             if (immediateId) ids.add(immediateId);
-            const cached = resolvedLocations[task.id];
-            const cachedId = typeof cached?.projectId === 'string' ? cached.projectId.trim() : '';
+            const cached = taskProjects[task.id];
+            const cachedId = typeof cached === 'string' ? cached.trim() : '';
             if (cachedId) ids.add(cachedId);
         }
 
         ids.forEach((id) => { void ensureProjectName(id); });
-    }, [tasks, resolvedLocations, hasCreds, ensureProjectName]);
+    }, [tasks, taskProjects, hasCreds, ensureProjectName]);
 
     // Подтягиваем проект/доску для задач, где API их не вернуло напрямую
     useEffect(() => {
@@ -264,9 +250,9 @@ export default function YourTasks() {
         if (typeof immediate.projectId === 'string' && immediate.projectId.trim().length > 0) {
           return false;
         }
-        const cacheEntry = resolvedLocations[task.id];
+        const cacheEntry = taskProjects[task.id];
         if (cacheEntry === null) return false;
-        if (cacheEntry && typeof cacheEntry.projectId === 'string' && cacheEntry.projectId.trim().length > 0) {
+        if (typeof cacheEntry === 'string' && cacheEntry.trim().length > 0) {
           return false;
         }
         if (autoResolvingRef.current.has(task.id)) return false;
@@ -277,7 +263,19 @@ export default function YourTasks() {
         return;
       }
 
-      pendingTasks.forEach((task) => autoResolvingRef.current.add(task.id));
+      pendingTasks.forEach((task) => {
+        autoResolvingRef.current.add(task.id);
+      });
+      setAutoResolvingMap((prev) => {
+        if (pendingTasks.every((task) => prev[task.id])) {
+          return prev;
+        }
+        const next = { ...prev };
+        pendingTasks.forEach((task) => {
+          next[task.id] = true;
+        });
+        return next;
+      });
 
       let cancelled = false;
 
@@ -288,20 +286,19 @@ export default function YourTasks() {
             const remote = await fetchTaskBoardProject(task.id);
             if (cancelled) break;
             const remoteProjectId = remote.projectId?.trim();
-            const remoteBoardId = remote.boardId?.trim();
             if (remoteProjectId) {
               void ensureProjectName(remoteProjectId);
             }
 
-            setResolvedLocations((prev) => {
+            setTaskProjects((prev) => {
               const existing = prev[task.id];
               if (remoteProjectId) {
-                if (existing && existing.projectId === remoteProjectId && existing.boardId === remoteBoardId) {
+                if (existing === remoteProjectId) {
                   return prev;
                 }
                 return {
                   ...prev,
-                  [task.id]: { projectId: remoteProjectId, boardId: remoteBoardId },
+                  [task.id]: remoteProjectId,
                 };
               }
 
@@ -311,13 +308,19 @@ export default function YourTasks() {
             });
           } catch (err) {
             if (cancelled) break;
-            setResolvedLocations((prev) => (
+            setTaskProjects((prev) => (
               prev[task.id] === null
                 ? prev
                 : { ...prev, [task.id]: null }
             ));
           } finally {
             autoResolvingRef.current.delete(task.id);
+            setAutoResolvingMap((prev) => {
+              if (!prev[task.id]) return prev;
+              const next = { ...prev };
+              delete next[task.id];
+              return next;
+            });
           }
         }
       };
@@ -326,8 +329,22 @@ export default function YourTasks() {
 
       return () => {
         cancelled = true;
+        pendingTasks.forEach((task) => {
+          autoResolvingRef.current.delete(task.id);
+        });
+        setAutoResolvingMap((prev) => {
+          let mutated = false;
+          const next = { ...prev };
+          pendingTasks.forEach((task) => {
+            if (next[task.id]) {
+              mutated = true;
+              delete next[task.id];
+            }
+          });
+          return mutated ? next : prev;
+        });
       };
-    }, [hasCreds, tasks, resolvedLocations, ensureProjectName]);
+    }, [hasCreds, tasks, taskProjects, ensureProjectName]);
 
     const navigateToBoard = (projectId: string, boardId?: string) => {
       const target = boardId
@@ -338,31 +355,9 @@ export default function YourTasks() {
 
     const handleTaskOpen = async (task: UITask) => {
       const immediate = extractLocationFromTask(task);
-      const cached = resolvedLocations[task.id];
-
-      if (cached === null) {
+      const cachedProjectId = taskProjects[task.id];
+      if (cachedProjectId === null) {
         console.warn('Ваши задачи: ранее не удалось определить проект для задачи', task.id);
-        return;
-      }
-
-      const projectId = immediate.projectId ?? cached?.projectId;
-      const boardId = immediate.boardId ?? cached?.boardId;
-      if (projectId) {
-        void ensureProjectName(projectId);
-      }
-
-      if (projectId) {
-        setResolvedLocations((prev) => {
-          const existing = prev[task.id];
-          if (existing && existing.projectId === projectId && existing.boardId === boardId) {
-            return prev;
-          }
-          return {
-            ...prev,
-            [task.id]: { projectId, boardId },
-          };
-        });
-        navigateToBoard(projectId, boardId);
         return;
       }
 
@@ -374,19 +369,19 @@ export default function YourTasks() {
 
       try {
         const remote = await fetchTaskBoardProject(task.id);
-        const resolvedProjectId = remote.projectId ?? immediate.projectId ?? cached?.projectId;
-        const resolvedBoardId = remote.boardId ?? immediate.boardId ?? cached?.boardId;
+        const resolvedProjectId = remote.projectId ?? immediate.projectId ?? cachedProjectId ?? undefined;
+        const resolvedBoardId = remote.boardId ?? immediate.boardId ?? undefined;
 
         if (resolvedProjectId) {
           void ensureProjectName(resolvedProjectId);
-          setResolvedLocations((prev) => {
+          setTaskProjects((prev) => {
             const existing = prev[task.id];
-            if (existing && existing.projectId === resolvedProjectId && existing.boardId === resolvedBoardId) {
+            if (existing === resolvedProjectId) {
               return prev;
             }
             return {
               ...prev,
-              [task.id]: { projectId: resolvedProjectId, boardId: resolvedBoardId },
+              [task.id]: resolvedProjectId,
             };
           });
           navigateToBoard(resolvedProjectId, resolvedBoardId);
@@ -394,14 +389,14 @@ export default function YourTasks() {
         }
 
         console.warn('Ваши задачи: не удалось определить проект для перехода', task, remote);
-        setResolvedLocations((prev) => (
+        setTaskProjects((prev) => (
           prev[task.id] === null
             ? prev
             : { ...prev, [task.id]: null }
         ));
       } catch (err) {
         console.error('Ваши задачи: ошибка при определении доски задачи', err);
-        setResolvedLocations((prev) => (
+        setTaskProjects((prev) => (
           prev[task.id] === null
             ? prev
             : { ...prev, [task.id]: null }
@@ -466,14 +461,12 @@ export default function YourTasks() {
             )}
             {sortedTasks.map((t) => {
               const immediate = extractLocationFromTask(t);
-              const cached = resolvedLocations[t.id];
-              const rawProjectId = immediate.projectId ?? cached?.projectId;
-              const rawBoardId = immediate.boardId ?? cached?.boardId;
+              const resolvedProjectId = taskProjects[t.id];
+              const rawProjectId = immediate.projectId ?? resolvedProjectId ?? undefined;
               const projectId = typeof rawProjectId === 'string' ? rawProjectId.trim() : rawProjectId;
-              const boardId = typeof rawBoardId === 'string' ? rawBoardId.trim() : rawBoardId;
               const isResolving = resolvingTaskId === t.id;
               const derivedProjectName = t.projectName
-                ?? (typeof projectId === 'string' ? combinedProjectNames[projectId] : undefined);
+                ?? (typeof projectId === 'string' ? projectNames[projectId] : undefined);
 
               return (
                 <TaskRow
@@ -481,7 +474,8 @@ export default function YourTasks() {
                   t={t}
                   resolving={isResolving}
                   projectId={projectId}
-                  boardId={boardId}
+                  projectResolution={taskProjects[t.id]}
+                  autoResolving={Boolean(autoResolvingMap[t.id])}
                   projectName={derivedProjectName}
                   onOpen={() => { void handleTaskOpen(t); }}
                 />
@@ -499,14 +493,16 @@ function TaskRow({
   onOpen,
   resolving,
   projectId,
-  boardId,
+  projectResolution,
+  autoResolving,
   projectName,
 }: {
   t: UITask;
   onOpen: () => void;
   resolving: boolean;
   projectId?: string;
-  boardId?: string;
+  projectResolution: string | null | undefined;
+  autoResolving: boolean;
   projectName?: string;
 }) {
   const priorityMeta = getTaskPriorityMeta(t.priority);
@@ -536,8 +532,16 @@ function TaskRow({
     }
   };
   const normalizedProjectId = typeof projectId === 'string' ? projectId.trim() : projectId;
-  const projectLabel = projectName
-    ?? (normalizedProjectId ? `ID ${normalizedProjectId}` : (resolving ? 'Определяем проект…' : 'Проект не определён'));
+  let projectLabel = projectName
+    ?? (normalizedProjectId ? `ID ${normalizedProjectId}` : undefined);
+
+  if (!projectLabel) {
+    if (resolving || autoResolving) {
+      projectLabel = 'Определяем проект…';
+    } else if (projectResolution === null) {
+      projectLabel = 'Проект не определён';
+    }
+  }
 
   return (
     <div

@@ -1,5 +1,6 @@
 import { http } from '@/lib/http';
 import { getAccessToken } from '@/lib/auth';
+import { getApiBaseUrl } from '@/lib/publicEnv';
 
 export type UIProject = {
   id: string;
@@ -93,7 +94,7 @@ export type UpdateProjectRequest = {
 
 export async function updateProject(projectId: string, payload: UpdateProjectRequest): Promise<UIProject> {
   // Попробуем прямой fetch для обхода проблем с http функцией
-  const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!.replace(/\/+$/, '');
+  const BASE = getApiBaseUrl();
   const access = getAccessToken();
 
   if (!access) {

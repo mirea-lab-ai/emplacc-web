@@ -1,14 +1,13 @@
 // src/lib/http.ts
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '@/lib/auth';
-
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!.replace(/\/+$/, '');
+import { getApiBaseUrl, getKeycloakConfig } from '@/lib/publicEnv';
 
 // чтобы параллельные запросы не дергали refresh одновременно
 let refreshing: Promise<void> | null = null;
 
 async function doFetch(path: string, init: RequestInit = {}) {
     const access = getAccessToken();
-    return fetch(BASE + path, {
+    return fetch(getApiBaseUrl() + path, {
         ...init,
         headers: {
             'Content-Type': 'application/json',
@@ -35,15 +34,13 @@ async function refreshAccessToken() {
         clearTokens();
         return;
     }
-    const KC_BASE = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL!.replace(/\/+$/, '');
-    const REALM = process.env.NEXT_PUBLIC_KEYCLOAK_REALM!;
-    const CLIENT_ID = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID!;
+    const { authUrl, realm, clientId } = getKeycloakConfig();
 
-    const tokenEndpoint = `${KC_BASE}/realms/${REALM}/protocol/openid-connect/token`;
+    const tokenEndpoint = `${authUrl}/realms/${realm}/protocol/openid-connect/token`;
     const body = new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: refresh,
-        client_id: CLIENT_ID,
+        client_id: clientId,
     });
     const r = await fetch(tokenEndpoint, {
         method: 'POST',

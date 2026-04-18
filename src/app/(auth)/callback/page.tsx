@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiValidate } from '@/features/auth/api';
 import { setSession, clearTokens } from '@/lib/auth';
 import { readAndClearAuthState } from '@/lib/pkce';
+import { getKeycloakConfig } from '@/lib/publicEnv';
 
 function CallbackContent() {
     const router = useRouter();
@@ -32,7 +33,7 @@ function CallbackContent() {
                 
                 await apiValidate();
                 router.replace('/');
-            } catch (e) {
+            } catch {
                 setError('OAuth failed');
                 clearTokens();
             }
@@ -47,16 +48,14 @@ function CallbackContent() {
 }
 
 async function exchangeCodeForTokens(code: string, redirectUri: string, codeVerifier: string): Promise<{ access_token: string; refresh_token: string }> {
-    const KC_BASE = process.env.NEXT_PUBLIC_KEYCLOAK_AUTH_URL!.replace(/\/+$/, '');
-    const REALM = process.env.NEXT_PUBLIC_KEYCLOAK_REALM!;
-    const CLIENT_ID = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID!;
-    const tokenEndpoint = `${KC_BASE}/realms/${REALM}/protocol/openid-connect/token`;
+    const { authUrl, realm, clientId } = getKeycloakConfig();
+    const tokenEndpoint = `${authUrl}/realms/${realm}/protocol/openid-connect/token`;
 
     const params = new URLSearchParams({
         grant_type: 'authorization_code',
         code,
         redirect_uri: redirectUri,
-        client_id: CLIENT_ID,
+        client_id: clientId,
         code_verifier: codeVerifier,
     });
 

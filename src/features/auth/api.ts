@@ -1,5 +1,6 @@
 // src/features/auth/api.ts
 import { http } from '@/lib/http';
+import { getApiBaseUrl } from '@/lib/publicEnv';
 import type { components } from '@/types/openapi';
 
 
@@ -58,7 +59,7 @@ export async function apiValidate(): Promise<TokenValidationResponse> {
 // В doc.json logout просит header Authorization = refresh token — странный контракт.
 // Реализуем как в спеках.
 export async function apiLogout(refreshToken: string): Promise<void> {
-    const r = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL!.replace(/\/+$/,'') + '/auth/logout', {
+    const r = await fetch(getApiBaseUrl() + '/auth/logout', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -74,5 +75,4 @@ type AuthRespStrict = AuthResp & {
     access_token: string;
     refresh_token: string;
 };
-
 

@@ -9,7 +9,8 @@ import type { Member, Team } from '@/components/teams/types';
 import EditTeamModal from '@/components/teams/EditTeamModal';
 import { useAllTeams, useDeleteTeam } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
-import { isAuthed } from '@/lib/auth';
+import { isAuthed, getUserId } from '@/lib/auth';
+import { useUserRole } from '@/features/roles/hooks';
 import { convertUITeamToTeam } from '@/lib/teamUtils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -37,6 +38,10 @@ function TeamsPageContent() {
   const pathname = usePathname();
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
+  const userId = isClient ? getUserId() : null;
+  const { data: userRole } = useUserRole(userId, hasCreds);
+  const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
+  const canManage = normalizedRole === 'admin' || normalizedRole === 'manager';
   
   // Загружаем команды из API
   const { data: apiTeams, isLoading, error } = useAllTeams(hasCreds);
@@ -142,36 +147,43 @@ function TeamsPageContent() {
   };
 
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex h-full min-h-0 gap-5 overflow-hidden animate-fade-in">
+      {/* Sidebar */}
+      <TeamSidebar
+        teams={teams}
+        activeId={activeTeamId}
+        onSelect={selectTeam}
+        onAddTeam={canManage ? () => setOpenCreate(true) : undefined}
+        onDeleteTeam={canManage ? handleDeleteTeam : undefined}
+      />
 
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* левая колонка */}
-              <TeamSidebar
-                teams={teams}
-                activeId={activeTeamId}
-                onSelect={selectTeam}
-                onAddTeam={() => setOpenCreate(true)}
-                onDeleteTeam={handleDeleteTeam}
-              />
-
-          {/* правая область */}
-          <div className="flex-1 min-w-0">
-            {isLoading ? (
-              <Panel className="grid place-items-center min-h-[520px] t-surface">
-                <div className="text-slate-400">Загрузка команд...</div>
-              </Panel>
-            ) : error ? (
-              <Panel className="grid place-items-center min-h-[520px] t-surface">
-                <div className="text-red-400">Ошибка загрузки команд</div>
-              </Panel>
-            ) : !teams.length ? (
-              <Panel className="grid place-items-center min-h-[520px] t-surface">
-                <div className="text-slate-400">
-                  Вы не состоите ни в одной команде
-                </div>
-              </Panel>
-            ) : !activeTeam ? (
+      {/* Main */}
+      <div className="flex-1 min-w-0 overflow-y-auto">
+        {isLoading ? (
+          <Panel className="grid place-items-center min-h-[300px]">
+            <div className="flex items-center gap-3 t-body">
+              <span className="inline-block h-4 w-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
+              Загрузка команд…
+            </div>
+          </Panel>
+        ) : error ? (
+          <Panel className="grid place-items-center min-h-[300px]">
+            <div className="text-red-400">Ошибка загрузки команд</div>
+          </Panel>
+        ) : !teams.length ? (
+          <Panel className="grid place-items-center min-h-[300px]">
+            <div className="text-center space-y-3">
+              <div className="text-4xl">👥</div>
+              <div className="t-title text-white">Нет команд</div>
+              <div className="t-body">Вы не состоите ни в одной команде</div>
+              {canManage && (
+                <button onClick={() => setOpenCreate(true)} className="btn-primary mx-auto text-sm">
+                  Создать команду
+                </button>
+              )}
+            </div>
+          </Panel>
+        ) : !activeTeam ? (
               <Panel className="grid place-items-center min-h-[520px] t-surface">
                 <div className="text-slate-400">Выберите команду слева</div>
               </Panel>
@@ -183,39 +195,25 @@ function TeamsPageContent() {
                 onEditTeam={(team) => setEditTeam(team)}
               />
             )}
-          </div>
-        </div>
       </div>
 
-          <AddTeamModal
-            open={openCreate}
-            onClose={() => setOpenCreate(false)}
-            onCreate={addTeam}
-          />
-          
-          <DeleteTeamModal
-            open={deleteModal.open}
-            onClose={() => setDeleteModal({ open: false, teamId: '', teamName: '' })}
-            onConfirm={confirmDeleteTeam}
-            teamName={deleteModal.teamName}
-            isDeleting={deleteTeamMutation.isPending}
-          />
-
-          <EditTeamModal
-            open={!!editTeam}
-            team={editTeam}
-            onClose={() => setEditTeam(null)}
-          />
-        </main>
-      );
-    }
+      <AddTeamModal open={openCreate} onClose={() => setOpenCreate(false)} onCreate={addTeam} />
+      <DeleteTeamModal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, teamId: '', teamName: '' })}
+        onConfirm={confirmDeleteTeam}
+        teamName={deleteModal.teamName}
+        isDeleting={deleteTeamMutation.isPending}
+      />
+      <EditTeamModal open={!!editTeam} team={editTeam} onClose={() => setEditTeam(null)} />
+    </div>
+  );
+}
 
 function TeamsPageFallback() {
   return (
-    <main className="min-h-screen text-white">
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <Panel className="p-6 t-surface">Загрузка команд...</Panel>
-      </div>
-    </main>
+    <div className="flex h-full items-center justify-center">
+      <span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
+    </div>
   );
 }

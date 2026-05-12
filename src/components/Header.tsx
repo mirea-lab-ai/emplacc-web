@@ -5,8 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import Avatar from '@/components/ui/Avatar';
-import { clearTokens, getRefreshToken, getUserId, isAuthed } from '@/lib/auth';
-import { apiLogout } from '@/features/auth/api';
+import CommandPalette from '@/components/ui/CommandPalette';
+import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
+import { http } from '@/lib/http';
 import { useUser } from '@/features/user/hooks';
 import { useUserRole } from '@/features/roles/hooks';
 
@@ -77,12 +78,7 @@ export default function Header({ items }: Props) {
   }, [mobileMenuOpen]);
 
   async function onLogout() {
-    try {
-      const rt = getRefreshToken();
-      if (rt) await apiLogout(rt);
-    } catch {
-      // РёРіРЅРѕСЂРёСЂСѓРµРј РѕС€РёР±РєРё РІС‹С…РѕРґР°
-    }
+    await http('/auth/session', { method: 'DELETE' }).catch(() => {});
     clearTokens();
     router.replace('/login');
   }
@@ -126,21 +122,35 @@ export default function Header({ items }: Props) {
   }
 
   return (
-    <header className="relative mx-auto w-full max-w-6xl border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8">
+    <header className="relative mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="group inline-flex items-center gap-3 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-          aria-label="РќР° РіР»Р°РІРЅСѓСЋ Emplacc"
+          className="group inline-flex items-center gap-2.5 focus:outline-none"
+          aria-label="На главную Emplacc"
         >
-          <Logo className="h-9 w-auto sm:h-10" variant="colored" priority />
-          <span className="hidden bg-gradient-to-r from-emerald-500 to-lime-400 bg-clip-text text-3xl font-semibold text-transparent sm:inline md:text-4xl lg:text-5xl">
+          <Logo className="h-8 w-auto sm:h-9" variant="colored" priority />
+          <span className="t-accent-text hidden text-2xl font-bold tracking-tight sm:inline">
             Emplacc
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
-          <nav className="hidden items-center gap-6 lg:flex">
+        <div className="flex items-center gap-2">
+          {/* Search button */}
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }))}
+            className="hidden sm:flex items-center gap-2 btn-secondary text-xs py-1.5 px-3"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd"/>
+            </svg>
+            <span className="text-white/50">Поиск</span>
+            <kbd className="rounded border border-white/8 px-1 py-0.5 text-[10px] font-mono text-white/30">⌘K</kbd>
+          </button>
+          <CommandPalette />
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-1 lg:flex ml-1">
             {navigationItems.map(({ label, href }) => {
               const active = isActive(href);
               return (
@@ -149,10 +159,10 @@ export default function Header({ items }: Props) {
                   href={href}
                   aria-current={active ? 'page' : undefined}
                   className={[
-                    'relative transition-colors',
+                    'px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-150',
                     active
-                      ? 'text-white underline decoration-lime-400 decoration-2 underline-offset-8'
-                      : 'text-slate-300 hover:text-white',
+                      ? 'bg-emerald-500/12 text-emerald-300 ring-1 ring-emerald-500/20'
+                      : 'text-white/55 hover:text-white/90 hover:bg-white/5',
                   ].join(' ')}
                 >
                   {label}
@@ -165,55 +175,50 @@ export default function Header({ items }: Props) {
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
-                onClick={() => setProfileOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full bg-white/5 px-2.5 py-1.5 ring-1 ring-white/10 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                onClick={() => setProfileOpen(p => !p)}
+                className="flex items-center gap-2 rounded-xl bg-white/5 px-2 py-1.5 ring-1 ring-white/8 transition-all hover:bg-white/9 hover:ring-white/14 focus:outline-none"
               >
-                <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} size="md" />
-                <span className="hidden text-sm font-medium text-white md:inline">
+                <div className="rounded-full p-[1.5px] bg-gradient-to-br from-emerald-400/70 to-lime-400/70">
+                  <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} url={user.avatarUrl} size="sm" />
+                </div>
+                <span className="hidden text-sm font-medium text-white/80 md:inline pr-0.5">
                   {formatUserLabel(user)}
                 </span>
-                <svg
-                  className={[
-                    'h-4 w-4 text-slate-300 transition-transform',
-                    profileOpen ? 'rotate-180' : '',
-                  ].join(' ')}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg className={`h-3.5 w-3.5 text-white/30 transition-transform ${profileOpen ? 'rotate-180' : ''}`}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/>
                 </svg>
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 z-50 mt-2 max-h-[calc(100vh-6rem)] w-48 overflow-y-auto rounded-xl bg-[#091a14] p-2 shadow-lg ring-1 ring-emerald-400/30">
-                  <Link
-                    href="/settings"
-                    className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    Настройки
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      void onLogout();
-                    }}
-                    className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-red-200 transition hover:bg-red-500/10"
-                  >
-                    Выйти
-                  </button>
+                <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl t-surface-elevated shadow-2xl animate-fade-in-scale">
+                  <div className="px-4 py-3 border-b border-white/6">
+                    <div className="text-sm font-semibold text-white">{user.firstName} {user.lastName}</div>
+                    <div className="t-caption truncate">{user.email}</div>
+                  </div>
+                  <div className="p-1.5">
+                    <Link href="/settings" onClick={() => setProfileOpen(false)}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/75 transition hover:bg-white/7 hover:text-white">
+                      <svg className="h-4 w-4 opacity-60" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      Настройки профиля
+                    </Link>
+                    <div className="my-1 h-px bg-white/5" />
+                    <button type="button" onClick={() => { setProfileOpen(false); void onLogout(); }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-red-300/80 transition hover:bg-red-500/8 hover:text-red-300">
+                      <svg className="h-4 w-4 opacity-70" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                      </svg>
+                      Выйти из системы
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           ) : (
-            <button
-              onClick={onLogout}
-              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white ring-1 ring-white/20 transition hover:bg-white/20"
-            >
-              Выйти
-            </button>
+            <button onClick={onLogout} className="btn-ghost text-sm">Выйти</button>
           )}
           <button
             type="button"
@@ -236,47 +241,38 @@ export default function Header({ items }: Props) {
       </div>
 
       {mobileMenuOpen && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#091a14]/95 p-4 shadow-xl backdrop-blur lg:hidden">
+        <div className="mt-3 flex flex-col gap-2 rounded-2xl t-surface-elevated p-3 shadow-2xl animate-fade-in-scale lg:hidden">
           {hasCreds && user && (
-            <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
-              <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} size="md" />
+            <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5">
+              <div className="rounded-full p-[1.5px] bg-gradient-to-br from-emerald-400/70 to-lime-400/70 shrink-0">
+                <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} url={user.avatarUrl} size="md" />
+              </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white">{formatUserLabel(user)}</p>
-                <p className="truncate text-xs text-slate-300">{user.email}</p>
+                <p className="truncate t-caption">{user.email}</p>
               </div>
             </div>
           )}
           {navigationItems.map(({ label, href }) => {
             const active = isActive(href);
             return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileMenuOpen(false)}
+              <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}
                 aria-current={active ? 'page' : undefined}
                 className={[
-                  'rounded-xl px-3 py-2 text-base transition-colors',
+                  'rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                   active
-                    ? 'bg-white/10 text-white ring-1 ring-emerald-400/40'
-                    : 'text-slate-200 hover:bg-white/5 hover:text-white',
-                ].join(' ')}
-              >
+                    ? 'bg-emerald-500/12 text-emerald-300 ring-1 ring-emerald-500/20'
+                    : 'text-white/65 hover:bg-white/5 hover:text-white',
+                ].join(' ')}>
                 {label}
               </Link>
             );
           })}
-          <div className="h-px bg-white/10" />
-          <button
-            type="button"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              setProfileOpen(false);
-              void onLogout();
-            }}
-            className="rounded-xl bg-red-500/10 px-3 py-2 text-left text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
-          >
-                    Выйти из системы
-
+          <div className="t-divider" />
+          <button type="button"
+            onClick={() => { setMobileMenuOpen(false); setProfileOpen(false); void onLogout(); }}
+            className="rounded-xl bg-red-500/8 px-3 py-2 text-left text-sm font-medium text-red-300/80 transition hover:bg-red-500/14 hover:text-red-300">
+            Выйти из системы
           </button>
         </div>
       )}

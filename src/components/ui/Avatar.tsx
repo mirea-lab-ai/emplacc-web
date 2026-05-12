@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { getGravatarUrl } from '@/lib/gravatar';
 
-type AvatarSize = 'sm' | 'md' | 'lg';
+type AvatarSize = 'xs' | 'sm' | 'md' | 'lg';
 
 type AvatarProps = {
   name: string;
@@ -14,21 +14,22 @@ type AvatarProps = {
   size?: AvatarSize;
 };
 
-const SIZE_MAP: Record<AvatarSize, { box: string; text: string }> = {
-  sm: { box: 'w-6 h-6', text: 'text-xs' },
-  md: { box: 'w-8 h-8', text: 'text-sm' },
-  lg: { box: 'w-10 h-10', text: 'text-base' },
+const SIZE_MAP: Record<AvatarSize, { box: string; text: string; px: string }> = {
+  xs: { box: 'w-5 h-5', text: 'text-[10px]', px: '20px' },
+  sm: { box: 'w-6 h-6', text: 'text-xs', px: '24px' },
+  md: { box: 'w-8 h-8', text: 'text-sm', px: '32px' },
+  lg: { box: 'w-10 h-10', text: 'text-base', px: '40px' },
 };
 
 export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: AvatarProps) {
-  const { box, text } = SIZE_MAP[size] ?? SIZE_MAP.md;
+  const { box, text, px } = SIZE_MAP[size] ?? SIZE_MAP.md;
   const cleanedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
   const cleanedFallback = typeof fallbackKey === 'string' ? fallbackKey.trim().toLowerCase() : '';
   const gravatarSource = cleanedEmail || cleanedFallback || '';
 
   const gravatarUrl = useMemo(() => {
     if (!gravatarSource) return undefined;
-    const dimension = size === 'sm' ? 64 : 128;
+    const dimension = size === 'xs' || size === 'sm' ? 64 : 128;
     return getGravatarUrl(gravatarSource, dimension);
   }, [gravatarSource, size]);
 
@@ -47,7 +48,7 @@ export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: A
           src={src}
           alt={name}
           fill
-          sizes={size === 'sm' ? '24px' : size === 'lg' ? '40px' : '32px'}
+          sizes={px}
           className="object-cover"
           unoptimized
           onError={() => { setImageFailed(true); }}

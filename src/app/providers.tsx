@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTokenAutoRefresh } from '@/hooks/useTokenAutoRefresh';
 import { useUserCache } from '@/hooks/useUserCache';
+import { ToastProvider } from '@/components/ui/Toast';
 
 function TokenRefreshInitializer() {
     useTokenAutoRefresh();
@@ -20,9 +21,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [qc] = useState(() => new QueryClient());
     return (
         <QueryClientProvider client={qc}>
-            <TokenRefreshInitializer />
-            <UserCacheInitializer />
-            {children}
+            <ToastProvider>
+                <TokenRefreshInitializer />
+                <UserCacheInitializer />
+                {children}
+            </ToastProvider>
         </QueryClientProvider>
     );
 }

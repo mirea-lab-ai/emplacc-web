@@ -1,328 +1,323 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, Suspense, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import Panel from '@/components/ui/Panel';
+import { SkeletonText } from '@/components/ui/Skeleton';
 import ChatWindow, { Message } from '@/components/forum/ChatWindow';
 import CreateProblemModal from '@/components/forum/CreateProblemModal';
+import EditProblemModal from '@/components/forum/EditProblemModal';
+import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
 import { useAllProblems, useDeleteProblem } from '@/features/problems/hooks';
 import { useForumMessagesByProblem, useCreateForumMessage } from '@/features/forum-messages/hooks';
 import { useAllUsers } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
-import TrashIcon from '@/components/ui/icons/TrashIcon';
-import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
+import type { UIProblem } from '@/features/problems/api';
 
 function ForumContent() {
-  const searchParams = useSearchParams();
-  const [activeProblemId, setActiveProblemId] = useState<string>('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<{ open: boolean; problemId: string; problemName: string }>({
-    open: false,
-    problemId: '',
-    problemName: ''
-  });
-  const pendingProblemRef = useRef<string | null>(null);
+  const searchParams  = useSearchParams();
+  const pathname      = usePathname();
+  const router        = useRouter();
+
+  const [activeProblemId, setActiveProblemId] = useState('');
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [editProblem,  setEditProblem]  = useState<UIProblem | null>(null);
+  const [deleteModal,  setDeleteModal]  = useState<{ open: boolean; problemId: string; problemName: string }>({ open: false, problemId: '', problemName: '' });
+  const [search,       setSearch]       = useState('');
+  const pendingRef = useRef<string | null>(null);
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
-  const userId = isClient ? getUserId() : null;
+  const userId   = isClient ? getUserId() : null;
+
   const { data: userRole } = useUserRole(userId, hasCreds);
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
-  const isGuest = normalizedRole === 'guest';
-  const router = useRouter();
-  const pathname = usePathname();
-  
-  // Загружаем все проблемы
-  const { data: problems, isLoading: problemsLoading, error: problemsError } = useAllProblems(1, 50, hasCreds);
-  
-  // Загружаем сообщения для активной проблемы
-  const {
-    data: forumMessages,
-    isLoading: messagesLoading,
-    error: messagesError,
-    isFetching: messagesFetching,
-  } = useForumMessagesByProblem(activeProblemId, 1, 50, hasCreds);
+  const isGuest    = normalizedRole === 'guest';
+  const canManage  = normalizedRole === 'admin' || normalizedRole === 'manager';
+  const canWrite   = !isGuest;
 
+  const { data: problems,     isLoading: problemsLoading } = useAllProblems(1, 50, hasCreds);
+  const { data: forumMessages, isLoading: messagesLoading, isFetching: messagesFetching }
+    = useForumMessagesByProblem(activeProblemId, 1, 50, hasCreds);
   const { data: users } = useAllUsers(1, 500, hasCreds);
 
-  const usersMap = useMemo(() => {
-    const map = new Map<string, { name: string; email?: string | null }>();
-    (users ?? []).forEach((u) => {
-      const name = [u.firstName, u.lastName].filter(Boolean).join(' ').trim();
-      map.set(u.id, {
-        name: name || u.email || 'Неизвестно',
-        email: u.email ?? null,
-      });
-    });
-    return map;
-  }, [users]);
-  
   const { mutate: createMessage, isPending: isSending } = useCreateForumMessage();
   const { mutate: deleteProblem, isPending: isDeleting } = useDeleteProblem();
 
-  // Add refetch and query invalidation logic here if needed
-  const updateProblemInQuery = useCallback((problemId: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (problemId) {
-      params.set('problem', problemId);
-    } else {
-      params.delete('problem');
-    }
-    const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [router, pathname, searchParams]);
-
-  // Устанавливаем активную проблему из URL или первую доступную
-  useEffect(() => {
-    const problemFromUrl = searchParams.get('problem');
-    const pendingSelection = pendingProblemRef.current;
-
-    if (pendingSelection) {
-      if (problemFromUrl === pendingSelection) {
-        pendingProblemRef.current = null;
-      } else {
-        return;
-      }
-    }
-
-    if (!problems || problems.length === 0) {
-      pendingProblemRef.current = null;
-      if (activeProblemId) {
-        setActiveProblemId('');
-      }
-      if (problemFromUrl) {
-        updateProblemInQuery(null);
-      }
-      return;
-    }
-
-    if (problemFromUrl && problems.some((p) => p.id === problemFromUrl)) {
-      if (activeProblemId !== problemFromUrl) {
-        setActiveProblemId(problemFromUrl);
-      }
-      return;
-    }
-
-    const hasActive = activeProblemId && problems.some((p) => p.id === activeProblemId);
-    const fallback = hasActive ? activeProblemId : problems[0].id;
-
-    if (activeProblemId !== fallback) {
-      setActiveProblemId(fallback);
-    }
-
-    if (!problemFromUrl || problemFromUrl !== fallback) {
-      updateProblemInQuery(fallback);
-    }
-  }, [problems, searchParams, updateProblemInQuery, activeProblemId]);
-
-  const handleProblemSelect = (problemId: string) => {
-    if (!problemId || problemId === activeProblemId) return;
-    pendingProblemRef.current = problemId;
-    setActiveProblemId(problemId);
-    updateProblemInQuery(problemId);
-  };
-
-  const activeProblem = useMemo(
-    () => problems?.find((p) => p.id === activeProblemId),
-    [problems, activeProblemId]
+  // ID системного пользователя для сервисных сообщений
+  const systemUserId = useMemo(
+    () => users?.find(u => u.email === 'system@system')?.id ?? null,
+    [users]
   );
 
-  // Преобразуем сообщения форума в формат для ChatWindow
+  const usersMap = useMemo(() => {
+    const map = new Map<string, { name: string; email?: string | null }>();
+    (users ?? []).forEach(u => {
+      const name = u.email === 'system@system'
+        ? '🤖 Система'
+        : [u.firstName, u.lastName].filter(Boolean).join(' ').trim() || u.email || 'Неизвестно';
+      map.set(u.id, { name, email: u.email ?? null });
+    });
+    return map;
+  }, [users]);
+
+  const updateQuery = useCallback((problemId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (problemId) params.set('problem', problemId);
+    else params.delete('problem');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [router, pathname, searchParams]);
+
+  // Синхронизация активной проблемы с URL
+  useEffect(() => {
+    const fromUrl = searchParams.get('problem');
+    const pending = pendingRef.current;
+    if (pending) {
+      if (fromUrl === pending) pendingRef.current = null;
+      else return;
+    }
+    if (!problems?.length) {
+      if (activeProblemId) setActiveProblemId('');
+      if (fromUrl) updateQuery(null);
+      return;
+    }
+    if (fromUrl && problems.some(p => p.id === fromUrl)) {
+      if (activeProblemId !== fromUrl) setActiveProblemId(fromUrl);
+      return;
+    }
+    const fallback = (activeProblemId && problems.some(p => p.id === activeProblemId))
+      ? activeProblemId
+      : problems[0].id;
+    if (activeProblemId !== fallback) setActiveProblemId(fallback);
+    if (!fromUrl || fromUrl !== fallback) updateQuery(fallback);
+  }, [problems, searchParams, updateQuery, activeProblemId]);
+
+  const handleSelect = (id: string) => {
+    if (!id || id === activeProblemId) return;
+    pendingRef.current = id;
+    setActiveProblemId(id);
+    updateQuery(id);
+  };
+
+  const activeProblem = useMemo(() => problems?.find(p => p.id === activeProblemId), [problems, activeProblemId]);
+
+  const filteredProblems = useMemo(() => {
+    const q = search.toLowerCase();
+    return q ? (problems ?? []).filter(p => p.name.toLowerCase().includes(q)) : (problems ?? []);
+  }, [problems, search]);
+
   const messages: Message[] = useMemo(() => {
     if (!forumMessages) return [];
     const currentUserId = getUserId();
-
     return forumMessages
-      .filter((msg) => msg.problemId === activeProblemId)
-      .map((msg) => {
-        const baseName = msg.authorName?.trim();
-        const lookup = msg.authorId ? usersMap.get(msg.authorId) : undefined;
-        const selfLookup = currentUserId ? usersMap.get(currentUserId) : undefined;
-        const isSelf = msg.authorId === currentUserId;
-        const resolvedName = baseName || lookup?.name || (isSelf ? selfLookup?.name ?? 'Я' : 'Неизвестно');
-
+      .filter(m => m.problemId === activeProblemId)
+      .map(m => {
+        const isSelf = m.authorId === currentUserId;
+        const lookup = m.authorId ? usersMap.get(m.authorId) : undefined;
         return {
-          id: msg.id,
-          author: {
-            id: msg.authorId || currentUserId || '',
-            name: resolvedName,
-            email: lookup?.email ?? (isSelf ? selfLookup?.email ?? null : null),
-          },
-          text: msg.content,
-          ts: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
+          id: m.id,
+          author: { id: m.authorId || currentUserId || '', name: m.authorName?.trim() || lookup?.name || (isSelf ? 'Я' : 'Неизвестно'), email: lookup?.email ?? null },
+          text: m.content,
+          ts: m.createdAt ? new Date(m.createdAt).getTime() : Date.now(),
           self: isSelf,
         };
       });
   }, [forumMessages, usersMap, activeProblemId]);
 
-  const hasMessagesForActiveProblem =
-    !!forumMessages && forumMessages.some((msg) => msg.problemId === activeProblemId);
-  const chatLoading = messagesLoading || (messagesFetching && !hasMessagesForActiveProblem);
+  const chatLoading = messagesLoading || (messagesFetching && !forumMessages?.some(m => m.problemId === activeProblemId));
 
   const sendMessage = (text: string) => {
-    if (!activeProblemId || !text.trim()) return;
-    
-    const userId = getUserId();
-    if (!userId) {
-      alert('Ошибка: пользователь не авторизован');
-      return;
-    }
-    
-    createMessage(
-      {
-        description: [text.trim()],
-        problem_id: activeProblemId,
-        creator_id: userId,
-      },
-      {
-        onError: (error) => {
-          alert(`Ошибка отправки сообщения: ${error.message}`);
-        },
-      }
-    );
+    if (!activeProblemId || !text.trim() || !userId) return;
+    createMessage({ description: [text.trim()], problem_id: activeProblemId, creator_id: userId });
   };
 
-  const handleDeleteClick = (problemId: string, problemName: string) => {
-    setDeleteModal({
-      open: true,
-      problemId,
-      problemName
-    });
-  };
-
-  const handleDeleteConfirm = () => {
-    const { problemId } = deleteModal;
-    deleteProblem(problemId, {
-      onSuccess: () => {
-        // Если удаляемая проблема была активной, сбрасываем активную проблему
-        if (activeProblemId === problemId) {
-          setActiveProblemId('');
-          updateProblemInQuery(null);
-        }
-        setDeleteModal({ open: false, problemId: '', problemName: '' });
-      },
-      onError: (error) => {
-        alert(`Ошибка удаления проблемы: ${error.message}`);
-      },
-    });
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteModal({ open: false, problemId: '', problemName: '' });
-  };
-
-  const containerClasses = ['w-full space-y-6 px-4 py-6 sm:px-6 lg:px-8', isGuest ? '' : 'mx-auto max-w-6xl']
-    .filter(Boolean)
-    .join(' ');
+  // Отправляем сервисное сообщение от системного пользователя
+  const sendServiceMessage = useCallback((text: string) => {
+    if (!activeProblemId) return;
+    const from = systemUserId ?? userId;
+    if (!from) return;
+    createMessage({ description: [text], problem_id: activeProblemId, creator_id: from });
+  }, [activeProblemId, systemUserId, userId, createMessage]);
 
   return (
-    <main className="min-h-screen text-white">
-      <div className={containerClasses}>
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* левая колонка — проблемы */}
-          <Panel className="p-4 w-full space-y-3 t-surface border border-white/10 lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:min-h-[520px] lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scroll">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Проблемы</h2>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500 transition-colors"
-              >
-                + Новая проблема
-              </button>
+    <div className="flex h-full min-h-0 gap-5 overflow-hidden animate-fade-in">
+      {/* ── Sidebar ── */}
+      <aside className="w-72 shrink-0 flex flex-col gap-3 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="t-heading text-white">Форум</h1>
+          {canWrite && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="btn-primary text-xs py-1.5 px-3 press btn-shimmer shrink-0"
+            >
+              + Новая
+            </button>
+          )}
+        </div>
+
+        {/* Search */}
+        <div className="ring-focus rounded-xl">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Поиск проблем…"
+            className="t-input text-sm"
+          />
+        </div>
+
+        {/* Problem list */}
+        <div className="flex-1 overflow-y-auto space-y-1 custom-scroll pr-1">
+          {problemsLoading ? (
+            <div className="space-y-3 pt-2">
+              {Array.from({ length: 4 }).map((_, i) => <SkeletonText key={i} lines={2} />)}
             </div>
-            
-            {problemsLoading ? (
-              <div className="text-slate-400">Загрузка проблем...</div>
-            ) : problemsError ? (
-              <div className="text-red-400">Ошибка загрузки проблем</div>
-            ) : !problems || problems.length === 0 ? (
-              <div className="text-slate-400">Проблем пока нет</div>
-            ) : (
-              <div className="space-y-2">
-                {problems.map((problem) => (
-                  <div
-                    key={problem.id}
-                    className="group relative"
-                  >
+          ) : filteredProblems.length === 0 ? (
+            <div className="t-body text-center py-8">
+              {search ? 'Ничего не найдено' : 'Проблем пока нет'}
+            </div>
+          ) : (
+            <div className="stagger-children space-y-1">
+              {filteredProblems.map(problem => {
+                const active = problem.id === activeProblemId;
+                return (
+                  <div key={problem.id} className="group relative">
                     <button
-                      onClick={() => handleProblemSelect(problem.id)}
+                      onClick={() => handleSelect(problem.id)}
                       className={[
-                        'w-full text-left rounded-lg px-3 py-2 transition-colors',
-                        activeProblemId === problem.id
-                          ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black font-semibold'
-                          : 'text-slate-300 hover:text-white hover:bg-white/10',
+                        'w-full text-left rounded-xl px-3 py-2.5 transition-all duration-150 pr-16',
+                        active
+                          ? 'bg-gradient-to-r from-emerald-600/80 to-lime-500/80 text-white shadow-lg shadow-emerald-900/20'
+                          : 't-surface-hover hover:ring-1 hover:ring-white/10 text-slate-300 hover:text-white',
                       ].join(' ')}
                     >
-                      <div className="font-medium truncate pr-8">{problem.name}</div>
+                      <div className="font-medium text-sm truncate">{problem.name}</div>
                       {problem.description && (
-                        <div className="text-xs opacity-75 mt-1 line-clamp-2 truncate">
+                        <div className={`text-xs mt-0.5 truncate ${active ? 'text-white/70' : 'text-slate-500'}`}>
                           {problem.description}
                         </div>
                       )}
                     </button>
-                    
-                    {/* Иконка мусорки при наведении */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(problem.id, problem.name);
-                      }}
-                      disabled={isDeleting}
-                      className={[
-                        'absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded transition-all opacity-0 group-hover:opacity-100',
-                        'text-slate-400 hover:text-red-400 hover:bg-red-400/10',
-                        isDeleting ? 'opacity-50 cursor-not-allowed' : ''
-                      ].join(' ')}
-                      title="Удалить проблему"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
+
+                    {/* Кнопки действий */}
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {canWrite && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setEditProblem(problem); }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+                          title="Редактировать"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                        </button>
+                      )}
+                      {canManage && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setDeleteModal({ open: true, problemId: problem.id, problemName: problem.name }); }}
+                          disabled={isDeleting}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                          title="Удалить"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* ── Chat ── */}
+      <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+        {activeProblemId ? (
+          <div className="h-full flex flex-col gap-3">
+            {/* Problem header */}
+            {activeProblem && (
+              <div className="t-surface rounded-2xl px-5 py-3 flex items-center gap-3 shrink-0">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-white truncate">{activeProblem.name}</div>
+                  {activeProblem.description && (
+                    <div className="t-caption truncate mt-0.5">{activeProblem.description}</div>
+                  )}
+                </div>
+                {canWrite && (
+                  <button
+                    onClick={() => setEditProblem(activeProblem)}
+                    className="btn-secondary text-xs py-1.5 px-3 shrink-0"
+                  >
+                    ✏️ Редактировать
+                  </button>
+                )}
               </div>
             )}
-          </Panel>
-
-          {/* правая колонка — чат */}
-          <div className="flex-1 min-w-0">
-            {activeProblemId ? (
-              <ChatWindow 
-                taskTitle={activeProblem?.name || 'Проблема'} 
-                messages={messages} 
-                onSend={sendMessage}
+            <div className="flex-1 min-h-0">
+              <ChatWindow
+                taskTitle={activeProblem?.name ?? 'Обсуждение'}
+                messages={messages}
+                onSend={canWrite ? sendMessage : () => {}}
                 isLoading={chatLoading}
-                error={messagesError}
+                error={null}
                 isSending={isSending}
               />
-            ) : (
-              <Panel className="grid place-items-center min-h-[520px]">
-                <div className="text-slate-400">Выберите проблему слева, чтобы открыть чат</div>
-              </Panel>
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <Panel className="h-full grid place-items-center">
+            <div className="text-center space-y-3">
+              <div className="text-4xl">💬</div>
+              <div className="t-title text-white">Выберите проблему</div>
+              <div className="t-body">Выберите тему из списка слева чтобы начать обсуждение</div>
+            </div>
+          </Panel>
+        )}
       </div>
 
-      {showCreateModal && (
-        <CreateProblemModal onClose={() => setShowCreateModal(false)} />
+      {/* Modals */}
+      {showCreate && <CreateProblemModal onClose={() => setShowCreate(false)} />}
+      {editProblem && (
+        <EditProblemModal
+          problem={editProblem}
+          onClose={() => setEditProblem(null)}
+          onRenamed={(oldName, newName) => {
+            const currentUserName = userId ? (usersMap.get(userId)?.name ?? 'Пользователь') : 'Пользователь';
+            sendServiceMessage(`✏️ ${currentUserName} переименовал(а) тему: «${oldName}» → «${newName}»`);
+          }}
+        />
       )}
-
       <DeleteProblemModal
         open={deleteModal.open}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
+        onClose={() => setDeleteModal({ open: false, problemId: '', problemName: '' })}
+        onConfirm={() => {
+          deleteProblem(deleteModal.problemId, {
+            onSuccess: () => {
+              if (activeProblemId === deleteModal.problemId) { setActiveProblemId(''); updateQuery(null); }
+              setDeleteModal({ open: false, problemId: '', problemName: '' });
+            },
+          });
+        }}
         problemName={deleteModal.problemName}
         isDeleting={isDeleting}
       />
-    </main>
+    </div>
   );
 }
 
 export default function ForumPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="flex h-full items-center justify-center">
+        <span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
+      </div>
+    }>
       <ForumContent />
     </Suspense>
   );

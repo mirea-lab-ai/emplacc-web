@@ -94,6 +94,7 @@ function ProjectsListView() {
   const { data: userRole } = useUserRole(userId, hasCreds);
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
   const isGuest = normalizedRole === 'guest';
+  const canManage = normalizedRole === 'admin' || normalizedRole === 'manager';
 
   const [projects, setProjects] = useState<UIProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,12 +158,14 @@ function ProjectsListView() {
             <h1 className="text-3xl font-semibold">Проекты</h1>
             <p className="text-sm text-slate-300">Выберите проект, чтобы открыть детальную страницу и управлять задачами.</p>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110"
-          >
-            + Создать проект
-          </button>
+          {canManage && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110"
+            >
+              + Создать проект
+            </button>
+          )}
         </div>
 
           <input

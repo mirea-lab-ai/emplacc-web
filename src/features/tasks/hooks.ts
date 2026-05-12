@@ -1,6 +1,15 @@
 'use client';
 import { useQuery, useMutation, useQueryClient, useQueries, type UseQueryResult } from '@tanstack/react-query';
-import { fetchMyTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, updateTask, improveTaskReport, type CreateTaskRequest, type MoveTaskRequest, type UpdateTaskRequest } from './api';
+import { fetchMyTasks, fetchAllTasks, createTask, deleteTask, moveTask, fetchBoardTasks, fetchBoardTasksByProjectAndBoard, fetchTaskById, updateTask, improveTaskReport, type CreateTaskRequest, type MoveTaskRequest, type UpdateTaskRequest } from './api';
+
+export function useAllTasks(page = 1, pageSize = 50, enabled = true) {
+    return useQuery({
+        queryKey: ['allTasks', page, pageSize],
+        queryFn: () => fetchAllTasks(page, pageSize),
+        enabled,
+        staleTime: 30_000,
+    });
+}
 
 export function useMyTasks(page = 1, pageSize = 20, enabled = false) {
     return useQuery({

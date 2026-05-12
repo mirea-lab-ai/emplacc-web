@@ -1,0 +1,47 @@
+# Артефакты сборки (пересобираются внутри образа)
+.next/
+node_modules/
+out/
+
+# Секреты (никогда не должны попасть в образ)
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Dev-конфиги (не нужны в продакшн образе)
+docker-compose*.yml
+Makefile
+README*.md
+DOCKER_README.md
+nginx.conf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Тесты
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+jest.config.*
+playwright.config.*
+
+# Логи
+*.log
+npm-debug.log*
+
+# Данные разработки
+src/Dockerfile.dev

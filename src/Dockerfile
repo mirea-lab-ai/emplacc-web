@@ -1,60 +1,71 @@
-FROM node:trixie-slim AS base
+# ═══════════════════════════════════════════════════════════════
+# Stage 1 – Dependencies
+# Bun: установка зависимостей быстрее npm в 10-25x
+# ═══════════════════════════════════════════════════════════════
+FROM oven/bun:1-alpine AS deps
 
-# Install dependencies only when needed
-FROM base AS deps
+RUN apk upgrade --no-cache
+
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json package-lock.json* bun.lockb* ./
 
-# Rebuild the source code only when needed
-FROM base AS builder
+# bun install читает package-lock.json если нет bun.lockb
+RUN bun install --frozen-lockfile 2>/dev/null || bun install
+
+# ═══════════════════════════════════════════════════════════════
+# Stage 2 – Build
+# ═══════════════════════════════════════════════════════════════
+FROM oven/bun:1-alpine AS builder
+
+RUN apk upgrade --no-cache
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_PUBLIC_API_BASE_URL="https://api.emplacc.g-309.ru"
-ENV NEXT_PUBLIC_KEYCLOAK_AUTH_URL="https://sso.g-309.ru"
-ENV NEXT_PUBLIC_KEYCLOAK_REALM="master-users"
-ENV NEXT_PUBLIC_KEYCLOAK_CLIENT_ID="emplacc-web"
+ARG NEXT_PUBLIC_API_BASE_URL=https://api.emplacc.g-309.ru
+ARG NEXT_PUBLIC_KEYCLOAK_AUTH_URL=https://sso.g-309.ru
+ARG NEXT_PUBLIC_KEYCLOAK_REALM=master-users
+ARG NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=emplacc-web
 
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
+    NEXT_PUBLIC_KEYCLOAK_AUTH_URL=$NEXT_PUBLIC_KEYCLOAK_AUTH_URL \
+    NEXT_PUBLIC_KEYCLOAK_REALM=$NEXT_PUBLIC_KEYCLOAK_REALM \
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=$NEXT_PUBLIC_KEYCLOAK_CLIENT_ID \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production
 
-RUN npm run build
+# bun run build — Bun запускает скрипт через Node-совместимый процесс
+RUN bun run build
 
-# Production image, copy all the files and run next
-FROM base AS runner
+# ═══════════════════════════════════════════════════════════════
+# Stage 3 – Runtime
+# Bun standalone: запускаем server.js через Bun (~2x быстрее Node)
+# ═══════════════════════════════════════════════════════════════
+FROM oven/bun:1-alpine AS runner
+
+RUN apk upgrade --no-cache && \
+    addgroup -g 1001 -S nodejs && \
+    adduser  -u 1001 -S nextjs -G nodejs
+
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
+COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD wget -qO- http://localhost:3000/ > /dev/null 2>&1 || exit 1
 
-ENV NEXT_PUBLIC_API_BASE_URL="https://api.emplacc.g-309.ru"
-ENV NEXT_PUBLIC_KEYCLOAK_AUTH_URL="https://sso.g-309.ru"
-ENV NEXT_PUBLIC_KEYCLOAK_REALM="master-users"
-ENV NEXT_PUBLIC_KEYCLOAK_CLIENT_ID="emplacc-web"
-
-CMD ["node", "server.js"]
+# Next.js standalone server.js совместим с Bun
+CMD ["bun", "server.js"]

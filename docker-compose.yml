@@ -18,6 +18,24 @@ services:
     networks:
       - emplacc-network
 
+  # MCP сервер — Remote MCP для Claude Code / OpenCode
+  # URL: https://твой-домен/mcp?token=emplacc_...
+  mcp:
+    build:
+      context: ../../emplacc-mcp
+      dockerfile: Dockerfile
+    environment:
+      - EMPLACC_API_URL=${EMPLACC_API_URL:-http://api:8081}
+      - PORT=3001
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - emplacc-network
+
   # Nginx reverse proxy (опционально)
   nginx:
     image: nginx:alpine

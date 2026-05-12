@@ -1,6 +1,7 @@
 'use client';
 
 import type { DragEvent } from 'react';
+import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
 import { getTaskPriorityMeta, type UITask } from '@/features/tasks/types';
 
@@ -54,40 +55,54 @@ export default function Card({
       className={containerClasses}
       title={readOnly ? undefined : 'Перетащите, чтобы сменить статус'}
     >
-      {!readOnly && (
-        <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
-          <button
-            onClick={onEdit}
-            className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-emerald-800"
-            title="Редактировать задачу"
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5l4 4L7 21H3v-4L16.5 3.5z" />
-            </svg>
-          </button>
-          <button
-            onClick={onRemove}
-            disabled={isDeleting}
-            className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
-            title={isDeleting ? 'Удаление…' : 'Удалить задачу'}
-          >
-            {isDeleting ? (
-              <svg viewBox="0 0 24 24" className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M21 12a9 9 0 11-6.219-8.56" />
-              </svg>
-            ) : (
+      <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
+        <Link
+          href={`/tasks/${task.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-indigo-800"
+          title="Открыть задачу"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </Link>
+        {!readOnly && (
+          <>
+            <button
+              onClick={onEdit}
+              className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-emerald-800"
+              title="Редактировать задачу"
+            >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M3 6h18" />
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5l4 4L7 21H3v-4L16.5 3.5z" />
               </svg>
-            )}
-          </button>
-        </div>
-      )}
+            </button>
+            <button
+              onClick={onRemove}
+              disabled={isDeleting}
+              className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
+              title={isDeleting ? 'Удаление…' : 'Удалить задачу'}
+            >
+              {isDeleting ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M21 12a9 9 0 11-6.219-8.56" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                </svg>
+              )}
+            </button>
+          </>
+        )}
+      </div>
 
       <div className="font-medium">{task.title}</div>
       {task.due && <div className="mt-1 text-sm text-slate-400">Срок: {formatDate(task.due)}</div>}

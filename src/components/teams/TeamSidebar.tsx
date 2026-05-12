@@ -14,8 +14,8 @@ export default function TeamSidebar({
   teams: Team[];
   activeId?: string;
   onSelect: (id: string) => void;
-  onAddTeam: () => void;
-  onDeleteTeam: (id: string, name: string) => void;
+  onAddTeam?: () => void;
+  onDeleteTeam?: (id: string, name: string) => void;
 }) {
   const hasTeams = teams.length > 0;
 
@@ -23,23 +23,25 @@ export default function TeamSidebar({
     <Panel className="p-4 w-full space-y-3 t-surface lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scroll">
       <h2 className="text-lg font-semibold px-1">Мои команды</h2>
 
-      {/* новая плитка «Добавить команду» */}
-      <button
-        onClick={onAddTeam}
-        className={[
-          'group w-full rounded-2xl border-white/15 border border-dashed t-accent-grad/20',
-          ' hover:brightness-110 p-4 text-left',
-        ].join(' ')}
-      >
-        <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-xl ring-1 ring-white/10 group-hover:ring-emerald-400/40">
-            <span className="text-lg leading-none">＋</span>
-          </span>
-          <div>
-            <div className="font-medium">Создать команду</div>
+      {/* новая плитка «Добавить команду» — только если есть права */}
+      {onAddTeam && (
+        <button
+          onClick={onAddTeam}
+          className={[
+            'group w-full rounded-2xl border-white/15 border border-dashed t-accent-grad/20',
+            ' hover:brightness-110 p-4 text-left',
+          ].join(' ')}
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-xl ring-1 ring-white/10 group-hover:ring-emerald-400/40">
+              <span className="text-lg leading-none">＋</span>
+            </span>
+            <div>
+              <div className="font-medium">Создать команду</div>
+            </div>
           </div>
-        </div>
-      </button>
+        </button>
+      )}
 
       {!hasTeams ? (
         <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-lime-400 ring-1 ring-white/10 px-4 py-3 text-slate-900">
@@ -94,8 +96,8 @@ export default function TeamSidebar({
                   </div>
                 </button>
 
-                {/* Иконка мусорки при наведении */}
-                <button
+                {/* Иконка мусорки при наведении — только если есть права */}
+                {onDeleteTeam && <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onDeleteTeam(t.id, t.name);
@@ -108,7 +110,7 @@ export default function TeamSidebar({
                   title="Удалить команду"
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </button>}
               </li>
             );
           })}

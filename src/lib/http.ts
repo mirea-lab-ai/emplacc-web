@@ -1,170 +1,106 @@
 // src/lib/http.ts
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '@/lib/auth';
+import { getSessionToken, saveSession, clearSession, updateSessionExpiry, type Session } from '@/lib/auth';
 import { getApiBaseUrl, getKeycloakConfig } from '@/lib/publicEnv';
 
-// чтобы параллельные запросы не дергали refresh одновременно
-let refreshing: Promise<void> | null = null;
+let rotating: Promise<void> | null = null;
 
 async function doFetch(path: string, init: RequestInit = {}) {
-    const access = getAccessToken();
-    return fetch(getApiBaseUrl() + path, {
-        ...init,
-        headers: {
-            'Content-Type': 'application/json',
-            ...(access ? { Authorization: `Bearer ${access}` } : {}),
-            ...(init.headers || {}),
-        },
-        // credentials: 'include', // включай, если у вас куки; для Bearer не нужно
-        cache: 'no-store',
-    });
+  const token = getSessionToken();
+  return fetch(getApiBaseUrl() + path, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init.headers || {}),
+    },
+    cache: 'no-store',
+  });
 }
 
-type RefreshResponse = {
-    access_token?: string;
-    refresh_token?: string;
-    expires_in?: number;
-    refresh_exp?: number;
-    token_type?: string;
-    expires_at?: string;
-};
-
-async function refreshAccessToken() {
-    const refresh = getRefreshToken();
-    if (!refresh) {
-        clearTokens();
-        return;
-    }
-    const { authUrl, realm, clientId } = getKeycloakConfig();
-
-    const tokenEndpoint = `${authUrl}/realms/${realm}/protocol/openid-connect/token`;
-    const body = new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refresh,
-        client_id: clientId,
+/**
+ * Ротируем сессионный токен через наш API (не Keycloak).
+ * Продлевает short-lived TTL, абсолютный срок не меняется.
+ */
+async function rotateSession(): Promise<boolean> {
+  const token = getSessionToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(getApiBaseUrl() + '/auth/session/rotate', {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      cache:   'no-store',
     });
-    const r = await fetch(tokenEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body,
-    });
+    if (!res.ok) return false;
+    const data: Session = await res.json();
+    updateSessionExpiry(data.expires_at);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-    if (!r.ok) {
-        clearTokens();
-        return;
-    }
-
-    const j = (await r.json()) as RefreshResponse & { access_token?: string; refresh_token?: string };
-
-    if (!j.access_token) {
-        clearTokens();
-        return;
-    }
-    // если вдруг refresh_token не прислали — оставим старый
-    setTokens(j.access_token, j.refresh_token ?? refresh);
+export async function refreshAccessTokenPublic(): Promise<boolean> {
+  return rotateSession();
 }
 
 /**
  * Базовый HTTP-запрос:
- *  - подставляет Bearer
- *  - при 401 делает refresh и повторяет запрос
- *  - возвращает Response (как обычный fetch)
+ * - при 401 с reason="" → ротируем сессию и повторяем
+ * - при 401 с reason="user_exit" | "long_absence" → сбрасываем сессию
  */
 export async function http(path: string, init: RequestInit = {}) {
-    const res = await doFetch(path, init);
-    if (res.status !== 401) return res;
+  const res = await doFetch(path, init);
+  if (res.status !== 401) return res;
 
-    // один общий refresh на все параллельные запросы
-    if (!refreshing) refreshing = refreshAccessToken().finally(() => (refreshing = null));
-    await refreshing;
+  // Читаем причину
+  let reason = '';
+  try {
+    const clone = res.clone();
+    const body = await clone.json();
+    reason = body?.reason ?? '';
+  } catch {}
 
-    return doFetch(path, init);
+  // Принудительный выход или долгое отсутствие → очищаем сессию
+  if (reason === 'user_exit' || reason === 'long_absence') {
+    clearSession();
+    return res;
+  }
+
+  // Обычное истечение → ротируем
+  if (!rotating) rotating = rotateSession().then(() => { rotating = null; }).catch(() => { rotating = null; });
+  await rotating;
+
+  const newToken = getSessionToken();
+  if (!newToken) return res;
+
+  return doFetch(path, init);
 }
 
-/**
- * Удобняшка: сразу парсит JSON и кидает Error при не-OK статусах.
- */
 export async function httpJson<T>(path: string, init: RequestInit = {}): Promise<T> {
-    const res = await http(path, init);
-    if (!res.ok) {
-        const detail = await extractErrorMessage(res.clone());
-        throw new Error(`HTTP ${res.status}: ${detail}`);
-    }
-    return res.json() as Promise<T>;
-}
-
-// Публичный помощник для ручного обновления access токена (используется в guard)
-export async function refreshAccessTokenPublic(): Promise<boolean> {
-    const before = getAccessToken();
-    await refreshAccessToken();
-    const after = getAccessToken();
-    return !!after && after !== before;
+  const res = await http(path, init);
+  if (!res.ok) {
+    const detail = await extractErrorMessage(res.clone());
+    throw new Error(`HTTP ${res.status}: ${detail}`);
+  }
+  return res.json() as Promise<T>;
 }
 
 export async function extractErrorMessage(res: Response): Promise<string> {
-    const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
-
-    if (contentType.includes('application/json')) {
-        try {
-            const data = await res.json();
-            if (typeof data === 'string' && data.trim()) {
-                return data;
-            }
-            if (data && typeof data === 'object') {
-                const maybeMessage =
-                    (data as { message?: unknown }).message
-                    ?? (data as { error?: unknown }).error
-                    ?? (data as { detail?: unknown }).detail;
-
-                if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
-                    return maybeMessage;
-                }
-
-                if (Array.isArray((data as { errors?: unknown }).errors)) {
-                    const joined = (data as { errors: unknown[] }).errors
-                        .map((item) => {
-                            if (typeof item === 'string') return item;
-                            if (item && typeof item === 'object' && 'message' in item) {
-                                const value = (item as { message?: unknown }).message;
-                                if (typeof value === 'string') return value;
-                            }
-                            try {
-                                return JSON.stringify(item);
-                            } catch {
-                                return String(item);
-                            }
-                        })
-                        .filter(Boolean)
-                        .join('\n');
-
-                    if (joined.trim()) {
-                        return joined;
-                    }
-                }
-
-                try {
-                    const serialized = JSON.stringify(data);
-                    if (serialized && serialized !== '{}') {
-                        return serialized;
-                    }
-                } catch {}
-            }
-        } catch (jsonError) {
-            // Попробуем fallback на текст, если JSON разобрать не удалось
-            const text = await tryReadText(res);
-            if (text) return text;
-            return String(jsonError instanceof Error ? jsonError.message : jsonError ?? `HTTP ${res.status}`);
-        }
-    }
-
-    const text = await tryReadText(res);
-    return text || `HTTP ${res.status}`;
+  const ct = res.headers.get('content-type')?.toLowerCase() ?? '';
+  if (ct.includes('application/json')) {
+    try {
+      const d = await res.json();
+      if (typeof d === 'string') return d;
+      if (d && typeof d === 'object') {
+        const m = (d as any).message ?? (d as any).error ?? (d as any).detail;
+        if (typeof m === 'string') return m;
+      }
+    } catch {}
+  }
+  try { return (await res.text()).trim() || `HTTP ${res.status}`; } catch {}
+  return `HTTP ${res.status}`;
 }
 
 async function tryReadText(res: Response): Promise<string> {
-    try {
-        const text = await res.text();
-        return text.trim();
-    } catch {
-        return '';
-    }
+  try { return (await res.text()).trim(); } catch { return ''; }
 }

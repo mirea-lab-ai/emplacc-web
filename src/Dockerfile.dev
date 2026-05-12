@@ -1,14 +1,16 @@
-FROM node:20-alpine
+FROM oven/bun:1-alpine
+
+RUN apk upgrade --no-cache
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json package-lock.json* bun.lockb* ./
+RUN bun install
 
-# Copy source code
 COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+USER bun
+
+CMD ["bun", "run", "dev"]

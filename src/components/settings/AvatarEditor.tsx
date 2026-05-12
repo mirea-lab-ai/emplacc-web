@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { getGravatarUrl } from '@/lib/gravatar';
+import { uploadAvatar } from '@/lib/upload';
+import { getUserId } from '@/lib/auth';
 
 export default function AvatarEditor({
                                        name,
@@ -22,8 +24,10 @@ export default function AvatarEditor({
     return parts.map((p) => p[0]?.toUpperCase() ?? '').join('');
   }, [name]);
 
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<string | undefined>(src);
+  const [open, setOpen]       = useState(false);
+  const [draft, setDraft]     = useState<string | undefined>(src);
+  const [uploading, setUploading] = useState(false);
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => setDraft(src), [src]);
@@ -124,20 +128,38 @@ export default function AvatarEditor({
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const f = e.target.files?.[0];
                     if (!f) return;
+                    // Показываем preview через DataURL
                     const reader = new FileReader();
                     reader.onload = () => setDraft(reader.result as string);
                     reader.readAsDataURL(f);
+                    // Загружаем в S3
+                    const userId = getUserId();
+                    if (userId) {
+                      setUploading(true);
+                      setUploadErr(null);
+                      try {
+                        const { url } = await uploadAvatar(userId, f);
+                        setDraft(url);
+                        onChange(url);
+                      } catch {
+                        setUploadErr('Не удалось загрузить — S3 не настроен');
+                      } finally {
+                        setUploading(false);
+                      }
+                    }
                   }}
                 />
                 <button
-                  className="rounded-lg bg-[#2b3681] px-4 py-2 text-slate-200 hover:brightness-110"
+                  className="rounded-lg bg-emerald-700/40 ring-1 ring-emerald-500/30 px-4 py-2 text-slate-200 hover:brightness-110 disabled:opacity-50"
+                  disabled={uploading}
                   onClick={() => fileRef.current?.click()}
                 >
-                  Выбрать файл…
+                  {uploading ? 'Загрузка…' : 'Выбрать файл…'}
                 </button>
+                {uploadErr && <p className="text-xs text-amber-400">{uploadErr}</p>}
                 {draft && (
                   <button
                     className="rounded-lg bg-[#ef4657] px-4 py-2 text-white hover:brightness-110"

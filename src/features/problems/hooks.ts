@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchAllProblems, createProblem, deleteProblem, type CreateProblemRequest } from './api';
+import { fetchAllProblems, createProblem, updateProblem, deleteProblem, type CreateProblemRequest } from './api';
 
 export function useAllProblems(page = 1, pageSize = 20, enabled = true) {
   return useQuery({
@@ -19,6 +19,15 @@ export function useCreateProblem() {
       // Инвалидировать кеш для всех проблем
       queryClient.invalidateQueries({ queryKey: ['allProblems'] });
     },
+  });
+}
+
+export function useUpdateProblem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name, description }: { id: string; name?: string; description?: string[] }) =>
+      updateProblem(id, { name, description }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['allProblems'] }),
   });
 }
 

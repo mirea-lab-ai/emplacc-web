@@ -377,11 +377,10 @@ export default function ReportsPage() {
   const { data: userRole } = useUserRole(userId, hasCreds);
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
   const isGuest = normalizedRole === 'guest';
+  const canWrite = !isGuest;
 
   useEffect(() => {
-    if (isGuest && showWizard) {
-      setShowWizard(false);
-    }
+    if (isGuest && showWizard) setShowWizard(false);
   }, [isGuest, showWizard]);
 
   const { data, isLoading, error, refetch } = useAllReports(page, REPORTS_PAGE_SIZE, hasCreds);
@@ -425,7 +424,7 @@ export default function ReportsPage() {
     .join(' ');
 
   return (
-    <main className="min-h-screen text-white">
+    <main className="overflow-y-auto h-full text-white">
       {showWizard ? (
         <ReportWizardView
           onClose={handleWizardClose}
@@ -1291,7 +1290,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="overflow-y-auto h-full text-white">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <button

@@ -2,21 +2,28 @@
 
 import * as React from 'react';
 
+type Variant = 'default' | 'elevated' | 'accent';
+
 type PanelProps = React.HTMLAttributes<HTMLDivElement> & {
   className?: string;
   children?: React.ReactNode;
+  variant?: Variant;
 };
 
-/**
- * Универсальная карточка. Принимает любые HTML-атрибуты <div>,
- * в т.ч. onDragOver, onDrop, onClick и т.д.
- */
+const VARIANT_CLASS: Record<Variant, string> = {
+  default:  't-surface',
+  elevated: 't-surface-elevated',
+  accent:   't-surface-accent',
+};
+
 const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
-  ({ className = '', children, ...rest }, ref) => {
-    const base =
-      'rounded-2xl ring-1 ring-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] t-surface';
+  ({ className = '', children, variant = 'default', ...rest }, ref) => {
     return (
-      <div ref={ref} {...rest} className={`${base} ${className}`}>
+      <div
+        ref={ref}
+        {...rest}
+        className={`rounded-2xl ${VARIANT_CLASS[variant]} ${className}`}
+      >
         {children}
       </div>
     );
@@ -24,5 +31,4 @@ const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
 );
 
 Panel.displayName = 'Panel';
-
 export default Panel;

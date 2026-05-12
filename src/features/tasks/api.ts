@@ -17,6 +17,17 @@ function buildActiveTasksPath(userId: string, page = 1, pageSize = 20) {
         .replace('{pagesize}', String(pageSize));
 }
 
+export async function fetchAllTasks(page = 1, pageSize = 50): Promise<{ tasks: UITask[]; total: number }> {
+    const res = await http(`/task/all/${page}/${pageSize}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as any;
+    const list: TaskShort[] = Array.isArray(json.tasks) ? json.tasks : [];
+    return {
+        tasks: list.map(mapTask),
+        total: typeof json.total_count === 'number' ? json.total_count : list.length,
+    };
+}
+
 export async function fetchMyTasks(page = 1, pageSize = 20): Promise<UITask[]> {
     // 1) userId берём из локального хранилища (мы сохранили его при логине)
     const uid = getUserId();

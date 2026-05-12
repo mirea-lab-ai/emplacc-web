@@ -1,209 +1,173 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import Avatar from '@/components/ui/Avatar';
 import AvatarEditor from '@/components/settings/AvatarEditor';
 import TextField from '@/components/settings/TextField';
-import {clearTokens, getRefreshToken, getUserId} from "@/lib/auth";
-import {apiLogout} from "@/features/auth/api";
-import { usePathname } from 'next/navigation';
+import APITokens from '@/components/settings/APITokens';
+import { useToast } from '@/components/ui/Toast';
+import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
+import { http } from '@/lib/http';
 import { useRouter } from 'next/navigation';
 import { useUser, useUpdateUser } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
-import { isAuthed } from '@/lib/auth';
+import { useUserRole } from '@/features/roles/hooks';
 
-type ProfileData = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  profession: string;
-  tgId: string;
-  avatarSrc?: string;
+const ROLE_COLORS: Record<string, string> = {
+  admin:    'badge badge-emerald',
+  manager:  'badge badge-lime',
+  employee: 'badge badge-slate',
+  guest:    'badge badge-slate',
 };
 
-export default function ProfilePage() {
-  const [data, setData] = useState<ProfileData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    profession: '',
-    tgId: '',
-    avatarSrc: undefined,
-  });
+export default function SettingsPage() {
+  const toast     = useToast();
+  const router    = useRouter();
+  const isClient  = useIsClient();
+  const userId    = getUserId();
+  const hasCreds  = isClient && isAuthed() && !!userId;
 
-  const [errors, setErrors] = useState<Partial<Record<keyof ProfileData, string>>>(
-    {}
-  );
-
-  const isClient = useIsClient();
-  const userId = getUserId();
-  const hasCreds = isClient && isAuthed() && !!userId;
-  
-  const { data: userData, isLoading, error } = useUser(userId, hasCreds);
+  const { data: userData, isLoading } = useUser(userId, hasCreds);
+  const { data: userRole } = useUserRole(userId, hasCreds);
   const { mutate: updateUser, isPending: isSaving } = useUpdateUser();
 
-  // Загружаем данные пользователя из API
+  const [firstName,  setFirstName]  = useState('');
+  const [lastName,   setLastName]   = useState('');
+  const [profession, setProfession] = useState('');
+  const [tgId,       setTgId]       = useState('');
+  const [avatarSrc,  setAvatarSrc]  = useState<string | undefined>();
+  const [tab,        setTab]        = useState<'profile' | 'tokens'>('profile');
+
   useEffect(() => {
     if (userData) {
-      setData({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        profession: userData.specialization || userData.profession || '',
-        tgId: userData.tgId || '',
-        avatarSrc: undefined, // Аватар пока не поддерживается API
-      });
+      setFirstName(userData.firstName);
+      setLastName(userData.lastName);
+      setProfession(userData.specialization || userData.profession || '');
+      setTgId(userData.tgId || '');
+      setAvatarSrc(userData.avatarUrl);
     }
   }, [userData]);
 
-  const onChange = <K extends keyof ProfileData,>(k: K, v: ProfileData[K]) =>
-    setData((d) => ({ ...d, [k]: v }));
+  async function handleLogout() {
+    try {
+      // Сообщаем серверу о выходе (токен помечается как user_exit)
+      await http('/auth/session', { method: 'DELETE' }).catch(() => {});
+    } finally {
+      clearTokens();
+      router.replace('/login');
+    }
+  }
 
-  const validate = () => {
-    const e: Partial<Record<keyof ProfileData, string>> = {};
-    if (!data.firstName.trim()) e.firstName = 'Имя обязательно';
-    if (!data.lastName.trim()) e.lastName = 'Фамилия обязательна';
-    if (!data.email.trim()) e.email = 'Email обязателен';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
-      e.email = 'Некорректный email';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-    const router = useRouter();
-
-  const submit = () => {
-    if (!validate() || !userId) return;
-    
+  function submit() {
+    if (!userId) return;
     updateUser(
+      { userId, payload: { first_name: firstName, last_name: lastName, email: userData?.email ?? '', profession, tg_id: tgId || undefined } },
       {
-        userId,
-        payload: {
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
-          profession: data.profession || undefined,
-          specialization: data.profession || undefined,
-          tg_id: data.tgId || undefined,
-        },
-      },
-      {
-        onSuccess: () => {
-          alert('Настройки сохранены успешно!');
-        },
-        onError: (error) => {
-          alert(`Ошибка сохранения: ${error.message}`);
-        },
+        onSuccess: () => toast.success('Профиль сохранён'),
+        onError:   () => toast.error('Не удалось сохранить'),
       }
     );
-  };
+  }
 
-  const greeting = useMemo(() => {
-    const first = data.firstName.trim();
-    return first ? `Привет, ${first}!` : 'Профиль';
-  }, [data.firstName]);
+  const roleName = userRole?.role?.name ?? '';
+  const fullName = [firstName, lastName].filter(Boolean).join(' ') || userData?.email || '';
+
+  const TABS = [
+    { id: 'profile' as const, label: 'Профиль' },
+    { id: 'tokens'  as const, label: 'API-токены' },
+  ];
 
   return (
-    <main className="min-h-screen text-white">
-      <div className=" mx-auto max-w-5xl p-6 space-y-8">
-        {/* верхняя панель */}
+    <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto animate-fade-in">
+      {/* ── Header card ── */}
+      <div className="t-surface-accent rounded-2xl px-6 py-5 flex items-center gap-5 flex-wrap">
+        <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-400/80 to-lime-400/80 shrink-0">
+          <Avatar name={fullName} email={userData?.email} url={avatarSrc} size="lg" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="t-heading text-white truncate">{fullName || 'Загрузка…'}</div>
+          <div className="t-body truncate">{userData?.email}</div>
+          {roleName && (
+            <span className={`mt-1 inline-flex ${ROLE_COLORS[roleName.toLowerCase()] ?? 'badge badge-slate'}`}>
+              {roleName}
+            </span>
+          )}
+        </div>
+        <button onClick={handleLogout} className="btn-ghost text-red-400 hover:text-red-300 text-sm shrink-0">
+          Выйти
+        </button>
+      </div>
 
+      {/* ── Tabs ── */}
+      <div className="t-surface rounded-2xl p-1.5 flex gap-1 w-fit">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={[
+              'px-4 py-2 rounded-xl text-sm font-medium transition-all',
+              tab === t.id
+                ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25'
+                : 'text-white/50 hover:text-white/80 hover:bg-white/5',
+            ].join(' ')}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {/* двухколоночный блок */}
-        <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-6">
-          {/* левая колонка — аватар и резюме */}
-          <Panel className="p-6 flex flex-col items-center gap-4 backdrop-blur-md bg-white/5 border border-white/10">
+      {/* ── Tab content ── */}
+      {tab === 'profile' && (
+        <div className="grid gap-5 md:grid-cols-[280px,1fr] animate-fade-in">
+          {/* Avatar column */}
+          <Panel className="p-6 flex flex-col items-center gap-5 text-center">
             <AvatarEditor
-              name={`${data.firstName} ${data.lastName}`.trim() || 'Пользователь'}
-              src={data.avatarSrc}
-              email={data.email}
-              onChange={(src) => onChange('avatarSrc', src)}
-              readOnly
+              name={fullName}
+              src={avatarSrc}
+              email={userData?.email}
+              onChange={setAvatarSrc}
             />
-            
-            <div className="text-center">
-              <div className="text-lg font-semibold">
-                {data.firstName && data.lastName 
-                  ? `${data.firstName} ${data.lastName}` 
-                  : 'Без имени'
-                }
-              </div>
-              <div className="text-slate-400 text-sm">
-                {data.email || 'email не указан'}
-              </div>
-              {data.profession && (
-                <div className="text-slate-300 text-sm mt-1">
-                  {data.profession}
-                </div>
-              )}
+            <div>
+              <div className="font-semibold text-white">{fullName}</div>
+              <div className="t-caption mt-0.5">{userData?.email}</div>
+              {profession && <div className="t-caption mt-1">{profession}</div>}
             </div>
           </Panel>
 
-          <Panel className="p-6 backdrop-blur-md bg-white/5 border border-white/10">
-            <h2 className="text-xl font-semibold mb-4">Личные данные</h2>
+          {/* Fields column */}
+          <Panel className="p-6 space-y-5">
+            <h2 className="t-title text-white">Личные данные</h2>
+
             {isLoading ? (
-              <div className="text-slate-400">Загрузка данных...</div>
-            ) : error ? (
-              <div className="text-red-400">Ошибка загрузки данных</div>
+              <div className="t-body">Загрузка…</div>
             ) : (
-              <div className="grid gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <TextField
-                    label="Имя"
-                    value={data.firstName}
-                    onChange={(v) => onChange('firstName', v)}
-                    placeholder="Иван"
-                    error={errors.firstName}
-                    disabled
-                  />
-                  <TextField
-                    label="Фамилия"
-                    value={data.lastName}
-                    onChange={(v) => onChange('lastName', v)}
-                    placeholder="Иванов"
-                    error={errors.lastName}
-                    disabled
-                  />
+              <div className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <TextField label="Имя"     value={firstName}  onChange={setFirstName}  placeholder="Иван"   />
+                  <TextField label="Фамилия" value={lastName}   onChange={setLastName}   placeholder="Иванов" />
                 </div>
-                <TextField
-                  label="Email"
-                  value={data.email}
-                  onChange={(v) => onChange('email', v)}
-                  placeholder="ivan@company.com"
-                  error={errors.email}
-                  type="email"
-                  disabled
-                />
-                <TextField
-                  label="Профессия"
-                  value={data.profession}
-                  onChange={(v) => onChange('profession', v)}
-                  placeholder="Frontend Developer"
-                  disabled
-                />
-                <TextField
-                  label="Telegram ID"
-                  value={data.tgId}
-                  onChange={(v) => onChange('tgId', v)}
-                  placeholder="@username или user_id"
-                />
+                <TextField label="Email" value={userData?.email ?? ''} onChange={() => {}} placeholder="ivan@company.com" type="email" disabled />
+                <TextField label="Профессия / специализация" value={profession} onChange={setProfession} placeholder="Frontend Developer" />
+                <TextField label="Telegram" value={tgId} onChange={setTgId} placeholder="@username" />
               </div>
             )}
 
-            {/* липкая зона сохранения */}
-            <div className="sticky bottom-0 pt-6 mt-8">
-              <div className="flex justify-end">
-                <button
-                  onClick={submit}
-                  disabled={isSaving || isLoading}
-                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-8 py-3 font-semibold text-black hover:brightness-110 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
-                </button>
-              </div>
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={submit}
+                disabled={isSaving || isLoading}
+                className="btn-primary px-6 py-2.5 disabled:opacity-50 press btn-shimmer"
+              >
+                {isSaving ? 'Сохранение…' : 'Сохранить изменения'}
+              </button>
             </div>
           </Panel>
         </div>
-      </div>
-    </main>
+      )}
+
+      {tab === 'tokens' && (
+        <Panel className="p-6 animate-fade-in">
+          <APITokens />
+        </Panel>
+      )}
+    </div>
   );
 }

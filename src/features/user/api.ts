@@ -8,6 +8,7 @@ export type UIUser = {
   profession?: string;
   specialization?: string;
   tgId?: string;
+  avatarUrl?: string;
 };
 
 export type UpdateUserRequest = {
@@ -44,6 +45,7 @@ export async function fetchUser(userId: string): Promise<UIUser> {
     profession: resolveSpecialization(json.profession) ?? specialization,
     specialization,
     tgId: json.tg_id,
+    avatarUrl: json.avatar_url || undefined,
   };
 }
 
@@ -67,14 +69,15 @@ export async function fetchAllUsers(page = 1, pageSize = 100): Promise<UIUser[]>
     : json.users ?? [];
   
   return list.map((u: any) => ({
-    id: String(u.id ?? ''),
-    firstName: u.first_name ?? '',
-    lastName: u.last_name ?? '',
-    email: u.email ?? '',
-    profession: resolveSpecialization(u.profession) ?? resolveSpecialization(u.specialization),
-    specialization: resolveSpecialization(u.specialization) ?? resolveSpecialization(u.profession),
-    tgId: u.tg_id,
-  }));
+      id: String(u.id ?? ''),
+      firstName: u.first_name ?? '',
+      lastName: u.last_name ?? '',
+      email: u.email ?? '',
+      profession: resolveSpecialization(u.profession) ?? resolveSpecialization(u.specialization),
+      specialization: resolveSpecialization(u.specialization) ?? resolveSpecialization(u.profession),
+      tgId: u.tg_id,
+      avatarUrl: u.avatar_url || undefined,
+    }));
 }
 
 // Обновление данных пользователя

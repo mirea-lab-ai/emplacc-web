@@ -57,6 +57,16 @@ export async function createProblem(payload: CreateProblemRequest): Promise<UIPr
   };
 }
 
+// Обновление проблемы
+export async function updateProblem(problemId: string, payload: { name?: string; description?: string[] }): Promise<void> {
+  const res = await http(`/problem/${encodeURIComponent(problemId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
 // Удаление проблемы
 export async function deleteProblem(problemId: string): Promise<void> {
   const res = await http(`/problem/${encodeURIComponent(problemId)}`, {

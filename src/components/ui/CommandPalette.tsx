@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { http } from '@/lib/http';
+import { getUserId } from '@/lib/auth';
 
 type Result = {
   id: string;
@@ -13,9 +14,11 @@ type Result = {
 };
 
 async function searchAll(q: string): Promise<Result[]> {
+  const uid = getUserId() ?? '';
+  const base = `query=${encodeURIComponent(q)}&user_id=${encodeURIComponent(uid)}&page=1&pagesize=5`;
   const [tasks, projects] = await Promise.allSettled([
-    http(`/task/search?q=${encodeURIComponent(q)}&page=1&pageSize=5`).then(r => r.json()),
-    http(`/project/search?q=${encodeURIComponent(q)}`).then(r => r.json()),
+    http(`/task/search?${base}`).then(r => r.json()),
+    http(`/project/search?${base}`).then(r => r.json()),
   ]);
 
   const results: Result[] = [];

@@ -10,6 +10,7 @@ import { fetchProjectById, type UIProject } from '@/features/projects/api';
 import { fetchAllUsers, type UIUser } from '@/features/user/api';
 import { getTaskPriorityMeta, TASK_PRIORITY_OPTIONS, type TaskPriorityValue } from '@/features/tasks/types';
 import MarkdownEditor, { MarkdownView } from '@/components/ui/MarkdownEditor';
+import { SkeletonTaskDetail } from '@/components/ui/Skeleton';
 
 type TaskFull = {
   id: string; name: string; description: string; priority: number; statusId: string;
@@ -139,7 +140,16 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
     ? users.filter(u => `${u.firstName} ${u.lastName}`.toLowerCase().includes(userQuery.toLowerCase()) || u.email.toLowerCase().includes(userQuery.toLowerCase()))
     : users;
 
-  if (loading) return <div className="flex h-full items-center justify-center text-slate-400">Загружаем задачу…</div>;
+  if (loading) return (
+    <div className="flex h-full min-h-0 flex-col gap-4 animate-fade-in p-1">
+      <div className="flex items-center gap-2">
+        <div className="skeleton h-4 w-16 rounded-lg" />
+        <div className="skeleton h-3 w-3 rounded" />
+        <div className="skeleton h-4 w-24 rounded-lg" />
+      </div>
+      <SkeletonTaskDetail />
+    </div>
+  );
   if (error || !task) return (
     <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
       <div className="text-red-400 text-lg">{error ?? 'Задача не найдена'}</div>

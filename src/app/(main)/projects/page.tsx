@@ -8,6 +8,7 @@ import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchUserProjects, type UIProject } from '@/features/projects/api';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import { useUserRole } from '@/features/roles/hooks';
+import { SkeletonProjectRow } from '@/components/ui/Skeleton';
 
 const STATUS_META: Record<string, { emoji: string; label: string }> = {
   active: { emoji: '🟢', label: 'Активен' },
@@ -178,11 +179,13 @@ function ProjectsListView() {
 
           <Panel className="t-surface p-0">
             {loading ? (
-              <div className="p-6 text-slate-400">Загружаем проекты…</div>
+              <div className="divide-y divide-white/5">
+                {Array.from({ length: 5 }).map((_, i) => <SkeletonProjectRow key={i} />)}
+              </div>
             ) : filtered.length === 0 ? (
               <div className="p-6 text-slate-400">Проекты не найдены.</div>
             ) : (
-              <ul className="divide-y divide-white/10">
+              <ul className="divide-y divide-white/10 list-appear">
                 {filtered.map((project) => {
                   const meta = project.status ? STATUS_META[project.status.toLowerCase().trim()] : null;
 
@@ -240,8 +243,23 @@ function ProjectsPageFallback() {
   return (
     <main className="flex h-full min-h-0 flex-col text-white">
       <div className="flex-1 overflow-auto">
-        <div className="flex w-full flex-col gap-4">
-          <div className="text-slate-400">Загружаем…</div>
+        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 lg:px-10">
+          <div className="space-y-2">
+            <div className="skeleton h-8 w-32 rounded-xl" />
+            <div className="skeleton h-4 w-80 rounded-lg" />
+          </div>
+          <div className="skeleton h-11 w-full rounded-xl" />
+          <div className="t-surface rounded-2xl p-0 ring-1 ring-white/10 divide-y divide-white/5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-4">
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-5 w-48 rounded-lg" />
+                  <div className="skeleton h-3 w-72 rounded-lg" />
+                </div>
+                <div className="skeleton h-6 w-20 rounded-full shrink-0" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>

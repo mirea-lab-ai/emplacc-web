@@ -77,7 +77,7 @@ export default function TeamBoard({
 
           {team.members.length ? (
             <div className="flex h-full min-h-0 flex-col">
-              <ul className="space-y-3 pr-1 custom-scroll">
+              <ul className="space-y-3 pr-1 custom-scroll list-appear">
                 {team.members.map((m) => (
                   <li
                     key={m.id}

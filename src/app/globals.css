@@ -217,17 +217,44 @@ select.t-input option { background-color: #0d1f12; color: var(--text-primary); }
 .animate-pulse-soft    { animation: pulse-soft     2s    ease-in-out infinite; }
 .animate-spin-slow     { animation: spin-slow      3s    linear infinite; }
 
-/* Stagger children — быстрее и с пружинным easing */
-.stagger-children > * { animation: fade-in 0.4s cubic-bezier(0.16,1,0.3,1) both; }
-.stagger-children > *:nth-child(1)  { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2)  { animation-delay: 40ms; }
-.stagger-children > *:nth-child(3)  { animation-delay: 80ms; }
+/* ── List item entrance ── */
+@keyframes list-item-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* stagger-children — карточки, секции, виджеты (шаг 40ms) */
+.stagger-children > * { animation: fade-in 0.38s cubic-bezier(0.16,1,0.3,1) both; }
+.stagger-children > *:nth-child(1)  { animation-delay:   0ms; }
+.stagger-children > *:nth-child(2)  { animation-delay:  40ms; }
+.stagger-children > *:nth-child(3)  { animation-delay:  80ms; }
 .stagger-children > *:nth-child(4)  { animation-delay: 120ms; }
 .stagger-children > *:nth-child(5)  { animation-delay: 160ms; }
 .stagger-children > *:nth-child(6)  { animation-delay: 200ms; }
 .stagger-children > *:nth-child(7)  { animation-delay: 240ms; }
 .stagger-children > *:nth-child(8)  { animation-delay: 280ms; }
 .stagger-children > *:nth-child(n+9){ animation-delay: 320ms; }
+
+/* list-appear — строки и элементы списков (шаг 25ms, лёгкий подъём) */
+.list-appear > * {
+  animation: list-item-in 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+.list-appear > *:nth-child(1)   { animation-delay:   0ms; }
+.list-appear > *:nth-child(2)   { animation-delay:  25ms; }
+.list-appear > *:nth-child(3)   { animation-delay:  50ms; }
+.list-appear > *:nth-child(4)   { animation-delay:  75ms; }
+.list-appear > *:nth-child(5)   { animation-delay: 100ms; }
+.list-appear > *:nth-child(6)   { animation-delay: 125ms; }
+.list-appear > *:nth-child(7)   { animation-delay: 150ms; }
+.list-appear > *:nth-child(8)   { animation-delay: 175ms; }
+.list-appear > *:nth-child(9)   { animation-delay: 200ms; }
+.list-appear > *:nth-child(10)  { animation-delay: 225ms; }
+.list-appear > *:nth-child(11)  { animation-delay: 250ms; }
+.list-appear > *:nth-child(12)  { animation-delay: 275ms; }
+.list-appear > *:nth-child(13)  { animation-delay: 300ms; }
+.list-appear > *:nth-child(14)  { animation-delay: 300ms; }
+.list-appear > *:nth-child(15)  { animation-delay: 300ms; }
+.list-appear > *:nth-child(n+16){ animation-delay: 300ms; }
 
 /* Hover lift — лёгкий подъём карточки */
 .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }

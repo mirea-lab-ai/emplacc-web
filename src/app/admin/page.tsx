@@ -61,7 +61,7 @@ export default function AdminPage() {
           <div className="text-slate-400 py-8 text-center">Ничего не найдено</div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 list-appear">
           {filtered.map(u => (
             <EmployeeCard
               key={u.id}

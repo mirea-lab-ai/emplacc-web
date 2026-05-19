@@ -143,7 +143,7 @@ export default function Column({
         onDragOver={readOnly ? undefined : (event: DragEvent<HTMLDivElement>) => event.preventDefault()}
         onDrop={readOnly ? undefined : handleDrop}
       >
-        <div className="custom-scroll flex-1 space-y-2 overflow-auto p-3">
+        <div className="custom-scroll flex-1 space-y-2 overflow-auto p-3 list-appear">
           {column.tasks.map((task) => (
             <Card
               key={task.id}

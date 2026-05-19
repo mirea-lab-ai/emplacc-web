@@ -180,7 +180,7 @@ function ForumContent() {
               {search ? 'Ничего не найдено' : 'Проблем пока нет'}
             </div>
           ) : (
-            <div className="stagger-children space-y-1">
+            <div className="list-appear space-y-1">
               {filteredProblems.map(problem => {
                 const active = problem.id === activeProblemId;
                 return (

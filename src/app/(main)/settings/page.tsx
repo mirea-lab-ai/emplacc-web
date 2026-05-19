@@ -7,6 +7,7 @@ import AvatarEditor from '@/components/settings/AvatarEditor';
 import TextField from '@/components/settings/TextField';
 import APITokens from '@/components/settings/APITokens';
 import { useToast } from '@/components/ui/Toast';
+import { SkeletonProfileHeader, SkeletonField } from '@/components/ui/Skeleton';
 import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
 import { http } from '@/lib/http';
 import { useRouter } from 'next/navigation';
@@ -78,6 +79,31 @@ export default function SettingsPage() {
     { id: 'tokens'  as const, label: 'API-токены' },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto animate-fade-in">
+        <SkeletonProfileHeader />
+        <div className="skeleton h-12 w-48 rounded-2xl" />
+        <div className="grid gap-5 md:grid-cols-[280px,1fr]">
+          <div className="t-surface rounded-2xl p-6 ring-1 ring-white/10 space-y-5">
+            <div className="skeleton w-20 h-20 rounded-full mx-auto" />
+            <div className="space-y-2 text-center">
+              <div className="skeleton h-4 w-32 mx-auto rounded-lg" />
+              <div className="skeleton h-3 w-44 mx-auto rounded-lg" />
+            </div>
+          </div>
+          <div className="t-surface rounded-2xl p-6 ring-1 ring-white/10 space-y-5">
+            <div className="skeleton h-5 w-36 rounded-lg" />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <SkeletonField /><SkeletonField />
+            </div>
+            <SkeletonField /><SkeletonField /><SkeletonField />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto animate-fade-in">
       {/* ── Header card ── */}
@@ -136,9 +162,7 @@ export default function SettingsPage() {
           <Panel className="p-6 space-y-5">
             <h2 className="t-title text-white">Личные данные</h2>
 
-            {isLoading ? (
-              <div className="t-body">Загрузка…</div>
-            ) : (
+            {false ? null : (
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <TextField label="Имя"     value={firstName}  onChange={setFirstName}  placeholder="Иван"   />

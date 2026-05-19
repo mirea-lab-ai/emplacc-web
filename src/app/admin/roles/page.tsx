@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import { SkeletonRow } from '@/components/ui/Skeleton';
 import { useAllRoles } from '@/features/roles/hooks';
 import { http } from '@/lib/http';
 import { useQueryClient } from '@tanstack/react-query';
@@ -56,12 +57,16 @@ export default function RolesPage() {
       </Panel>
 
       <Panel className="p-6">
-        {isLoading && <div className="text-slate-400 py-6 text-center">Загрузка…</div>}
+        {isLoading && (
+          <div className="divide-y divide-white/5">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
+          </div>
+        )}
         {isError   && <div className="text-red-400 py-6 text-center">Не удалось загрузить роли</div>}
         {!isLoading && !isError && roles.length === 0 && (
           <div className="text-slate-400 py-6 text-center">Роли не созданы</div>
         )}
-        <div className="space-y-3">
+        <div className="space-y-3 list-appear">
           {roles.map(role => {
             const isProtected = PROTECTED.includes(role.name.toLowerCase());
             return (

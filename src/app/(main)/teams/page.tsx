@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { SkeletonSidebarItem, SkeletonCard } from '@/components/ui/Skeleton';
 import TeamSidebar from '@/components/teams/TeamSidebar';
 import TeamBoard from '@/components/teams/TeamBoard';
 import AddTeamModal from '@/components/teams/AddTeamModal';
@@ -149,23 +150,26 @@ function TeamsPageContent() {
   return (
     <div className="flex h-full min-h-0 gap-5 overflow-hidden animate-fade-in">
       {/* Sidebar */}
-      <TeamSidebar
-        teams={teams}
-        activeId={activeTeamId}
-        onSelect={selectTeam}
-        onAddTeam={canManage ? () => setOpenCreate(true) : undefined}
-        onDeleteTeam={canManage ? handleDeleteTeam : undefined}
-      />
+      {isLoading ? (
+        <div className="w-56 shrink-0 t-surface rounded-2xl ring-1 ring-white/10 p-2 space-y-1">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonSidebarItem key={i} />)}
+        </div>
+      ) : (
+        <TeamSidebar
+          teams={teams}
+          activeId={activeTeamId}
+          onSelect={selectTeam}
+          onAddTeam={canManage ? () => setOpenCreate(true) : undefined}
+          onDeleteTeam={canManage ? handleDeleteTeam : undefined}
+        />
+      )}
 
       {/* Main */}
       <div className="flex-1 min-w-0 overflow-y-auto">
         {isLoading ? (
-          <Panel className="grid place-items-center min-h-[300px]">
-            <div className="flex items-center gap-3 t-body">
-              <span className="inline-block h-4 w-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
-              Загрузка команд…
-            </div>
-          </Panel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
         ) : error ? (
           <Panel className="grid place-items-center min-h-[300px]">
             <div className="text-red-400">Ошибка загрузки команд</div>

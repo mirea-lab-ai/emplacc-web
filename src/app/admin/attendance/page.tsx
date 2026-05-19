@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { useAllReports } from '@/features/reports/hooks';
 import { useAllAttendances } from '@/features/attendance/hooks';
 import Avatar from '@/components/ui/Avatar';
+import { SkeletonRow } from '@/components/ui/Skeleton';
 
 function toISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -64,7 +65,7 @@ export default function AttendancePage() {
 
           <Panel className="p-6">
             <h2 className="text-lg font-semibold mb-4">Посещаемость за {date}</h2>
-            {attendanceLoading && <div className="text-slate-400 py-6 text-center">Загрузка…</div>}
+            {attendanceLoading && <div className="divide-y divide-white/5">{Array.from({length:4}).map((_,i)=><SkeletonRow key={i}/>)}</div>}
             {!attendanceLoading && attendancesForDate.length === 0 && (
               <div className="t-surface rounded-xl px-4 py-3 text-slate-400">Нет данных за этот день</div>
             )}
@@ -93,7 +94,7 @@ export default function AttendancePage() {
 
           <Panel className="p-6">
             <h2 className="text-lg font-semibold mb-4">Отчёты за {date}</h2>
-            {reportsLoading && <div className="text-slate-400 py-6 text-center">Загрузка…</div>}
+            {reportsLoading && <div className="divide-y divide-white/5">{Array.from({length:4}).map((_,i)=><SkeletonRow key={i}/>)}</div>}
             {!reportsLoading && reportsForDate.length === 0 && (
               <div className="t-surface rounded-xl px-4 py-3 text-slate-400">Отчётов нет</div>
             )}

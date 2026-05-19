@@ -13,6 +13,7 @@ import { useUser } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { useMyTasks } from '@/features/tasks/hooks';
 import { useAllReports } from '@/features/reports/hooks';
+import { SkeletonStatCard, SkeletonWidget, SkeletonTaskItem } from '@/components/ui/Skeleton';
 
 const demoPlan: PlanItem[] = [
   { id: 'pl1', task: 'Emplacc', subtask: 'фронт', text: 'доделать панель админа' },
@@ -44,14 +45,15 @@ export default function Home() {
   const userId   = isClient ? getUserId() : null;
   const hasCreds = isClient && isAuthed();
 
-  const { data: user }     = useUser(userId, hasCreds);
-  const { data: userRole } = useUserRole(userId, hasCreds);
+  const { data: user, isLoading: userLoading }         = useUser(userId, hasCreds);
+  const { data: userRole, isLoading: roleLoading }     = useUserRole(userId, hasCreds);
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
   const isGuest = normalizedRole === 'guest';
 
-  const { data: myTasks }     = useMyTasks(1, 100, hasCreds && !isGuest);
-  const { data: reportsData } = useAllReports(1, 1, hasCreds);
+  const { data: myTasks, isLoading: tasksLoading }     = useMyTasks(1, 100, hasCreds && !isGuest);
+  const { data: reportsData, isLoading: reportsLoading } = useAllReports(1, 1, hasCreds);
 
+  const statsLoading = !isClient || userLoading || roleLoading;
   const firstName = user?.firstName ?? '';
   const taskCount = myTasks?.length ?? 0;
   const reportCount = reportsData?.total ?? 0;
@@ -99,9 +101,15 @@ export default function Home() {
 
           {/* ── Quick stats ── */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 stagger-children">
-            <StatCard label="Мои задачи" value={taskCount} sub="активных" href="/projects" accent />
-            <StatCard label="Отчётов" value={reportCount} sub="в системе" href="/report" />
-            <StatCard label="Роль" value={userRole?.role?.name ?? '—'} sub="в системе" />
+            {statsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => <SkeletonStatCard key={i} />)
+            ) : (
+              <>
+                <StatCard label="Мои задачи" value={tasksLoading ? '…' : taskCount} sub="активных" href="/projects" accent />
+                <StatCard label="Отчётов" value={reportsLoading ? '…' : reportCount} sub="в системе" href="/report" />
+                <StatCard label="Роль" value={userRole?.role?.name ?? '—'} sub="в системе" />
+              </>
+            )}
           </div>
 
           {/* ── Widgets ── */}

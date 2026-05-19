@@ -10,6 +10,7 @@ import { getTaskPriorityMeta } from '@/features/tasks/types';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchTaskBoardProject } from '@/features/tasks/api';
 import { fetchProjectById } from '@/features/projects/api';
+import { SkeletonTaskItem } from '@/components/ui/Skeleton';
 
 const CLOSED_STATUS_KEYWORDS = ['done', 'completed', 'готов', 'закрыт', 'выполн'];
 
@@ -443,7 +444,9 @@ export default function YourTasks() {
 
       <div className="h-[calc(100%-2.5rem)] overflow-y-auto pr-2 custom-scroll space-y-3">
         {isLoading ? (
-          <div className="text-center text-slate-400 py-8">Загрузка задач...</div>
+          <div className="space-y-3 list-appear">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonTaskItem key={i} />)}
+          </div>
         ) : error ? (
           <div className="text-center text-red-400 py-8">Ошибка загрузки задач</div>
         ) : sortedTasks.length === 0 ? (
@@ -453,7 +456,7 @@ export default function YourTasks() {
               : 'У вас пока нет задач'}
           </div>
         ) : (
-          <>
+          <div className="list-appear space-y-3">
             {hiddenCount > 0 && (
               <div className="text-xs text-emerald-200/80 px-1">
                 Скрыто {hiddenCount} завершённых задач из списка «Ваши задачи»
@@ -481,7 +484,7 @@ export default function YourTasks() {
                 />
               );
             })}
-          </>
+          </div>
         )}
       </div>
     </Panel>

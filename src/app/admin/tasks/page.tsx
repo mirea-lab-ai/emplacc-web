@@ -72,7 +72,7 @@ export default function TasksPage() {
           <div className="py-12 text-center text-slate-400">Задачи не найдены</div>
         )}
         {!isLoading && !isError && filtered.length > 0 && (
-          <div className="divide-y divide-white/5 stagger-children">
+          <div className="divide-y divide-white/5 list-appear">
             {filtered.map(task => {
               const priority = getTaskPriorityMeta(task.priority);
               const assignee = task.assignees?.[0];

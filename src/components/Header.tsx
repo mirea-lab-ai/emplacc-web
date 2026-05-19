@@ -191,7 +191,7 @@ export default function Header({ items }: Props) {
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl t-surface-elevated shadow-2xl animate-fade-in-scale">
+                <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl shadow-2xl animate-fade-in-scale ring-1 ring-white/10 backdrop-blur-xl" style={{background:'rgba(10,22,14,0.92)'}}>
                   <div className="px-4 py-3 border-b border-white/6">
                     <div className="text-sm font-semibold text-white">{user.firstName} {user.lastName}</div>
                     <div className="t-caption truncate">{user.email}</div>

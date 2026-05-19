@@ -11,7 +11,7 @@ import { getUserId, isAuthed } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
 import { useUser } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
-import { useAllTasks } from '@/features/tasks/hooks';
+import { useMyTasks } from '@/features/tasks/hooks';
 import { useAllReports } from '@/features/reports/hooks';
 
 const demoPlan: PlanItem[] = [
@@ -49,11 +49,11 @@ export default function Home() {
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
   const isGuest = normalizedRole === 'guest';
 
-  const { data: tasksData }   = useAllTasks(1, 50, hasCreds && !isGuest);
+  const { data: myTasks }     = useMyTasks(1, 100, hasCreds && !isGuest);
   const { data: reportsData } = useAllReports(1, 1, hasCreds);
 
   const firstName = user?.firstName ?? '';
-  const taskCount = tasksData?.total ?? 0;
+  const taskCount = myTasks?.length ?? 0;
   const reportCount = reportsData?.total ?? 0;
 
   if (isGuest) {
@@ -81,13 +81,12 @@ export default function Home() {
             <div className="pointer-events-none absolute -bottom-8 left-1/3 h-40 w-40 rounded-full bg-lime-400/6 blur-2xl" />
             <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
               <div>
-                <div className="t-label mb-1 text-emerald-400/70">{greeting()}</div>
+                <div className="t-label mb-1 text-emerald-400/70">
+                  {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </div>
                 <h1 className="t-heading text-white">
                   {firstName ? `${greeting()}, ${firstName} 👋` : `${greeting()} 👋`}
                 </h1>
-                <p className="t-body mt-1">
-                  {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </p>
               </div>
               <Link href="/report" className="btn-primary shrink-0">
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -99,11 +98,10 @@ export default function Home() {
           </div>
 
           {/* ── Quick stats ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 stagger-children">
-            <StatCard label="Всего задач" value={taskCount} sub="активных" href="/projects" accent />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 stagger-children">
+            <StatCard label="Мои задачи" value={taskCount} sub="активных" href="/projects" accent />
             <StatCard label="Отчётов" value={reportCount} sub="в системе" href="/report" />
             <StatCard label="Роль" value={userRole?.role?.name ?? '—'} sub="в системе" />
-            <StatCard label="Сегодня" value={new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'short'})} sub={new Date().toLocaleString('ru-RU', {weekday:'long'})} />
           </div>
 
           {/* ── Widgets ── */}

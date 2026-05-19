@@ -93,7 +93,7 @@ export default function HelpRequests() {
       <div className="flex-1 min-h-0">
         {!has ? (
           <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 ring-1 ring-white/10 text-slate-400">
-            Вас никто не просил о помощи
+            Нет активных просьб о помощи
           </div>
         ) : (
           <div className="h-full rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 p-3 text-sm overflow-auto custom-scroll relative">

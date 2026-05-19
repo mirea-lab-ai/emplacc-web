@@ -80,16 +80,20 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
   const currentStatus = statuses.find(s => s.id === task?.statusId);
   const priorityMeta  = getTaskPriorityMeta(task?.priority);
 
+  const findEmail = (id: string) => users.find(u => u.id === id)?.email;
+
+  const now = () => new Date().toISOString();
+
   async function saveTitle() {
     if (!task || !titleDraft.trim() || titleDraft.trim() === task.name) { setEditTitle(false); return; }
     setSavingTitle(true);
-    try { await updateTask(task.id, { name: titleDraft.trim() }); setTask(t => t ? {...t, name: titleDraft.trim()} : t); }
+    try { await updateTask(task.id, { name: titleDraft.trim() }); setTask(t => t ? {...t, name: titleDraft.trim(), updatedAt: now()} : t); }
     finally { setSavingTitle(false); setEditTitle(false); }
   }
   async function saveDesc() {
     if (!task) return;
     setSavingDesc(true);
-    try { await updateTask(task.id, { description: descDraft }); setTask(t => t ? {...t, description: descDraft} : t); setAiNote(false); }
+    try { await updateTask(task.id, { description: descDraft }); setTask(t => t ? {...t, description: descDraft, updatedAt: now()} : t); setAiNote(false); }
     finally { setSavingDesc(false); }
   }
   async function handleImprove() {
@@ -101,13 +105,13 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
   async function handleStatusChange(id: string) {
     if (!task || id === task.statusId) return;
     setSavingStatus(true);
-    try { await moveTask({ task_id: task.id, status_id: id }); setTask(t => t ? {...t, statusId: id} : t); }
+    try { await moveTask({ task_id: task.id, status_id: id }); setTask(t => t ? {...t, statusId: id, updatedAt: now()} : t); }
     finally { setSavingStatus(false); }
   }
   async function handlePriorityChange(val: number) {
     if (!task || val === task.priority) return;
     setSavingPriority(true);
-    try { await updateTask(task.id, { priority: val }); setTask(t => t ? {...t, priority: val} : t); }
+    try { await updateTask(task.id, { priority: val }); setTask(t => t ? {...t, priority: val, updatedAt: now()} : t); }
     finally { setSavingPriority(false); }
   }
   async function handleAssign(u: UIUser) {
@@ -115,13 +119,13 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
     setSavingAssignee(true); setShowUserPicker(false);
     try {
       await updateTask(task.id, { assigned_to: u.id });
-      setTask(t => t ? {...t, assignedTo: { id: u.id, firstName: u.firstName, lastName: u.lastName }} : t);
+      setTask(t => t ? {...t, assignedTo: { id: u.id, firstName: u.firstName, lastName: u.lastName }, updatedAt: now()} : t);
     } finally { setSavingAssignee(false); }
   }
   async function handleDeadlineChange(val: string) {
     if (!task) return;
     setSavingDeadline(true);
-    try { await updateTask(task.id, { deadline: val ? new Date(val).toISOString() : undefined }); setTask(t => t ? {...t, deadline: val ? new Date(val).toISOString() : undefined} : t); }
+    try { await updateTask(task.id, { deadline: val ? new Date(val).toISOString() : undefined }); setTask(t => t ? {...t, deadline: val ? new Date(val).toISOString() : undefined, updatedAt: now()} : t); }
     finally { setSavingDeadline(false); }
   }
   async function handleDelete() {
@@ -241,7 +245,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
           <SidebarCard label="Исполнитель">
             {task.assignedTo ? (
               <div className="flex items-center gap-2">
-                <Avatar name={`${task.assignedTo.firstName} ${task.assignedTo.lastName}`} fallbackKey={task.assignedTo.id} size="sm"/>
+                <Avatar name={`${task.assignedTo.firstName} ${task.assignedTo.lastName}`} email={findEmail(task.assignedTo.id)} fallbackKey={task.assignedTo.id} size="sm"/>
                 <span className="text-sm">{task.assignedTo.firstName} {task.assignedTo.lastName}</span>
               </div>
             ) : <span className="text-slate-500 text-sm">Не назначен</span>}
@@ -269,7 +273,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
 
           <SidebarCard label="Автор">
             <div className="flex items-center gap-2">
-              <Avatar name={`${task.createdBy.firstName} ${task.createdBy.lastName}`} fallbackKey={task.createdBy.id} size="sm"/>
+              <Avatar name={`${task.createdBy.firstName} ${task.createdBy.lastName}`} email={findEmail(task.createdBy.id)} fallbackKey={task.createdBy.id} size="sm"/>
               <span className="text-sm">{task.createdBy.firstName} {task.createdBy.lastName}</span>
             </div>
           </SidebarCard>

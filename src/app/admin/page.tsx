@@ -68,6 +68,7 @@ export default function AdminPage() {
               userId={u.id}
               name={`${u.firstName} ${u.lastName}`.trim() || u.email}
               email={u.email}
+              avatarUrl={u.avatarUrl}
               profession={u.profession}
               roles={roles}
             />
@@ -78,8 +79,8 @@ export default function AdminPage() {
   );
 }
 
-function EmployeeCard({ userId, name, email, profession, roles }: {
-  userId: string; name: string; email: string; profession?: string; roles: UIRole[];
+function EmployeeCard({ userId, name, email, avatarUrl, profession, roles }: {
+  userId: string; name: string; email: string; avatarUrl?: string; profession?: string; roles: UIRole[];
 }) {
   const { data: roleLookup, isLoading: roleLoading } = useUserRole(userId);
   const assignRole = useAssignRole();
@@ -102,7 +103,7 @@ function EmployeeCard({ userId, name, email, profession, roles }: {
     <div className="t-surface rounded-2xl p-5 ring-1 ring-white/10 hover:ring-white/20 transition-all">
       <div className="flex items-start gap-4">
         <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500/70 to-lime-400/70 shrink-0">
-          <Avatar name={name} email={email} fallbackKey={userId} size="lg" />
+          <Avatar name={name} url={avatarUrl} email={email} fallbackKey={userId} size="lg" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold truncate">{name}</div>

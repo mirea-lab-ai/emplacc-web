@@ -81,7 +81,8 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
   const currentStatus = statuses.find(s => s.id === task?.statusId);
   const priorityMeta  = getTaskPriorityMeta(task?.priority);
 
-  const findEmail = (id: string) => users.find(u => u.id === id)?.email;
+  const findEmail     = (id: string) => users.find(u => u.id === id)?.email;
+  const findAvatarUrl = (id: string) => users.find(u => u.id === id)?.avatarUrl;
 
   const now = () => new Date().toISOString();
 
@@ -255,7 +256,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
           <SidebarCard label="Исполнитель">
             {task.assignedTo ? (
               <div className="flex items-center gap-2">
-                <Avatar name={`${task.assignedTo.firstName} ${task.assignedTo.lastName}`} email={findEmail(task.assignedTo.id)} fallbackKey={task.assignedTo.id} size="sm"/>
+                <Avatar name={`${task.assignedTo.firstName} ${task.assignedTo.lastName}`} url={findAvatarUrl(task.assignedTo.id)} email={findEmail(task.assignedTo.id)} fallbackKey={task.assignedTo.id} size="sm"/>
                 <span className="text-sm">{task.assignedTo.firstName} {task.assignedTo.lastName}</span>
               </div>
             ) : <span className="text-slate-500 text-sm">Не назначен</span>}
@@ -271,7 +272,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                   {filteredUsers.slice(0,20).map(u => (
                     <button key={u.id} onClick={() => handleAssign(u)} disabled={savingAssignee}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 text-left disabled:opacity-50">
-                      <Avatar name={`${u.firstName} ${u.lastName}`} email={u.email} fallbackKey={u.id} size="xs"/>
+                      <Avatar name={`${u.firstName} ${u.lastName}`} url={u.avatarUrl} email={u.email} fallbackKey={u.id} size="xs"/>
                       <span>{u.firstName} {u.lastName}</span>
                     </button>
                   ))}
@@ -283,7 +284,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
 
           <SidebarCard label="Автор">
             <div className="flex items-center gap-2">
-              <Avatar name={`${task.createdBy.firstName} ${task.createdBy.lastName}`} email={findEmail(task.createdBy.id)} fallbackKey={task.createdBy.id} size="sm"/>
+              <Avatar name={`${task.createdBy.firstName} ${task.createdBy.lastName}`} url={findAvatarUrl(task.createdBy.id)} email={findEmail(task.createdBy.id)} fallbackKey={task.createdBy.id} size="sm"/>
               <span className="text-sm">{task.createdBy.firstName} {task.createdBy.lastName}</span>
             </div>
           </SidebarCard>

@@ -12,7 +12,7 @@ export function convertUITeamToTeam(uiTeam: UITeamFull): Team {
       name: member.name,
       role: member.specialization ?? member.profession ?? member.role ?? 'Роль не указана',
       email: member.email,
-      avatarSrc: undefined,
+      avatarSrc: member.avatarUrl,
     })),
   };
 }

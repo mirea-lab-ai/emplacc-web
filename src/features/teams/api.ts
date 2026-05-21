@@ -13,6 +13,7 @@ export type UITeamMember = {
     name: string;
     role: string;
     email?: string;
+    avatarUrl?: string;
     profession?: string;
     specialization?: string;
 };
@@ -89,6 +90,7 @@ export async function fetchAllTeams(): Promise<UITeamFull[]> {
                 profession: resolveSpecialization(member?.profession),
                 specialization: specializationResolved,
                 email: member?.email,
+                avatarUrl: member?.avatar_url || undefined,
             } satisfies UITeamMember;
         });
 

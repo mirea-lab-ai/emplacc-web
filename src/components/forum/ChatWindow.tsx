@@ -367,7 +367,6 @@ export default function ChatWindow({
       <div className="px-4 py-3 border-t border-white/6 shrink-0 flex items-end gap-2"
            style={{ background: 'rgba(10,22,14,0.92)', backdropFilter: 'blur(12px)' }}>
         <input ref={fileInputRef} type="file"
-               accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt"
                multiple className="hidden"
                onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }}/>
 

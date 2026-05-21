@@ -144,7 +144,7 @@ export default function MarkdownEditor({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv"
+
                   className="hidden"
                   onChange={onFileInput}
                 />
@@ -152,21 +152,21 @@ export default function MarkdownEditor({
                 <button
                   title="Загрузить изображение"
                   disabled={disabled || uploading}
-                  onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = 'image/*'; fileInputRef.current.click(); } }}
+                  onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
                   className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
                   🖼
                 </button>
                 <button
                   title="Загрузить видео"
                   disabled={disabled || uploading}
-                  onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = 'video/*'; fileInputRef.current.click(); } }}
+                  onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
                   className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
                   🎬
                 </button>
                 <button
                   title="Прикрепить файл"
                   disabled={disabled || uploading}
-                  onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv'; fileInputRef.current.click(); } }}
+                  onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
                   className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
                   📎
                 </button>

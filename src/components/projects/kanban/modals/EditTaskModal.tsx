@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Modal from '../ui/Modal';
 import { ButtonGhost, ButtonPrimary } from '../ui/Buttons';
 import Avatar from '@/components/ui/Avatar';
@@ -171,19 +172,15 @@ export default function EditTaskModal({
                         />
                     </label>
                     
-                    <label className="grid gap-2">
+                    <div className="grid gap-2">
                         <span className="text-slate-200">Введите описание задачи</span>
-                        <textarea
-                            rows={3}
+                        <MarkdownEditor
                             value={desc}
-                            onChange={(e) => {
-                                setDesc(e.target.value);
-                                clearSubmitError();
-                            }}
-                            className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            onChange={(v) => { setDesc(v); clearSubmitError(); }}
                             placeholder="Кратко опишите детали задачи…"
+                            rows={4}
                         />
-                    </label>
+                    </div>
                     
                     <label className="grid gap-2">
                         <span className="text-slate-200">Укажите дедлайн задачи</span>

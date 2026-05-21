@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { getGravatarUrl } from '@/lib/gravatar';
+import { isPresignedUrl, refreshPresignedUrl } from '@/lib/upload';
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg';
 
@@ -34,24 +35,41 @@ export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: A
   }, [gravatarSource, size]);
 
   const [imageFailed, setImageFailed] = useState(false);
+  const [refreshedUrl, setRefreshedUrl] = useState<string | undefined>(undefined);
+  const [retried, setRetried] = useState(false);
 
   useEffect(() => {
     setImageFailed(false);
+    setRefreshedUrl(undefined);
+    setRetried(false);
   }, [url, gravatarUrl]);
 
-  const src = !imageFailed ? (url ?? gravatarUrl) : undefined;
+  const displayUrl = refreshedUrl ?? (!imageFailed ? (url ?? gravatarUrl) : undefined);
 
-  if (src) {
+  const handleError = async () => {
+    const currentUrl = refreshedUrl ?? url;
+    if (!retried && currentUrl && isPresignedUrl(currentUrl)) {
+      setRetried(true);
+      try {
+        const fresh = await refreshPresignedUrl(currentUrl);
+        setRefreshedUrl(fresh);
+        return;
+      } catch { /* fallthrough to initials */ }
+    }
+    setImageFailed(true);
+  };
+
+  if (displayUrl) {
     return (
       <div className={`${box} relative overflow-hidden rounded-full ring-1 ring-white/10`}>
         <Image
-          src={src}
+          src={displayUrl}
           alt={name}
           fill
           sizes={px}
           className="object-cover"
           unoptimized
-          onError={() => { setImageFailed(true); }}
+          onError={handleError}
         />
       </div>
     );

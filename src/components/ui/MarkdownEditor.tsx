@@ -4,8 +4,7 @@ import { useRef, useState, useCallback, useMemo, type DragEvent, type ChangeEven
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { uploadImage } from '@/lib/upload';
-import { uploadFile } from '@/lib/upload';
+import { uploadImage, uploadFile, isPresignedUrl, refreshPresignedUrl } from '@/lib/upload';
 import { renderMentions, type MentionItem } from '@/components/forum/ChatWindow';
 
 type Props = {
@@ -270,6 +269,54 @@ export default function MarkdownEditor({
   );
 }
 
+// ── Refreshable media components ─────────────────────────────
+
+function RefreshableImage({ src, alt, className }: { src?: string | Blob; alt?: string; className?: string }) {
+  const [url, setUrl] = useState(typeof src === 'string' ? src : undefined);
+  const [retried, setRetried] = useState(false);
+  const handleError = async () => {
+    if (retried || !url || !isPresignedUrl(url)) return;
+    setRetried(true);
+    try { setUrl(await refreshPresignedUrl(url)); } catch { /* show broken image */ }
+  };
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={url} alt={alt ?? ''} className={className ?? 'max-w-full rounded-lg my-2'} onError={handleError} />;
+}
+
+function RefreshableVideo({ src }: { src?: string }) {
+  const [url, setUrl] = useState<string | undefined>(src);
+  const [retried, setRetried] = useState(false);
+  const handleError = async () => {
+    if (retried || !url || !isPresignedUrl(url)) return;
+    setRetried(true);
+    try { setUrl(await refreshPresignedUrl(url)); } catch { /* ignore */ }
+  };
+  return <video src={url} controls className="max-w-full rounded-lg my-2" onError={handleError} />;
+}
+
+function RefreshableLink({ href, children }: { href?: string; children?: React.ReactNode }) {
+  const [url, setUrl] = useState(href);
+  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!url || !isPresignedUrl(url)) return; // обычная ссылка — пропускаем
+    e.preventDefault();
+    try {
+      const fresh = await refreshPresignedUrl(url);
+      setUrl(fresh);
+      window.open(fresh, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+  return (
+    <a href={url} onClick={handleClick} target="_blank" rel="noopener noreferrer"
+       className="text-emerald-400 hover:underline">
+      {children}
+    </a>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+
 export function MarkdownView({ content }: { content: string }) {
   const processed = useMemo(() => renderMentions(content), [content]);
   return (
@@ -277,18 +324,9 @@ export function MarkdownView({ content }: { content: string }) {
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeRaw]}
       components={{
-        img: ({ src, alt }) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt={alt ?? ''} className="max-w-full rounded-lg my-2" />
-        ),
-        video: ({ src }: { src?: string | Blob | MediaSource | MediaStream }) => (
-          <video src={typeof src === 'string' ? src : undefined} controls className="max-w-full rounded-lg my-2" />
-        ),
-        a: ({ href, children }) => (
-          <a href={href} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">
-            {children}
-          </a>
-        ),
+        img: ({ src, alt }) => <RefreshableImage src={src} alt={alt} />,
+        video: ({ src }: { src?: string | Blob | MediaSource | MediaStream }) => <RefreshableVideo src={typeof src === 'string' ? src : undefined} />,
+        a: ({ href, children }) => <RefreshableLink href={href}>{children}</RefreshableLink>,
         code: ({ children, className }) => {
           const isBlock = className?.includes('language-');
           return isBlock

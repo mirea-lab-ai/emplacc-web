@@ -11,6 +11,7 @@ import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
 import { useAllProblems, useDeleteProblem } from '@/features/problems/hooks';
 import { useForumMessagesByProblem, useCreateForumMessage, useDeleteForumMessage, useUpdateForumMessage } from '@/features/forum-messages/hooks';
 import { useAllUsers } from '@/features/user/hooks';
+import { useAllTeams, useAllProjects } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
@@ -42,6 +43,8 @@ function ForumContent() {
   const { data: forumMessages, isLoading: messagesLoading, isFetching: messagesFetching }
     = useForumMessagesByProblem(activeProblemId, 1, 50, hasCreds);
   const { data: users } = useAllUsers(1, 500, hasCreds);
+  const { data: allTeams } = useAllTeams(hasCreds);
+  const { data: allProjects } = useAllProjects(hasCreds);
 
   const { mutate: createMessage, isPending: isSending } = useCreateForumMessage();
   const { mutate: deleteProblem, isPending: isDeleting } = useDeleteProblem();
@@ -139,16 +142,29 @@ function ForumContent() {
     createMessage({ description: [text.trim()], problem_id: activeProblemId, creator_id: userId, reply_to_id: replyToId });
   };
 
-  const mentionItems = useMemo(() =>
-    (users ?? [])
+  const mentionItems = useMemo(() => {
+    const userItems = (users ?? [])
       .filter(u => u.email !== 'system@system')
       .map(u => ({
         id: u.id,
         label: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || u.id,
         type: 'user' as const,
-      })),
-    [users]
-  );
+      }));
+
+    const projectItems = (allProjects ?? []).map((p: { id: string; name?: string }) => ({
+      id: p.id,
+      label: p.name ?? p.id,
+      type: 'project' as const,
+    }));
+
+    const teamItems = (allTeams ?? []).map((t: { id: string; name?: string }) => ({
+      id: t.id,
+      label: t.name ?? t.id,
+      type: 'team' as const,
+    }));
+
+    return [...userItems, ...projectItems, ...teamItems];
+  }, [users, allProjects, allTeams]);
 
   // Отправляем сервисное сообщение от системного пользователя
   const sendServiceMessage = useCallback((text: string) => {

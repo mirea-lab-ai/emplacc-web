@@ -5,38 +5,78 @@ import { useRouter } from 'next/navigation';
 import { http } from '@/lib/http';
 import { getUserId } from '@/lib/auth';
 
+type ResultKind = 'task' | 'project' | 'team' | 'forum';
+
 type Result = {
   id: string;
   title: string;
   subtitle?: string;
   href: string;
-  kind: 'task' | 'project';
+  kind: ResultKind;
+};
+
+const KIND_META: Record<ResultKind, { label: string; color: string }> = {
+  task:    { label: 'T', color: 'bg-emerald-500/15 text-emerald-400' },
+  project: { label: 'P', color: 'bg-blue-500/15 text-blue-400' },
+  team:    { label: 'К', color: 'bg-orange-500/15 text-orange-400' },
+  forum:   { label: 'Ф', color: 'bg-purple-500/15 text-purple-400' },
 };
 
 async function searchAll(q: string): Promise<Result[]> {
   const uid = getUserId() ?? '';
   const base = `query=${encodeURIComponent(q)}&user_id=${encodeURIComponent(uid)}&page=1&pagesize=5`;
-  const [tasks, projects] = await Promise.allSettled([
+  const ql = q.toLowerCase();
+
+  const [tasks, projects, teams, problems] = await Promise.allSettled([
     http(`/task/search?${base}`).then(r => r.json()),
     http(`/project/search?${base}`).then(r => r.json()),
+    http('/team/all').then(r => r.json()),
+    http('/problem/all/1/100').then(r => r.json()),
   ]);
 
   const results: Result[] = [];
 
   if (tasks.status === 'fulfilled') {
-    const list: any[] = tasks.value?.tasks ?? [];
-    list.slice(0, 5).forEach(t => results.push({
+    (tasks.value?.tasks ?? []).slice(0, 4).forEach((t: any) => results.push({
       id: `task-${t.id}`, title: t.name, subtitle: t.project?.name,
       href: `/tasks/${t.id}`, kind: 'task',
     }));
   }
+
   if (projects.status === 'fulfilled') {
     const list: any[] = Array.isArray(projects.value) ? projects.value : projects.value?.projects ?? [];
-    list.slice(0, 4).forEach(p => results.push({
+    list.slice(0, 3).forEach(p => results.push({
       id: `proj-${p.id}`, title: p.name, subtitle: p.description,
       href: `/projects/${p.id}`, kind: 'project',
     }));
   }
+
+  if (teams.status === 'fulfilled') {
+    const list: any[] = Array.isArray(teams.value) ? teams.value : teams.value?.teams ?? [];
+    list
+      .filter((t: any) => t.name?.toLowerCase().includes(ql))
+      .slice(0, 3)
+      .forEach((t: any) => {
+        const members = (t.members ?? []).map((m: any) =>
+          `${m.first_name ?? ''} ${m.last_name ?? ''}`.trim()).filter(Boolean).slice(0, 3).join(', ');
+        results.push({
+          id: `team-${t.id}`, title: t.name, subtitle: members || undefined,
+          href: `/teams?team=${t.id}`, kind: 'team',
+        });
+      });
+  }
+
+  if (problems.status === 'fulfilled') {
+    const list: any[] = problems.value?.problems ?? [];
+    list
+      .filter((p: any) => p.name?.toLowerCase().includes(ql) || p.description?.toLowerCase().includes(ql))
+      .slice(0, 3)
+      .forEach((p: any) => results.push({
+        id: `forum-${p.id}`, title: p.name, subtitle: p.description,
+        href: `/forum?problem=${p.id}`, kind: 'forum',
+      }));
+  }
+
   return results;
 }
 
@@ -51,7 +91,6 @@ export default function CommandPalette() {
 
   const close = useCallback(() => { setOpen(false); setQuery(''); setResults([]); }, []);
 
-  // Cmd+K / Ctrl+K
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setOpen(v => !v); }
@@ -61,10 +100,8 @@ export default function CommandPalette() {
     return () => window.removeEventListener('keydown', handler);
   }, [close]);
 
-  // Auto-focus
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); }, [open]);
 
-  // Search with debounce
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
     const t = setTimeout(async () => {
@@ -74,7 +111,6 @@ export default function CommandPalette() {
     return () => clearTimeout(t);
   }, [query]);
 
-  // Keyboard navigation
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -90,6 +126,18 @@ export default function CommandPalette() {
 
   function navigate(href: string) { close(); router.push(href); }
 
+  // Group results by kind for display
+  const grouped = results.reduce<{ kind: ResultKind; items: Result[] }[]>((acc, r) => {
+    const group = acc.find(g => g.kind === r.kind);
+    if (group) group.items.push(r);
+    else acc.push({ kind: r.kind, items: [r] });
+    return acc;
+  }, []);
+
+  const kindLabel: Record<ResultKind, string> = {
+    task: 'Задачи', project: 'Проекты', team: 'Команды', forum: 'Форум',
+  };
+
   if (!open) return null;
 
   return (
@@ -98,6 +146,7 @@ export default function CommandPalette() {
       onClick={e => e.target === e.currentTarget && close()}
     >
       <div className="w-full max-w-xl t-surface rounded-2xl ring-1 ring-white/15 shadow-2xl overflow-hidden animate-fade-in-scale">
+
         {/* Input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
           <svg className="w-5 h-5 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -107,7 +156,7 @@ export default function CommandPalette() {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Поиск задач и проектов…"
+            placeholder="Поиск задач, проектов, команд, форума…"
             className="flex-1 bg-transparent text-white placeholder-slate-500 focus:outline-none text-base"
           />
           {loading && (
@@ -117,40 +166,62 @@ export default function CommandPalette() {
         </div>
 
         {/* Results */}
-        <div className="max-h-80 overflow-y-auto py-2">
+        <div className="max-h-[60vh] overflow-y-auto py-2">
           {!query.trim() && (
-            <div className="px-4 py-3 text-sm text-slate-500 text-center">
-              Начните вводить для поиска задач и проектов
+            <div className="px-4 py-6 text-sm text-slate-500 text-center space-y-1">
+              <div>Начните вводить для поиска</div>
+              <div className="text-xs text-slate-600 flex justify-center gap-3 flex-wrap pt-1">
+                {Object.entries(kindLabel).map(([k, l]) => (
+                  <span key={k} className="flex items-center gap-1">
+                    <span className={`inline-grid h-5 w-5 place-items-center rounded text-[10px] font-bold ${KIND_META[k as ResultKind].color}`}>
+                      {KIND_META[k as ResultKind].label}
+                    </span>
+                    {l}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
           {query.trim() && !loading && results.length === 0 && (
-            <div className="px-4 py-3 text-sm text-slate-500 text-center">
+            <div className="px-4 py-6 text-sm text-slate-500 text-center">
               Ничего не найдено по «{query}»
             </div>
           )}
-          {results.map((r, i) => (
-            <button
-              key={r.id}
-              onClick={() => navigate(r.href)}
-              onMouseEnter={() => setCursor(i)}
-              className={[
-                'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
-                i === cursor ? 'bg-emerald-500/10' : 'hover:bg-white/5',
-              ].join(' ')}
-            >
-              <span className={[
-                'grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs font-bold',
-                r.kind === 'task'    ? 'bg-emerald-500/15 text-emerald-400' : 'bg-blue-500/15 text-blue-400',
-              ].join(' ')}>
-                {r.kind === 'task' ? 'T' : 'P'}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">{r.title}</div>
-                {r.subtitle && <div className="text-xs text-slate-500 truncate">{r.subtitle}</div>}
+
+          {grouped.map(group => {
+            const flatStart = results.findIndex(r => r.id === group.items[0].id);
+            return (
+              <div key={group.kind}>
+                <div className="px-4 py-1.5 text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+                  {kindLabel[group.kind]}
+                </div>
+                {group.items.map((r, relIdx) => {
+                  const i = flatStart + relIdx;
+                  const meta = KIND_META[r.kind];
+                  return (
+                    <button
+                      key={r.id}
+                      onClick={() => navigate(r.href)}
+                      onMouseEnter={() => setCursor(i)}
+                      className={[
+                        'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
+                        i === cursor ? 'bg-emerald-500/10' : 'hover:bg-white/5',
+                      ].join(' ')}
+                    >
+                      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs font-bold ${meta.color}`}>
+                        {meta.label}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">{r.title}</div>
+                        {r.subtitle && <div className="text-xs text-slate-500 truncate">{r.subtitle}</div>}
+                      </div>
+                      {i === cursor && <kbd className="text-xs text-slate-500 font-mono shrink-0">↵</kbd>}
+                    </button>
+                  );
+                })}
               </div>
-              {i === cursor && <kbd className="text-xs text-slate-500 font-mono">↵</kbd>}
-            </button>
-          ))}
+            );
+          })}
         </div>
 
         {/* Footer */}
@@ -158,7 +229,6 @@ export default function CommandPalette() {
           <span><kbd className="font-mono">↑↓</kbd> навигация</span>
           <span><kbd className="font-mono">↵</kbd> открыть</span>
           <span><kbd className="font-mono">Esc</kbd> закрыть</span>
-          <span className="ml-auto">T — задача · P — проект</span>
         </div>
       </div>
     </div>

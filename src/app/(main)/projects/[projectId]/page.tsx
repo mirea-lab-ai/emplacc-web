@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Panel from '@/components/ui/Panel';
 import ProjectsBoardPanel from '@/components/projects/ProjectsBoardPanel';
 import ProjectsTeamsPanel from '@/components/projects/ProjectsTeamsPanel';
 import ProjectsSettingsPanel from '@/components/projects/ProjectsSettingsPanel';
@@ -15,17 +14,31 @@ import { useUserRole } from '@/features/roles/hooks';
 
 type ProjectSection = 'board' | 'teams' | 'settings';
 
-const STATUS_META: Record<string, { emoji: string; label: string }> = {
-  active: { emoji: '🚀', label: 'Активный' },
-  frozen: { emoji: '❄️', label: 'Заморожен' },
-  support: { emoji: '🛟', label: 'Поддержка' },
+const STATUS_META: Record<string, { label: string; dot: string }> = {
+  active:  { label: 'Активный',   dot: 'bg-emerald-400' },
+  frozen:  { label: 'Заморожен',  dot: 'bg-blue-400' },
+  support: { label: 'Поддержка',  dot: 'bg-amber-400' },
 };
 
-type Props = {
-  params: Promise<{ projectId: string }>;
-};
+const NAV_ITEMS: { key: ProjectSection; label: string; icon: string }[] = [
+  { key: 'board',    label: 'Доска',     icon: '📋' },
+  { key: 'teams',    label: 'Команды',   icon: '👥' },
+  { key: 'settings', label: 'Настройки', icon: '⚙️' },
+];
 
-export default function ProjectDetailPage({ params }: Props) {
+function ProjectIcon({ name, size = 48 }: { name: string; size?: number }) {
+  const char = (name?.[0] ?? '?').toUpperCase();
+  const hue = Array.from(name ?? '').reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
+  return (
+    <div className="rounded-2xl flex items-center justify-center font-bold text-white shrink-0"
+      style={{ width: size, height: size, fontSize: size * 0.4,
+               background: `linear-gradient(135deg, hsl(${hue},60%,30%), hsl(${(hue+40)%360},50%,40%))` }}>
+      {char}
+    </div>
+  );
+}
+
+export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
   const router = useRouter();
   const { projectId } = use(params);
   const isClient = useIsClient();
@@ -34,6 +47,7 @@ export default function ProjectDetailPage({ params }: Props) {
   const { data: userRole } = useUserRole(userId, hasCreds);
   const normalizedRole = userRole?.role?.name?.trim().toLowerCase();
   const isGuest = normalizedRole === 'guest';
+
   const [project, setProject] = useState<UIProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<ProjectSection>('board');
@@ -42,176 +56,121 @@ export default function ProjectDetailPage({ params }: Props) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!hasCreds) {
-      setProject(null);
-      setLoading(false);
-      return;
-    }
-
+    if (!hasCreds) { setProject(null); setLoading(false); return; }
     setLoading(true);
-    fetchProjectById(projectId)
-      .then((data) => setProject(data))
-      .catch(() => setProject(null))
-      .finally(() => setLoading(false));
+    fetchProjectById(projectId).then(setProject).catch(() => setProject(null)).finally(() => setLoading(false));
   }, [hasCreds, projectId]);
 
-  useEffect(() => {
-    setSection('board');
-  }, [projectId]);
-
-  useEffect(() => {
-    const boardIdParam = searchParams.get('boardId');
-    setSelectedBoardId(boardIdParam);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!isGuest) return;
-    setSection('board');
-    setShowCreateBoardModal(false);
-  }, [isGuest]);
+  useEffect(() => { setSection('board'); }, [projectId]);
+  useEffect(() => { setSelectedBoardId(searchParams.get('boardId')); }, [searchParams]);
+  useEffect(() => { if (!isGuest) return; setSection('board'); setShowCreateBoardModal(false); }, [isGuest]);
 
   const handleSelectBoard = (boardId: string | null) => {
     setSelectedBoardId(boardId);
-    const query = boardId ? `?boardId=${encodeURIComponent(boardId)}` : '';
-    router.replace(`/projects/${projectId}${query}`);
+    router.replace(`/projects/${projectId}${boardId ? `?boardId=${encodeURIComponent(boardId)}` : ''}`);
   };
 
-  if (!hasCreds) {
-    return (
-      <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
-        <div className="flex-1 overflow-auto">
-          <div className="flex w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
-            <button
-              type="button"
-              onClick={() => router.push('/projects')}
-              className="inline-flex items-center gap-2 text-sm text-emerald-300 transition hover:text-emerald-100"
-            >
-              ← Назад к списку проектов
-            </button>
-            <Panel className="t-surface p-6 text-slate-300">
-              Авторизуйтесь, чтобы просматривать проекты.
-            </Panel>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  if (!hasCreds) return (
+    <div className="flex flex-col gap-4">
+      <button onClick={() => router.push('/projects')} className="text-sm text-emerald-300 hover:text-white transition-colors self-start">← Проекты</button>
+      <div className="t-surface rounded-2xl p-6 text-slate-400">Авторизуйтесь для просмотра.</div>
+    </div>
+  );
 
-  const statusMeta = project?.status ? STATUS_META[project.status.toLowerCase().trim()] : undefined;
+  const statusMeta = project?.status ? STATUS_META[project.status.toLowerCase().trim()] ?? STATUS_META.active : null;
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent text-white">
-      <div className="flex h-full min-h-0 w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
-        <div className="flex-none">
-          <button
-            type="button"
-            onClick={() => router.push('/projects')}
-            className="inline-flex items-center gap-2 text-sm text-emerald-300 transition hover:text-emerald-100"
-          >
-            ← Назад к списку проектов
-          </button>
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      {/* Back button */}
+      <button onClick={() => router.push('/projects')}
+        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-emerald-300 transition-colors self-start shrink-0">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        Проекты
+      </button>
+
+      {loading ? (
+        <div className="flex gap-4 flex-col lg:flex-row flex-1 min-h-0">
+          <div className="w-full lg:w-64 space-y-3">
+            <div className="t-surface rounded-2xl p-5 space-y-3"><div className="skeleton h-12 w-12 rounded-2xl"/><div className="skeleton h-5 w-40 rounded"/><div className="skeleton h-3 w-24 rounded"/></div>
+          </div>
+          <div className="flex-1 t-surface rounded-2xl"/>
         </div>
+      ) : !project ? (
+        <div className="t-surface rounded-2xl p-8 text-center text-slate-400">Проект не найден</div>
+      ) : (
+        <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-4 overflow-hidden">
 
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-          {loading ? (
-            <Panel className="t-surface p-6 text-slate-300">Загрузка проекта…</Panel>
-          ) : !project ? (
-            <Panel className="t-surface p-6 text-slate-300">
-              Проект не найден или доступ к нему отсутствует.
-            </Panel>
-          ) : (
-            <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden lg:flex-row lg:gap-4">
-              <aside className="flex w-full flex-none flex-col gap-4 overflow-auto lg:w-[260px]">
-                <Panel className="t-surface space-y-3 p-4">
-                  <h1 className="break-words text-2xl font-semibold leading-tight">
-                    {project.name ?? 'Без названия'}
-                  </h1>
-                  {statusMeta && (
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
-                      <span>{statusMeta.emoji}</span>
-                      <span>{statusMeta.label}</span>
-                    </div>
-                  )}
-                  {project.description && (
-                    <p className="whitespace-pre-wrap break-words text-sm text-slate-300">
-                      {project.description}
-                    </p>
-                  )}
-                </Panel>
+          {/* Sidebar */}
+          <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3 overflow-y-auto">
 
-                <Panel className="t-surface p-3">
-                  <DetailNavButton label="Доска" active={section === 'board'} onClick={() => setSection('board')} />
-                  {!isGuest && (
-                    <>
-                      <DetailNavButton label="Команды" active={section === 'teams'} onClick={() => setSection('teams')} />
-                      <DetailNavButton
-                        label="Настройки"
-                        active={section === 'settings'}
-                        onClick={() => setSection('settings')}
-                      />
-                    </>
-                  )}
-                </Panel>
-
-                {section === 'board' && (
-                  <ProjectsBoardList
-                    projectId={projectId}
-                    activeBoardId={selectedBoardId}
-                    onSelect={handleSelectBoard}
-                    onCreateBoard={isGuest ? undefined : () => setShowCreateBoardModal(true)}
-                  />
+            {/* Project info card */}
+            <div className="t-surface rounded-2xl p-5 space-y-3 ring-1 ring-white/8">
+              <ProjectIcon name={project.name} />
+              <div>
+                <h1 className="font-semibold text-white text-lg leading-tight break-words">{project.name}</h1>
+                {statusMeta && (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`}/>
+                    <span className="text-xs text-slate-400">{statusMeta.label}</span>
+                  </div>
                 )}
-              </aside>
-
-              <section className="flex-1 min-h-0 min-w-0 space-y-4 overflow-hidden">
-                {section === 'board' && (
-                  <ProjectsBoardPanel
-                    projectId={projectId}
-                    selectedBoardId={selectedBoardId ?? undefined}
-                    onSelectBoard={handleSelectBoard}
-                    readOnly={isGuest}
-                  />
-                )}
-                {!isGuest && section === 'teams' && <ProjectsTeamsPanel projectId={projectId} />}
-                {!isGuest && section === 'settings' && (
-                  <ProjectsSettingsPanel
-                    project={project}
-                    onProjectUpdate={(updated) => setProject(updated)}
-                    onProjectDelete={() => router.push('/projects')}
-                  />
-                )}
-              </section>
+              </div>
+              {project.description && (
+                <p className="text-xs text-slate-500 leading-relaxed line-clamp-4">{project.description}</p>
+              )}
             </div>
-          )}
+
+            {/* Nav */}
+            <div className="t-surface rounded-2xl p-2 ring-1 ring-white/8 space-y-1">
+              {NAV_ITEMS.filter(n => !isGuest || n.key === 'board').map(n => (
+                <button key={n.key} onClick={() => setSection(n.key)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    section === n.key
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-lime-500/10 text-white ring-1 ring-emerald-500/30'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}>
+                  <span className="text-base">{n.icon}</span>
+                  {n.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Board list (only when board section) */}
+            {section === 'board' && (
+              <ProjectsBoardList
+                projectId={projectId}
+                activeBoardId={selectedBoardId}
+                onSelect={handleSelectBoard}
+                onCreateBoard={isGuest ? undefined : () => setShowCreateBoardModal(true)}
+              />
+            )}
+          </aside>
+
+          {/* Main content */}
+          <section className="flex-1 min-h-0 min-w-0 overflow-hidden">
+            {section === 'board' && (
+              <ProjectsBoardPanel
+                projectId={projectId}
+                selectedBoardId={selectedBoardId ?? undefined}
+                onSelectBoard={handleSelectBoard}
+                readOnly={isGuest}
+              />
+            )}
+            {!isGuest && section === 'teams' && <ProjectsTeamsPanel projectId={projectId} />}
+            {!isGuest && section === 'settings' && (
+              <ProjectsSettingsPanel
+                project={project}
+                onProjectUpdate={setProject}
+                onProjectDelete={() => router.push('/projects')}
+              />
+            )}
+          </section>
         </div>
-      </div>
+      )}
 
       {!isGuest && showCreateBoardModal && project && (
         <CreateBoardModal projectId={project.id} onClose={() => setShowCreateBoardModal(false)} />
       )}
-    </main>
-  );
-}
-
-function DetailNavButton({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'w-full rounded-xl px-4 py-2 text-left font-semibold transition-colors',
-        active ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black' : 'text-slate-300 hover:text-white',
-      ].join(' ')}
-    >
-      {label}
-    </button>
+    </div>
   );
 }

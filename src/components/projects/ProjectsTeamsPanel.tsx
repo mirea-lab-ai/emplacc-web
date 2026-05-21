@@ -1,108 +1,116 @@
 'use client';
 
-import Panel from '@/components/ui/Panel';
+import { useState } from 'react';
+import Avatar from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useProjectTeams, useRemoveTeamFromProject } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
-import { useState } from 'react';
 import AddTeamToProjectModal from './AddTeamToProjectModal';
-import TrashIcon from '@/components/ui/icons/TrashIcon';
 import Link from 'next/link';
 
-type Props = {
-  projectId: string;
-};
-
-export default function ProjectsTeamsPanel({ projectId }: Props) {
-  const [openAddTeam, setOpenAddTeam] = useState(false);
+export default function ProjectsTeamsPanel({ projectId }: { projectId: string }) {
+  const [openAdd, setOpenAdd] = useState(false);
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
   const { data: teams, isLoading, error } = useProjectTeams(projectId, hasCreds);
-  const removeTeamMutation = useRemoveTeamFromProject();
-  const toast = useToast();
+  const removeTeam = useRemoveTeamFromProject();
+  const toast   = useToast();
+  const confirm = useConfirm();
 
-  const handleRemoveTeam = async (teamId: string) => {
+  async function handleRemove(teamId: string, teamName: string) {
+    if (!(await confirm({ message: `Убрать команду «${teamName}» из проекта?`, danger: true, confirmLabel: 'Убрать' }))) return;
     try {
-      await removeTeamMutation.mutateAsync({ projectId, teamId });
-    } catch (error) {
-      console.error('Ошибка при удалении команды:', error);
-      toast.error('Ошибка при удалении команды. Попробуйте еще раз.');
-    }
-  };
+      await removeTeam.mutateAsync({ projectId, teamId });
+      toast.success(`Команда «${teamName}» убрана`);
+    } catch { toast.error('Не удалось убрать команду'); }
+  }
 
   return (
-    <Panel className="p-6 t-surface">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Команды проекта</h2>
-        <button
-          onClick={() => setOpenAddTeam(true)}
-          className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-black hover:brightness-110"
-        >
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="t-title text-white">Команды проекта</h2>
+          {!isLoading && teams && (
+            <p className="t-body mt-0.5">{teams.length} {teams.length === 1 ? 'команда' : teams.length < 5 ? 'команды' : 'команд'}</p>
+          )}
+        </div>
+        <button onClick={() => setOpenAdd(true)} className="btn-primary text-sm py-2 px-4 shrink-0">
           + Добавить команду
         </button>
       </div>
 
-      {isLoading ? (
-        <div className="text-slate-400">Загрузка команд...</div>
-      ) : error ? (
-        <div className="text-red-400">Ошибка загрузки команд</div>
-      ) : !teams || teams.length === 0 ? (
-        <div className="text-slate-400">На данный проект пока не назначена ни одна команда</div>
-      ) : (
-        <div className="space-y-4">
-          {teams.map((team) => (
-            <div
-              key={team.id}
-              className="group relative rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 transition-colors"
-            >
-              <Link
-                href={`/teams?team=${encodeURIComponent(team.id)}`}
-                className="block p-4 pr-12"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{team.name}</h3>
-                    {team.description && (
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">{team.description}</p>
-                    )}
-                  </div>
-                  {team.members !== undefined && (
-                    <div className="text-sm text-slate-400">
-                      {team.members} {team.members === 1 ? 'участник' : 'участников'}
-                    </div>
-                  )}
-                </div>
-              </Link>
-              
-              {/* Иконка мусорки при наведении */}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleRemoveTeam(team.id);
-                }}
-                disabled={removeTeamMutation.isPending}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded transition-all opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50"
-                title="Удалить команду из проекта"
-              >
-                {removeTeamMutation.isPending ? (
-                  <div className="w-4 h-4 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <TrashIcon className="w-4 h-4" />
-                )}
-              </button>
+      {isLoading && (
+        <div className="space-y-3">
+          {[1,2,3].map(i => (
+            <div key={i} className="t-surface rounded-2xl p-5 ring-1 ring-white/8 space-y-3">
+              <div className="skeleton h-5 w-40 rounded"/>
+              <div className="flex gap-1.5">{Array.from({length:4}).map((_,j) => <div key={j} className="skeleton w-8 h-8 rounded-full"/>)}</div>
             </div>
           ))}
         </div>
       )}
 
+      {error && <div className="t-surface rounded-2xl p-5 text-red-400 ring-1 ring-red-500/20">Ошибка загрузки команд</div>}
+
+      {!isLoading && !error && (!teams || teams.length === 0) && (
+        <div className="t-surface rounded-2xl p-10 text-center ring-1 ring-white/8 space-y-2">
+          <div className="text-4xl opacity-40">👥</div>
+          <div className="t-title text-white opacity-50">Нет команд</div>
+          <p className="t-body opacity-40">Добавьте команду чтобы назначить участников на задачи</p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {(teams ?? []).map(team => {
+          const memberCount = typeof team.members === 'number' ? team.members : 0;
+          return (
+            <div key={team.id}
+              className="t-surface rounded-2xl p-5 ring-1 ring-white/8 hover:ring-white/15 transition-all group">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Link href={`/teams?team=${encodeURIComponent(team.id)}`}
+                    className="font-semibold text-white hover:text-emerald-300 transition-colors block truncate">
+                    {team.name}
+                  </Link>
+                  {team.description && (
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{team.description}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => void handleRemove(team.id, team.name)}
+                  disabled={removeTeam.isPending}
+                  className="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30 shrink-0"
+                  title="Убрать из проекта">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-500">
+                    {memberCount} {memberCount === 1 ? 'участник' : memberCount < 5 ? 'участника' : 'участников'}
+                  </span>
+                </div>
+                <Link href={`/teams?team=${encodeURIComponent(team.id)}`}
+                  className="text-xs text-emerald-400/60 hover:text-emerald-300 transition-colors">
+                  Управлять →
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <AddTeamToProjectModal
-        open={openAddTeam}
-        onClose={() => setOpenAddTeam(false)}
+        open={openAdd}
+        onClose={() => setOpenAdd(false)}
         projectId={projectId}
-        existingTeamIds={teams?.map(team => team.id) || []}
+        existingTeamIds={teams?.map(t => t.id) ?? []}
       />
-    </Panel>
+    </div>
   );
 }

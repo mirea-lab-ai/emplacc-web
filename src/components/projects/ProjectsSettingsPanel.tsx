@@ -1,180 +1,157 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Panel from '@/components/ui/Panel';
 import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import type { UIProject } from '@/features/projects/api';
 import { updateProject, deleteProject } from '@/features/projects/api';
-import DeleteProjectModal from './DeleteProjectModal';
-
-type ProjectSettings = {
-  name: string;
-  description: string;
-  gitlab_project_id: string; // В UI как строка для input
-  gitlab_url: string;
-  status: 'active' | 'frozen' | 'support';
-};
 
 type Props = {
   project: UIProject;
-  onProjectUpdate?: (updatedProject: UIProject) => void;
+  onProjectUpdate?: (updated: UIProject) => void;
   onProjectDelete?: (projectId: string) => void;
 };
 
+const STATUS_OPTIONS = [
+  { value: 'active',  label: 'Активный' },
+  { value: 'frozen',  label: 'Заморожен' },
+  { value: 'support', label: 'В поддержке' },
+];
+
 export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProjectDelete }: Props) {
-  const [settings, setSettings] = useState<ProjectSettings>({
-    name: project.name || '',
-    description: project.description || '',
-    gitlab_project_id: '',
-    gitlab_url: '',
-    status: 'active',
-  });
+  const toast   = useToast();
+  const confirm = useConfirm();
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const toast = useToast();
+  const [name,              setName]              = useState('');
+  const [description,       setDescription]       = useState('');
+  const [status,            setStatus]            = useState('active');
+  const [gitlabProjectId,   setGitlabProjectId]   = useState('');
+  const [gitlabUrl,         setGitlabUrl]         = useState('');
 
+  // Синхронизируем с проектом
   useEffect(() => {
-    // Инициализируем настройки из проекта
-    setSettings({
-      name: project.name || '',
-      description: project.description || '',
-      gitlab_project_id: '',
-      gitlab_url: '',
-      status: (project.status as any) || 'active',
-    });
-  }, [project]);
+    setName(project.name ?? '');
+    setDescription(project.description ?? '');
+    setStatus((project.status ?? 'active').toLowerCase());
+    setGitlabProjectId(''); // gitlab_project_id не в UIProject — оставляем пустым
+    setGitlabUrl('');
+  }, [project.id]);
 
-  const saveSettings = async () => {
+  const dirty = name !== (project.name ?? '') ||
+                description !== (project.description ?? '') ||
+                status !== (project.status ?? 'active').toLowerCase();
+
+  async function handleSave() {
+    if (!name.trim()) { toast.error('Название не может быть пустым'); return; }
+    setSaving(true);
     try {
-      // Фильтруем пустые значения
-      const payload: any = {};
-      if (settings.name.trim()) payload.name = settings.name;
-      if (settings.description.trim()) payload.description = settings.description;
-      if (settings.gitlab_project_id.trim()) payload.gitlab_project_id = parseInt(settings.gitlab_project_id, 10);
-      if (settings.gitlab_url.trim()) payload.gitlab_url = settings.gitlab_url;
-      if (settings.status) payload.status = settings.status;
+      const payload: any = { name: name.trim(), description: description.trim(), status };
+      if (gitlabProjectId.trim()) payload.gitlab_project_id = parseInt(gitlabProjectId, 10);
+      if (gitlabUrl.trim())       payload.gitlab_url = gitlabUrl.trim();
+      const updated = await updateProject(project.id, payload);
+      onProjectUpdate?.(updated);
+      toast.success('Настройки сохранены');
+    } catch { toast.error('Не удалось сохранить настройки'); }
+    finally { setSaving(false); }
+  }
 
-      console.log('Отправляем PATCH запрос (обновление проекта):', {
-        url: `/project/${project.id}`,
-        payload: payload
-      });
-      
-      const updatedProject = await updateProject(project.id, payload);
-      
-      // Уведомляем родительский компонент об обновлении
-      if (onProjectUpdate) {
-        onProjectUpdate(updatedProject);
-      }
-      
-      toast.success('Настройки проекта сохранены успешно!');
-    } catch (error) {
-      console.error('Ошибка при сохранении настроек проекта:', error);
-      toast.error(`Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
-    }
-  };
-
-  const handleDeleteProject = async () => {
+  async function handleDelete() {
+    if (!(await confirm({ title: 'Удалить проект?', message: `«${project.name}» будет удалён вместе со всеми досками и статусами. Это действие необратимо.`, danger: true, confirmLabel: 'Удалить проект' }))) return;
+    setDeleting(true);
     try {
       await deleteProject(project.id);
-      toast.success('Проект успешно удален!');
-      
-      // Уведомляем родительский компонент об удалении
-      if (onProjectDelete) {
-        onProjectDelete(project.id);
-      }
-    } catch (error) {
-      console.error('Ошибка при удалении проекта:', error);
-      toast.error(`Ошибка при удалении проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
-    }
-  };
+      toast.success('Проект удалён');
+      onProjectDelete?.(project.id);
+    } catch { toast.error('Не удалось удалить проект'); setDeleting(false); }
+  }
 
   return (
-    <Panel className="p-6 t-surface">
-      <h2 className="text-xl font-semibold mb-4">Настройки проекта</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <label className="grid gap-2">
-            <span className="text-slate-200">Название проекта</span>
-            <input
-              type="text"
-              value={settings.name}
-              onChange={(e) => setSettings((p) => ({ ...p, name: e.target.value }))}
-              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="Введите название проекта"
-            />
-          </label>
-          
-          <label className="grid gap-2">
-            <span className="text-slate-200">GitLab Project ID</span>
-            <input
-              type="text"
-              value={settings.gitlab_project_id}
-              onChange={(e) => setSettings((p) => ({ ...p, gitlab_project_id: e.target.value }))}
-              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="Введите GitLab Project ID"
-            />
-          </label>
-          
-          <label className="grid gap-2">
-            <span className="text-slate-200">GitLab URL</span>
-            <input
-              type="url"
-              value={settings.gitlab_url}
-              onChange={(e) => setSettings((p) => ({ ...p, gitlab_url: e.target.value }))}
-              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="https://gitlab.example.com/project"
-            />
-          </label>
+    <div className="space-y-5 animate-fade-in">
+
+      {/* General */}
+      <section className="t-surface rounded-2xl p-6 space-y-4 ring-1 ring-white/8">
+        <h2 className="font-semibold text-white text-base flex items-center gap-2">
+          <span>📋</span> Основные настройки
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="t-label mb-1.5 block">Название *</label>
+            <input value={name} onChange={e => setName(e.target.value)}
+              placeholder="Название проекта" className="t-input" />
+          </div>
+
+          <div>
+            <label className="t-label mb-1.5 block">Статус</label>
+            <div className="flex gap-2 flex-wrap">
+              {STATUS_OPTIONS.map(o => (
+                <button key={o.value} type="button" onClick={() => setStatus(o.value)}
+                  className={`text-xs px-3 py-2 rounded-xl font-medium ring-1 transition-all ${
+                    status === o.value
+                      ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/40'
+                      : 'bg-white/5 text-slate-400 ring-white/10 hover:bg-white/10 hover:text-white'
+                  }`}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        
-        <div className="space-y-4">
-          <label className="grid gap-2">
-            <span className="text-slate-200">Описание проекта</span>
-            <textarea
-              rows={6}
-              value={settings.description}
-              onChange={(e) => setSettings((p) => ({ ...p, description: e.target.value }))}
-              className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="Опишите цели, контекст, ключевые требования…"
-            />
-          </label>
-          
-          <label className="grid gap-2">
-            <span className="text-slate-200">Статус</span>
-            <select
-              value={settings.status}
-              onChange={(e) => setSettings((p) => ({ ...p, status: e.target.value as any }))}
-              className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 [color-scheme:dark]"
-            >
-              <option className="bg-slate-900 text-slate-100" value="active">Активный</option>
-              <option className="bg-slate-900 text-slate-100" value="frozen">Замороженный</option>
-              <option className="bg-slate-900 text-slate-100" value="support">В поддержке</option>
-            </select>
-          </label>
+
+        <div>
+          <label className="t-label mb-1.5 block">Описание</label>
+          <textarea rows={4} value={description} onChange={e => setDescription(e.target.value)}
+            placeholder="Цели, контекст, ключевые требования…"
+            className="t-input resize-none w-full" />
         </div>
-      </div>
-      <div className="mt-6 flex justify-between">
-        <button
-          onClick={() => setShowDeleteModal(true)}
-          className="rounded-xl bg-red-600 px-5 py-2 font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          Закрыть проект
-        </button>
-        
-        <button
-          onClick={saveSettings}
-          className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-5 py-2 font-semibold text-black hover:brightness-110"
-        >
-          Сохранить изменения
+      </section>
+
+      {/* GitLab */}
+      <section className="t-surface rounded-2xl p-6 space-y-4 ring-1 ring-white/8">
+        <h2 className="font-semibold text-white text-base flex items-center gap-2">
+          <span>🦊</span> GitLab интеграция
+          <span className="text-xs font-normal text-slate-500">(опционально)</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="t-label mb-1.5 block">GitLab URL</label>
+            <input type="url" value={gitlabUrl} onChange={e => setGitlabUrl(e.target.value)}
+              placeholder="https://gitlab.example.com/group/project" className="t-input" />
+          </div>
+          <div>
+            <label className="t-label mb-1.5 block">GitLab Project ID</label>
+            <input type="number" value={gitlabProjectId} onChange={e => setGitlabProjectId(e.target.value)}
+              placeholder="123" className="t-input" />
+          </div>
+        </div>
+      </section>
+
+      {/* Save button */}
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-xs text-slate-600">
+          {dirty ? '● Есть несохранённые изменения' : ''}
+        </span>
+        <button onClick={handleSave} disabled={saving || !name.trim()}
+          className="btn-primary text-sm py-2.5 px-6 disabled:opacity-50">
+          {saving ? 'Сохраняем…' : 'Сохранить изменения'}
         </button>
       </div>
 
-      <DeleteProjectModal
-        open={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={handleDeleteProject}
-        projectName={project.name}
-      />
-    </Panel>
+      {/* Danger zone */}
+      <section className="t-surface rounded-2xl p-6 ring-1 ring-red-500/15 space-y-3">
+        <h2 className="font-semibold text-red-400 text-base flex items-center gap-2">
+          <span>⚠️</span> Опасная зона
+        </h2>
+        <p className="text-xs text-slate-500">Удаление проекта удалит все связанные доски, статусы и настройки. Задачи останутся в системе.</p>
+        <button onClick={handleDelete} disabled={deleting}
+          className="rounded-xl bg-red-500/10 ring-1 ring-red-500/25 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50 flex items-center gap-2">
+          {deleting
+            ? <><span className="w-3.5 h-3.5 border border-red-400 border-t-transparent rounded-full animate-spin"/>Удаление…</>
+            : <>🗑 Удалить проект</>}
+        </button>
+      </section>
+    </div>
   );
 }

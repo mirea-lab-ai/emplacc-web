@@ -2,89 +2,38 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Panel from '@/components/ui/Panel';
 import { useIsClient } from '@/hooks/useIsClient';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchUserProjects, type UIProject } from '@/features/projects/api';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import { useUserRole } from '@/features/roles/hooks';
-import { SkeletonProjectRow } from '@/components/ui/Skeleton';
 
-const STATUS_META: Record<string, { emoji: string; label: string }> = {
-  active: { emoji: '🟢', label: 'Активен' },
-  frozen: { emoji: '🧊', label: 'Заморожен' },
-  support: { emoji: '🛠', label: 'Поддержка' },
+const STATUS_META: Record<string, { label: string; color: string }> = {
+  active:  { label: 'Активен',    color: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30' },
+  frozen:  { label: 'Заморожен',  color: 'bg-blue-500/15    text-blue-300    ring-blue-500/30' },
+  support: { label: 'Поддержка',  color: 'bg-amber-500/15   text-amber-300   ring-amber-500/30' },
 };
 
-const RU_TO_EN: Record<string, string> = {
-  'ё': '`',
-  'й': 'q',
-  'ц': 'w',
-  'у': 'e',
-  'к': 'r',
-  'е': 't',
-  'н': 'y',
-  'г': 'u',
-  'ш': 'i',
-  'щ': 'o',
-  'з': 'p',
-  'х': '[',
-  'ъ': ']',
-  'ф': 'a',
-  'ы': 's',
-  'в': 'd',
-  'а': 'f',
-  'п': 'g',
-  'р': 'h',
-  'о': 'j',
-  'л': 'k',
-  'д': 'l',
-  'ж': ';',
-  'э': '\'',
-  'я': 'z',
-  'ч': 'x',
-  'с': 'c',
-  'м': 'v',
-  'и': 'b',
-  'т': 'n',
-  'ь': 'm',
-  'б': ',',
-  'ю': '.',
-};
-
-const EN_TO_RU: Record<string, string> = Object.fromEntries(
-  Object.entries(RU_TO_EN).map(([ru, en]) => [en, ru]),
-);
-
-function swapLayout(value: string, map: Record<string, string>) {
-  return value
-    .split('')
-    .map((char) => {
-      const lower = char.toLowerCase();
-      const mapped = map[lower];
-      if (!mapped) return char;
-      return char === lower ? mapped : mapped.toUpperCase();
-    })
-    .join('');
+// Project icon — gradient circle with first letter
+function ProjectIcon({ name, size = 'lg' }: { name: string; size?: 'sm' | 'lg' }) {
+  const char = (name?.[0] ?? '?').toUpperCase();
+  const hue = Array.from(name ?? '').reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
+  const sz = size === 'lg' ? 'w-12 h-12 text-xl' : 'w-8 h-8 text-sm';
+  return (
+    <div className={`${sz} rounded-xl flex items-center justify-center font-bold text-white shrink-0`}
+      style={{ background: `linear-gradient(135deg, hsl(${hue},60%,35%), hsl(${(hue+40)%360},50%,45%))` }}>
+      {char}
+    </div>
+  );
 }
 
-function buildVariants(source: string) {
-  const trimmed = source.trim().toLowerCase();
-  if (!trimmed) return [];
-  const noSpaces = trimmed.replace(/\s+/g, '');
-  const asRu = swapLayout(trimmed, EN_TO_RU);
-  const asRuNoSpaces = asRu.replace(/\s+/g, '');
-  const asEn = swapLayout(trimmed, RU_TO_EN);
-  const asEnNoSpaces = asEn.replace(/\s+/g, '');
-  return Array.from(new Set([trimmed, noSpaces, asRu, asRuNoSpaces, asEn, asEnNoSpaces].filter(Boolean)));
-}
+const RU_TO_EN: Record<string, string> = { 'ё':'`','й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':"'",'я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.' };
+const EN_TO_RU = Object.fromEntries(Object.entries(RU_TO_EN).map(([ru, en]) => [en, ru]));
+function swapLayout(v: string, m: Record<string, string>) { return v.split('').map(c => { const l = c.toLowerCase(); const r = m[l]; return r ? (c === l ? r : r.toUpperCase()) : c; }).join(''); }
+function buildVariants(s: string) { const t = s.trim().toLowerCase(); if (!t) return []; const ns = t.replace(/\s+/g,''); const ru = swapLayout(t, EN_TO_RU); const en = swapLayout(t, RU_TO_EN); return Array.from(new Set([t, ns, ru, ru.replace(/\s+/g,''), en, en.replace(/\s+/g,'')].filter(Boolean))); }
 
 export default function ProjectsPage() {
-  return (
-    <Suspense fallback={<ProjectsPageFallback />}>
-      <ProjectsListView />
-    </Suspense>
-  );
+  return <Suspense fallback={<LoadingSkeleton/>}><ProjectsListView/></Suspense>;
 }
 
 function ProjectsListView() {
@@ -100,168 +49,139 @@ function ProjectsListView() {
   const [projects, setProjects] = useState<UIProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
-    if (!hasCreds || !userId) {
-      setProjects([]);
-      setLoading(false);
-      return;
-    }
-
+    if (!hasCreds || !userId) { setProjects([]); setLoading(false); return; }
     setLoading(true);
-    fetchUserProjects(userId)
-      .then(setProjects)
-      .catch(() => setProjects([]))
-      .finally(() => setLoading(false));
+    fetchUserProjects(userId).then(setProjects).catch(() => setProjects([])).finally(() => setLoading(false));
   }, [hasCreds, userId]);
-
-  useEffect(() => {
-    if (isGuest) {
-      setShowCreateModal(false);
-    }
-  }, [isGuest]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return projects;
     const variants = buildVariants(search);
-    if (variants.length === 0) return projects;
-
-    return projects.filter((project) => {
-      const nameVariants = buildVariants(project.name ?? '');
-      if (nameVariants.length === 0) return false;
-      return variants.some((candidate) =>
-        nameVariants.some((value) => value.includes(candidate) || candidate.includes(value)),
-      );
+    return projects.filter(p => {
+      const nv = buildVariants(p.name ?? '');
+      return variants.some(c => nv.some(v => v.includes(c) || c.includes(v)));
     });
   }, [projects, search]);
 
-  if (!hasCreds) {
-    return (
-      <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
-        <div className="flex-1 overflow-auto">
-          <div className="flex w-full flex-col gap-4 px-4 py-6 sm:px-6 lg:px-10">
-            <Panel className="p-6 t-surface text-slate-300">
-              Авторизуйтесь, чтобы просматривать проекты.
-            </Panel>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden text-white">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6">
-        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 lg:px-10">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-semibold">Проекты</h1>
-            <p className="text-sm text-slate-300">Выберите проект, чтобы открыть детальную страницу и управлять задачами.</p>
-          </div>
-          {canManage && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2 text-sm font-semibold text-black hover:brightness-110"
-            >
-              + Создать проект
-            </button>
-          )}
+    <div className="flex flex-col gap-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="t-heading text-white">Проекты</h1>
+          <p className="t-body mt-1">{loading ? '…' : `${projects.length} ${projects.length === 1 ? 'проект' : projects.length < 5 ? 'проекта' : 'проектов'}`}</p>
         </div>
-
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Поиск по названию проекта"
-            className="h-11 w-full rounded-xl border border-white/15 bg-white/10 px-4 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-          />
-
-          <Panel className="t-surface p-0">
-            {loading ? (
-              <div className="divide-y divide-white/5">
-                {Array.from({ length: 5 }).map((_, i) => <SkeletonProjectRow key={i} />)}
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="p-6 text-slate-400">Проекты не найдены.</div>
-            ) : (
-              <ul className="divide-y divide-white/10 list-appear">
-                {filtered.map((project) => {
-                  const meta = project.status ? STATUS_META[project.status.toLowerCase().trim()] : null;
-
-                  return (
-                    <li key={project.id}>
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/projects/${project.id}`)}
-                        className="flex w-full flex-col gap-2 rounded-xl px-4 py-4 text-left transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <span className="text-lg font-semibold text-white">
-                            {project.name ?? 'Без названия'}
-                          </span>
-                          {meta && (
-                            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
-                              <span className="mr-1">{meta.emoji}</span>
-                              {meta.label}
-                            </span>
-                          )}
-                        </div>
-                        {project.description && (
-                          <p className="line-clamp-2 text-sm text-slate-300">{project.description}</p>
-                        )}
-                        <span className="text-xs text-emerald-200">Перейти к проекту →</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Panel>
-        </div>
+        {canManage && (
+          <button onClick={() => setShowCreate(true)} className="btn-primary text-sm py-2.5 px-5 press btn-shimmer shrink-0">
+            + Новый проект
+          </button>
+        )}
       </div>
 
-      {!isGuest && showCreateModal && (
-        <CreateProjectModal
-          onClose={() => setShowCreateModal(false)}
+      {/* Search */}
+      <input value={search} onChange={e => setSearch(e.target.value)}
+        placeholder="Поиск проектов…"
+        className="t-input w-full sm:w-80" />
+
+      {/* Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({length:6}).map((_,i) => <ProjectCardSkeleton key={i}/>)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 opacity-50">
+          <div className="text-5xl">📁</div>
+          <div className="t-title text-white">{search ? 'Ничего не найдено' : 'Проектов пока нет'}</div>
+          {!search && canManage && <p className="t-body">Создайте первый проект</p>}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 list-appear">
+          {filtered.map(p => (
+            <ProjectCard key={p.id} project={p} onClick={() => router.push(`/projects/${p.id}`)} />
+          ))}
+        </div>
+      )}
+
+      {!isGuest && showCreate && (
+        <CreateProjectModal onClose={() => setShowCreate(false)}
           onSuccess={() => {
-            setShowCreateModal(false);
+            setShowCreate(false);
             if (!userId) return;
             setLoading(true);
-            fetchUserProjects(userId)
-              .then(setProjects)
-              .catch(() => setProjects([]))
-              .finally(() => setLoading(false));
-          }}
-        />
+            fetchUserProjects(userId).then(setProjects).catch(() => setProjects([])).finally(() => setLoading(false));
+          }} />
       )}
-    </main>
+    </div>
   );
 }
 
-function ProjectsPageFallback() {
+function ProjectCard({ project, onClick }: { project: UIProject; onClick: () => void }) {
+  const status = project.status?.toLowerCase().trim() ?? 'active';
+  const meta = STATUS_META[status] ?? STATUS_META.active;
+
   return (
-    <main className="flex h-full min-h-0 flex-col text-white">
-      <div className="flex-1 overflow-auto">
-        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 lg:px-10">
-          <div className="space-y-2">
-            <div className="skeleton h-8 w-32 rounded-xl" />
-            <div className="skeleton h-4 w-80 rounded-lg" />
+    <button type="button" onClick={onClick}
+      className="t-surface rounded-2xl p-5 ring-1 ring-white/8 hover:ring-white/20 text-left group transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 animate-fade-in-scale w-full">
+      <div className="flex items-start gap-3 mb-3">
+        <ProjectIcon name={project.name} />
+        <div className="flex-1 min-w-0 pt-0.5">
+          <div className="font-semibold text-white truncate group-hover:text-emerald-300 transition-colors">
+            {project.name ?? 'Без названия'}
           </div>
-          <div className="skeleton h-11 w-full rounded-xl" />
-          <div className="t-surface rounded-2xl p-0 ring-1 ring-white/10 divide-y divide-white/5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-4">
-                <div className="flex-1 space-y-2">
-                  <div className="skeleton h-5 w-48 rounded-lg" />
-                  <div className="skeleton h-3 w-72 rounded-lg" />
-                </div>
-                <div className="skeleton h-6 w-20 rounded-full shrink-0" />
-              </div>
-            ))}
-          </div>
+          <span className={`inline-flex items-center mt-1 text-[10px] px-2 py-0.5 rounded-full ring-1 font-medium ${meta.color}`}>
+            {meta.label}
+          </span>
         </div>
       </div>
-    </main>
+      {project.description ? (
+        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{project.description}</p>
+      ) : (
+        <p className="text-xs text-slate-600 italic">Без описания</p>
+      )}
+      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+        <span className="text-xs text-emerald-400/60 group-hover:text-emerald-300/80 transition-colors">
+          Открыть →
+        </span>
+        {project.createdAt && (
+          <span className="text-[10px] text-slate-600">
+            {new Date(project.createdAt).toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'numeric' })}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function ProjectCardSkeleton() {
+  return (
+    <div className="t-surface rounded-2xl p-5 ring-1 ring-white/8 space-y-3">
+      <div className="flex items-start gap-3">
+        <div className="skeleton w-12 h-12 rounded-xl"/>
+        <div className="flex-1 space-y-2 pt-1">
+          <div className="skeleton h-4 w-32 rounded"/>
+          <div className="skeleton h-3 w-16 rounded-full"/>
+        </div>
+      </div>
+      <div className="skeleton h-3 w-full rounded"/>
+      <div className="skeleton h-3 w-3/4 rounded"/>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-between">
+        <div className="space-y-2"><div className="skeleton h-8 w-32 rounded-xl"/><div className="skeleton h-4 w-20 rounded"/></div>
+        <div className="skeleton h-10 w-36 rounded-xl"/>
+      </div>
+      <div className="skeleton h-10 w-80 rounded-xl"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({length:6}).map((_,i) => <ProjectCardSkeleton key={i}/>)}
+      </div>
+    </div>
   );
 }

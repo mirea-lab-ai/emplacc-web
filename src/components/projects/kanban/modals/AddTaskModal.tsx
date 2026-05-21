@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import MarkdownEditor from '@/components/ui/MarkdownEditor';
+import { improveText } from '@/features/tasks/api';
 import Modal from '../ui/Modal';
 import { ButtonGhost, ButtonPrimary } from '../ui/Buttons';
 import Avatar from '@/components/ui/Avatar';
@@ -26,6 +27,7 @@ export default function AddTaskModal({
 }) {
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
+    const [improving, setImproving] = useState(false);
     const [assignedTo, setAssignedTo] = useState<Employee | null>(null);
     const [deadline, setDeadline] = useState('');
     const defaultPriority = (TASK_PRIORITY_OPTIONS[0]?.value ?? 1) as TaskPriorityValue;
@@ -156,7 +158,21 @@ export default function AddTaskModal({
                     </label>
                     
                     <div className="grid gap-2">
-                        <span className="text-slate-200">Введите описание задачи</span>
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-200">Введите описание задачи</span>
+                            <button
+                                type="button"
+                                disabled={improving || !desc.trim()}
+                                onClick={async () => {
+                                    setImproving(true);
+                                    try { setDesc(await improveText(desc)); } catch { /* ignore */ }
+                                    finally { setImproving(false); }
+                                }}
+                                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors disabled:opacity-40"
+                            >
+                                {improving ? <span className="animate-pulse">AI…</span> : <>✨ AI улучшить</>}
+                            </button>
+                        </div>
                         <MarkdownEditor
                             value={desc}
                             onChange={(v) => { setDesc(v); clearSubmitError(); }}

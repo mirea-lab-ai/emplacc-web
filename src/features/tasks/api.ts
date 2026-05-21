@@ -281,6 +281,18 @@ export async function improveTaskReport(taskId: string, userText: string): Promi
     return await res.json() as ImproveReportResponse;
 }
 
+export async function improveText(text: string): Promise<string> {
+    if (!text.trim()) return text;
+    const res = await http('/task/improve-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_text: text }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json() as { improved_text: string };
+    return data.improved_text;
+}
+
 export type UpdateTaskRequest = {
     name?: string;
     description?: string;

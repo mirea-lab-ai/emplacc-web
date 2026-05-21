@@ -15,8 +15,8 @@ export type CreateProjectRequest = {
   name: string;
   description?: string;
   created_by: string;
-  gitlab_project_id: number;
-  gitlab_url: string;
+  gitlab_project_id?: number;
+  gitlab_url?: string;
   status?: string;
 };
 

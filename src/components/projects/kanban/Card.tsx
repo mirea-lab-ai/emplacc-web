@@ -1,6 +1,7 @@
 'use client';
 
-import type { DragEvent } from 'react';
+import { useRef, type DragEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
 import { getTaskPriorityMeta, type UITask } from '@/features/tasks/types';
@@ -29,10 +30,26 @@ export default function Card({
   isDeleting = false,
   readOnly = false,
 }: Props) {
+  const router = useRouter();
+  const wasDragged = useRef(false);
+
   const handleDragStart = (event: DragEvent<HTMLDivElement>) => {
     if (readOnly) return;
+    wasDragged.current = true;
     event.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.id, fromColId }));
     event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    // сбрасываем флаг с небольшой задержкой чтобы onClick успел проверить
+    setTimeout(() => { wasDragged.current = false; }, 50);
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // не открываем если клик был на кнопках или если был drag
+    if (wasDragged.current) return;
+    if ((e.target as HTMLElement).closest('button,a')) return;
+    router.push(`/tasks/${task.id}`);
   };
 
   const assignees = task.assignees ?? [];
@@ -45,15 +62,17 @@ export default function Card({
 
   const containerClasses = [
     'group relative rounded-lg border border-white/6 p-3 t-accent-grad/20',
-    readOnly ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:brightness-110',
+    readOnly ? 'cursor-default' : 'cursor-pointer active:cursor-grabbing hover:brightness-110',
   ].join(' ');
 
   return (
     <div
       draggable={!readOnly}
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onClick={handleCardClick}
       className={containerClasses}
-      title={readOnly ? undefined : 'Перетащите, чтобы сменить статус'}
+      title={readOnly ? undefined : 'Нажмите чтобы открыть · Тяните чтобы переместить'}
     >
       <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
         <Link
@@ -71,7 +90,7 @@ export default function Card({
         {!readOnly && (
           <>
             <button
-              onClick={onEdit}
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
               className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-emerald-800"
               title="Редактировать задачу"
             >
@@ -81,7 +100,7 @@ export default function Card({
               </svg>
             </button>
             <button
-              onClick={onRemove}
+              onClick={(e) => { e.stopPropagation(); onRemove(); }}
               disabled={isDeleting}
               className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
               title={isDeleting ? 'Удаление…' : 'Удалить задачу'}
@@ -104,7 +123,7 @@ export default function Card({
         )}
       </div>
 
-      <div className="font-medium">{task.title}</div>
+      <div className="font-medium pr-20">{task.title}</div>
       {task.due && <div className="mt-1 text-sm text-slate-400">Срок: {formatDate(task.due)}</div>}
       <div className="mt-2">
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${priorityMeta.badgeClass}`}>

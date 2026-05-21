@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import { useToast } from '@/components/ui/Toast';
 import type { UIProject } from '@/features/projects/api';
 import { updateProject, deleteProject } from '@/features/projects/api';
 import DeleteProjectModal from './DeleteProjectModal';
@@ -30,6 +31,7 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
   });
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     // Инициализируем настройки из проекта
@@ -64,17 +66,17 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
         onProjectUpdate(updatedProject);
       }
       
-      alert('Настройки проекта сохранены успешно!');
+      toast.success('Настройки проекта сохранены успешно!');
     } catch (error) {
       console.error('Ошибка при сохранении настроек проекта:', error);
-      alert(`Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      toast.error(`Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     }
   };
 
   const handleDeleteProject = async () => {
     try {
       await deleteProject(project.id);
-      alert('Проект успешно удален!');
+      toast.success('Проект успешно удален!');
       
       // Уведомляем родительский компонент об удалении
       if (onProjectDelete) {
@@ -82,7 +84,7 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
       }
     } catch (error) {
       console.error('Ошибка при удалении проекта:', error);
-      alert(`Ошибка при удалении проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      toast.error(`Ошибка при удалении проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     }
   };
 

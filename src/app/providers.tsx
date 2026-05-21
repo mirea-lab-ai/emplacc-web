@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useTokenAutoRefresh } from '@/hooks/useTokenAutoRefresh';
 import { useUserCache } from '@/hooks/useUserCache';
 import { ToastProvider } from '@/components/ui/Toast';
+import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 
 function TokenRefreshInitializer() {
     useTokenAutoRefresh();
@@ -22,9 +23,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     return (
         <QueryClientProvider client={qc}>
             <ToastProvider>
+              <ConfirmProvider>
                 <TokenRefreshInitializer />
                 <UserCacheInitializer />
                 {children}
+              </ConfirmProvider>
             </ToastProvider>
         </QueryClientProvider>
     );

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
+import { useToast } from '@/components/ui/Toast';
 import { useCreateProblem } from '@/features/problems/hooks';
 import { getUserId } from '@/lib/auth';
 
@@ -13,6 +14,7 @@ export default function CreateProblemModal({ onClose }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const { mutate: createProblem, isPending, error } = useCreateProblem();
+  const toast = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function CreateProblemModal({ onClose }: Props) {
     
     const userId = getUserId();
     if (!userId) {
-      alert('Ошибка: пользователь не авторизован');
+      toast.error('Ошибка: пользователь не авторизован');
       return;
     }
     

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { SkeletonRow } from '@/components/ui/Skeleton';
 import { useAllRoles } from '@/features/roles/hooks';
 import { http } from '@/lib/http';
@@ -18,6 +19,7 @@ export default function RolesPage() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [deleteId, setDeleteId] = useState<string|null>(null);
+  const confirm = useConfirm();
 
   async function handleCreate() {
     if (!newName.trim()) return;
@@ -35,7 +37,7 @@ export default function RolesPage() {
   }
 
   async function handleDelete(roleId: string, roleName: string) {
-    if (!confirm(`Удалить роль «${roleName}»?`)) return;
+    if (!(await confirm({ message: `Удалить роль «${roleName}»?`, danger: true, confirmLabel: 'Удалить' }))) return;
     setDeleteId(roleId);
     try {
       const res = await http(`/role/${encodeURIComponent(roleId)}`, { method: 'DELETE' });

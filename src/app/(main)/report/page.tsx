@@ -18,6 +18,7 @@ import { isAuthed, getUserId } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
 import { TaskInfo } from '@/components/ReportProjectPicker';
 import { useImproveTaskReport, useTasksByIds } from '@/features/tasks/hooks';
+import { useToast } from '@/components/ui/Toast';
 import { fetchTaskById, fetchTaskBoardProject } from '@/features/tasks/api';
 import { fetchBoardById } from '@/features/boards/api';
 import { fetchProjectById } from '@/features/projects/api';
@@ -567,6 +568,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
 
   const improveReportMutation = useImproveTaskReport();
   const createReportMutation = useCreateReport();
+  const toast = useToast();
 
   const trackedTaskIds = useMemo(() => {
     const ids = new Set<string>();
@@ -955,7 +957,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       setTypingState({ key, target: improvedText });
     } catch (error) {
       console.error('Ошибка при генерации комментария отчёта', error);
-      alert('Не удалось сгенерировать комментарий. Попробуйте позже.');
+      toast.error('Не удалось сгенерировать комментарий. Попробуйте позже.');
       setImprovingKey((prev) => (prev === key ? null : prev));
     }
   }, [improveReportMutation]);
@@ -1012,7 +1014,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
   const handleSubmit = async () => {
     const userId = getUserId();
     if (!userId) {
-      alert('Ошибка: пользователь не авторизован');
+      toast.error('Ошибка: пользователь не авторизован');
       return;
     }
 
@@ -1109,7 +1111,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Ошибка при создании отчета:', error);
-      alert('Ошибка при создании отчета. Попробуйте еще раз.');
+      toast.error('Ошибка при создании отчета. Попробуйте еще раз.');
     }
   };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { useToast } from '@/components/ui/Toast';
 import Avatar from '@/components/ui/Avatar';
 import type { Member, Team } from './types';
 import { useState } from 'react';
@@ -21,6 +22,7 @@ export default function TeamBoard({
 }) {
   const [openAdd, setOpenAdd] = useState(false);
   const removeMemberMutation = useRemoveTeamMember();
+  const toast = useToast();
 
   const handleRemoveMember = async (memberId: string) => {
     try {
@@ -30,7 +32,7 @@ export default function TeamBoard({
       }
     } catch (error) {
       console.error('Ошибка при удалении участника:', error);
-      alert('Ошибка при удалении участника. Попробуйте еще раз.');
+      toast.error('Ошибка при удалении участника. Попробуйте еще раз.');
     }
   };
 

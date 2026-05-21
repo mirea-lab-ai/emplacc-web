@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
+import { useToast } from '@/components/ui/Toast';
 import { useAllTeams, useAddTeamToProject } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
@@ -21,6 +22,7 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
   const hasCreds = isClient && isAuthed();
   const { data: allTeams, isLoading } = useAllTeams(hasCreds);
   const addTeamMutation = useAddTeamToProject();
+  const toast = useToast();
 
   // Исключаем уже привязанные команды
   const availableTeams = useMemo(() => {
@@ -49,7 +51,7 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
       setQuery('');
     } catch (error) {
       console.error('Ошибка при добавлении команды:', error);
-      alert('Ошибка при добавлении команды. Попробуйте еще раз.');
+      toast.error('Ошибка при добавлении команды. Попробуйте еще раз.');
     }
   };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { useToast } from '@/components/ui/Toast';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchMyHelpRequests, UIHelpRequest, completeHelpRequest } from '@/features/reports/api';
 import { isAuthed, getUserId } from '@/lib/auth';
@@ -17,6 +18,7 @@ export default function HelpRequests() {
   const [fetched, setFetched] = useState<UIHelpRequest[]>([]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const toast = useToast();
   
   useEffect(() => {
     if (!isAuthed() || !getUserId()) return;
@@ -49,7 +51,7 @@ export default function HelpRequests() {
       setShowCompleteModal(false);
     } catch (error) {
       console.error('Ошибка при завершении просьбы о помощи:', error);
-      alert('Ошибка при завершении просьбы о помощи. Попробуйте еще раз.');
+      toast.error('Ошибка при завершении просьбы о помощи. Попробуйте еще раз.');
     } finally {
       setIsCompleting(false);
     }

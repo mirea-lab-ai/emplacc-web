@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import type { Team } from './types';
 import { useCreateTeam } from '@/features/teams/hooks';
 import { convertUITeamToTeam } from '@/lib/teamUtils';
@@ -28,6 +29,7 @@ export default function AddTeamModal({
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { mutate: createTeam, isPending, error } = useCreateTeam();
+  const toast = useToast();
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
@@ -91,7 +93,7 @@ export default function AddTeamModal({
           onClose();
         },
         onError: (error) => {
-          alert(`Ошибка создания команды: ${error.message}`);
+          toast.error(`Ошибка создания команды: ${error.message}`);
         },
       }
     );

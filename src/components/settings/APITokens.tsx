@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { fetchTokens, createToken, revokeToken, type TokenInfo, type CreatedToken } from '@/features/tokens/api';
 import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 const MCP_URL = 'https://emplacc.g-309.ru/mcp';
 
@@ -113,6 +114,7 @@ function fmtDate(iso?: string) {
 
 export default function APITokens() {
   const toast = useToast();
+  const confirm = useConfirm();
   const [tokens, setTokens]     = useState<TokenInfo[]>([]);
   const [loading, setLoading]   = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -144,7 +146,7 @@ export default function APITokens() {
   }
 
   async function handleRevoke(id: string, tName: string) {
-    if (!confirm(`Отозвать токен «${tName}»? Все MCP-сессии, использующие его, перестанут работать.`)) return;
+    if (!(await confirm({ message: `Отозвать токен «${tName}»? Все MCP-сессии, использующие его, перестанут работать.`, danger: true, confirmLabel: 'Отозвать' }))) return;
     try {
       await revokeToken(id);
       setTokens(prev => prev.filter(t => t.id !== id));

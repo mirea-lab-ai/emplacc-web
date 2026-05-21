@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
+import { useToast } from '@/components/ui/Toast';
 import Avatar from '@/components/ui/Avatar';
 import SelectedChip from '@/components/ReportWizard/SelectedChip';
 import { useAllUsers } from '@/features/user/hooks';
@@ -28,6 +29,7 @@ export default function AddMemberModal({
   const hasCreds = isClient && isAuthed();
   const { data: users, isLoading } = useAllUsers(1, 100, hasCreds);
   const addUsersMutation = useAddUsersToTeam();
+  const toast = useToast();
 
   // Исключаем уже выбранных и существующих участников команды (включая текущего пользователя)
   const availableUsers = useMemo(() => {
@@ -86,7 +88,7 @@ export default function AddMemberModal({
       setQuery('');
     } catch (error) {
       console.error('Ошибка при добавлении участников:', error);
-      alert('Ошибка при добавлении участников. Попробуйте еще раз.');
+      toast.error('Ошибка при добавлении участников. Попробуйте еще раз.');
     }
   };
 

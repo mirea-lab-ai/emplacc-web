@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import { useToast } from '@/components/ui/Toast';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
 import { exportReportsToExcel } from '@/features/reports/api';
@@ -10,6 +11,7 @@ export default function ReportDownload() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const toast = useToast();
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
@@ -37,7 +39,7 @@ export default function ReportDownload() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Ошибка при скачивании отчета:', error);
-      alert('Ошибка при скачивании отчета. Попробуйте еще раз.');
+      toast.error('Ошибка при скачивании отчета. Попробуйте еще раз.');
     } finally {
       setIsDownloading(false);
     }

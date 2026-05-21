@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
+import { useToast } from '@/components/ui/Toast';
 import { useAllProjects, useAddProjectToTeam } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
@@ -20,6 +21,7 @@ export default function AddProjectModal({ open, onClose, teamId }: Props) {
   const hasCreds = isClient && isAuthed();
   const { data: allProjects, isLoading } = useAllProjects(hasCreds);
   const addProjectMutation = useAddProjectToTeam();
+  const toast = useToast();
 
   // Фильтруем проекты по поисковому запросу
   const filteredProjects = useMemo(() => {
@@ -42,7 +44,7 @@ export default function AddProjectModal({ open, onClose, teamId }: Props) {
       setQuery('');
     } catch (error) {
       console.error('Ошибка при добавлении проекта:', error);
-      alert('Ошибка при добавлении проекта. Попробуйте еще раз.');
+      toast.error('Ошибка при добавлении проекта. Попробуйте еще раз.');
     }
   };
 

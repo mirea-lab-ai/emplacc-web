@@ -11,6 +11,7 @@ import { fetchAllUsers, type UIUser } from '@/features/user/api';
 import { getTaskPriorityMeta, TASK_PRIORITY_OPTIONS, type TaskPriorityValue } from '@/features/tasks/types';
 import MarkdownEditor, { MarkdownView } from '@/components/ui/MarkdownEditor';
 import { SkeletonTaskDetail } from '@/components/ui/Skeleton';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type TaskFull = {
   id: string; name: string; description: string; priority: number; statusId: string;
@@ -62,6 +63,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
   const [showUserPicker, setShowUserPicker] = useState(false);
   const [userQuery,      setUserQuery]      = useState('');
   const [deleting,       setDeleting]       = useState(false);
+  const confirm = useConfirm();
 
   useEffect(() => { load(); }, [taskId]);
 
@@ -131,7 +133,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
     finally { setSavingDeadline(false); }
   }
   async function handleDelete() {
-    if (!task || !confirm(`Удалить задачу «${task.name}»?`)) return;
+    if (!task || !(await confirm({ message: `Удалить задачу «${task.name}»?`, danger: true, confirmLabel: 'Удалить' }))) return;
     setDeleting(true);
     try { await deleteTask(task.id); router.push(projectId ? `/projects/${projectId}` : '/projects'); }
     finally { setDeleting(false); }

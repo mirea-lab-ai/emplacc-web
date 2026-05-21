@@ -6,6 +6,7 @@ import Panel from '@/components/ui/Panel';
 import { SkeletonRow } from '@/components/ui/Skeleton';
 import { useAllTasks, useDeleteTask } from '@/features/tasks/hooks';
 import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { getTaskPriorityMeta } from '@/features/tasks/types';
 import Avatar from '@/components/ui/Avatar';
 
@@ -18,6 +19,7 @@ export default function TasksPage() {
   const { data, isLoading, isError, refetch } = useAllTasks(page, PAGE_SIZE);
   const deleteTask = useDeleteTask();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const tasks  = data?.tasks ?? [];
   const total  = data?.total ?? 0;
@@ -34,7 +36,7 @@ export default function TasksPage() {
   }, [tasks, search]);
 
   async function handleDelete(taskId: string, title: string) {
-    if (!confirm(`Удалить задачу «${title}»?`)) return;
+    if (!(await confirm({ message: `Удалить задачу «${title}»?`, danger: true, confirmLabel: 'Удалить' }))) return;
     try {
       await deleteTask.mutateAsync(taskId);
       toast.success(`Задача «${title}» удалена`);

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
+import { useToast } from '@/components/ui/Toast';
 
 export type Report = {
   id: string;
@@ -142,6 +143,7 @@ function ReportItem({
   onToggle: () => void;
 }) {
   const preview = useMemo(() => firstTwoSentences(report.text), [report.text]);
+  const toast = useToast();
 
   return (
     <li
@@ -182,7 +184,7 @@ function ReportItem({
           ) : (
             <button
               onClick={() =>
-                alert('Тут должна быть навигация на полный отчёт или модалка.')
+                toast.info('Тут должна быть навигация на полный отчёт или модалка.')
               }
               className="rounded-lg bg-[#3452ff] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 active:translate-y-px"
             >

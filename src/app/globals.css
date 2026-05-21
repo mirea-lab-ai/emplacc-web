@@ -291,12 +291,47 @@ select.t-input option { background-color: #0d1f12; color: var(--text-primary); }
   border-radius: 8px;
 }
 
-/* scrollbar */
+/* ── Scrollbars ─────────────────────────────────────────────── */
+
+/* Global: thin dark scrollbar for all elements */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(16,185,129,0.35) transparent;
+}
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background: rgba(16,185,129,0.25);
+    border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(16,185,129,0.5);
+}
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* .custom-scroll: accent gradient thumb */
 .custom-scroll {
+    scrollbar-width: thin;
     scrollbar-color: var(--accent-start) transparent;
 }
+.custom-scroll::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
 .custom-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg,var(--accent-start),var(--accent-end));
+    background: linear-gradient(180deg, var(--accent-start), var(--accent-end));
     border-radius: 9999px;
-    border: 2px solid var(--page-bg);
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--accent-end), var(--accent-start));
 }

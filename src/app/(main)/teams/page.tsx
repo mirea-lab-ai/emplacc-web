@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { useToast } from '@/components/ui/Toast';
 import { SkeletonSidebarItem, SkeletonCard } from '@/components/ui/Skeleton';
 import TeamSidebar from '@/components/teams/TeamSidebar';
 import TeamBoard from '@/components/teams/TeamBoard';
@@ -47,6 +48,7 @@ function TeamsPageContent() {
   // Загружаем команды из API
   const { data: apiTeams, isLoading, error } = useAllTeams(hasCreds);
   const deleteTeamMutation = useDeleteTeam();
+  const toast = useToast();
   
   // Преобразуем данные API в формат компонента
   const teams: Team[] = useMemo(() => {
@@ -143,7 +145,7 @@ function TeamsPageContent() {
       setDeleteModal({ open: false, teamId: '', teamName: '' });
     } catch (error) {
       console.error('Ошибка при удалении команды:', error);
-      alert('Ошибка при удалении команды. Попробуйте еще раз.');
+      toast.error('Ошибка при удалении команды. Попробуйте еще раз.');
     }
   };
 

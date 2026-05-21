@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useCreateBoard } from '@/features/boards/hooks';
+import { useToast } from '@/components/ui/Toast';
 
 type Props = {
     projectId: string;
@@ -13,6 +14,7 @@ export default function CreateBoardModal({ projectId, onClose }: Props) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const { mutate: create, isPending } = useCreateBoard();
+    const toast = useToast();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,7 +32,7 @@ export default function CreateBoardModal({ projectId, onClose }: Props) {
                 },
                 onError: (err) => {
                     console.error('Failed to create board:', err);
-                    alert('Не удалось создать доску');
+                    toast.error('Не удалось создать доску');
                 },
             }
         );

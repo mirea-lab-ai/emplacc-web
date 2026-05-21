@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
+import { useToast } from '@/components/ui/Toast';
 import { useCreateProject } from '@/features/projects/hooks';
 import { getUserId } from '@/lib/auth';
 
@@ -16,6 +17,7 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
   const [gitlabUrl, setGitlabUrl] = useState('');
   const [gitlabProjectId, setGitlabProjectId] = useState('');
   const { mutate: createProject, isPending, error } = useCreateProject();
+  const toast = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +25,13 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
 
     const userId = getUserId();
     if (!userId) {
-      alert('Ошибка: пользователь не авторизован');
+      toast.error('Ошибка: пользователь не авторизован');
       return;
     }
 
     const projectId = gitlabProjectId.trim() ? parseInt(gitlabProjectId) : undefined;
     if (gitlabProjectId.trim() && isNaN(projectId!)) {
-      alert('Ошибка: ID проекта GitLab должен быть числом');
+      toast.error('Ошибка: ID проекта GitLab должен быть числом');
       return;
     }
 

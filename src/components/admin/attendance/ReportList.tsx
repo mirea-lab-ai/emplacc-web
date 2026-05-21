@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 
 export type FlatReport = {
   id: string;
@@ -24,6 +25,7 @@ export default function ReportList({ reports }: { reports: FlatReport[] }) {
 function ReportRow({ report }: { report: FlatReport }) {
   const [open, setOpen] = useState(false);
   const preview = useMemo(() => firstTwoSentences(report.text), [report.text]);
+  const toast = useToast();
 
   return (
     <li
@@ -76,7 +78,7 @@ function ReportRow({ report }: { report: FlatReport }) {
           ) : (
             <button
               onClick={() =>
-                alert('Тут должна быть навигация на полный отчёт или модалка.')
+                toast.info('Тут должна быть навигация на полный отчёт или модалка.')
               }
               className="mb-4 rounded-lg bg-[#3452ff] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 active:translate-y-px"
             >

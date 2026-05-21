@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import ReportDownload from '@/components/main/ReportDownload';
+import { useToast } from '@/components/ui/Toast';
 import { useAllUserProjects } from '@/features/projects/hooks';
 import type { UIProject } from '@/features/projects/api';
 import { exportActiveTasksToExcel, exportProjectBoardToExcel, exportTomorrowPlansToExcel } from '@/features/export/api';
@@ -83,6 +84,7 @@ function ProjectExportPanel() {
   const [selectedProject, setSelectedProject] = useState<UIProject | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -112,7 +114,7 @@ function ProjectExportPanel() {
       downloadBlob(blob, `project-${selectedProject.id}.xlsx`);
     } catch (error) {
       console.error('Не удалось выгрузить проектный файл', error);
-      alert('Не удалось выгрузить файл. Попробуйте еще раз позже.');
+      toast.error('Не удалось выгрузить файл. Попробуйте еще раз позже.');
     } finally {
       setIsDownloading(false);
     }
@@ -196,6 +198,7 @@ function ProjectExportPanel() {
 
 function ActiveTasksExportPanel() {
   const [isDownloading, setIsDownloading] = useState(false);
+  const toast = useToast();
 
   const handleDownload = async () => {
     if (isDownloading) return;
@@ -205,7 +208,7 @@ function ActiveTasksExportPanel() {
       downloadBlob(blob, 'active-tasks.xlsx');
     } catch (error) {
       console.error('Не удалось выгрузить активные задачи', error);
-      alert('Не удалось выгрузить файл. Попробуйте еще раз позже.');
+      toast.error('Не удалось выгрузить файл. Попробуйте еще раз позже.');
     } finally {
       setIsDownloading(false);
     }
@@ -244,6 +247,7 @@ function ActiveTasksExportPanel() {
 
 function TomorrowPlansExportPanel() {
   const [isDownloading, setIsDownloading] = useState(false);
+  const toast = useToast();
 
   const handleDownload = async () => {
     if (isDownloading) return;
@@ -253,7 +257,7 @@ function TomorrowPlansExportPanel() {
       downloadBlob(blob, 'tomorrow-plans.xlsx');
     } catch (error) {
       console.error('Не удалось выгрузить планы на сегодня', error);
-      alert('Не удалось выгрузить файл. Попробуйте еще раз позже.');
+      toast.error('Не удалось выгрузить файл. Попробуйте еще раз позже.');
     } finally {
       setIsDownloading(false);
     }

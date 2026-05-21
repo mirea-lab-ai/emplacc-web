@@ -1,6 +1,7 @@
 'use client';
 
 import Panel from '@/components/ui/Panel';
+import { useToast } from '@/components/ui/Toast';
 import { useProjectTeams, useRemoveTeamFromProject } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
@@ -19,13 +20,14 @@ export default function ProjectsTeamsPanel({ projectId }: Props) {
   const hasCreds = isClient && isAuthed();
   const { data: teams, isLoading, error } = useProjectTeams(projectId, hasCreds);
   const removeTeamMutation = useRemoveTeamFromProject();
+  const toast = useToast();
 
   const handleRemoveTeam = async (teamId: string) => {
     try {
       await removeTeamMutation.mutateAsync({ projectId, teamId });
     } catch (error) {
       console.error('Ошибка при удалении команды:', error);
-      alert('Ошибка при удалении команды. Попробуйте еще раз.');
+      toast.error('Ошибка при удалении команды. Попробуйте еще раз.');
     }
   };
 

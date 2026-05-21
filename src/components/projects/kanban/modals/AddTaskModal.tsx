@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import MarkdownEditor from '@/components/ui/MarkdownEditor';
+import DatePicker from '@/components/ui/DatePicker';
 import { improveText } from '@/features/tasks/api';
 import Modal from '../ui/Modal';
 import { ButtonGhost, ButtonPrimary } from '../ui/Buttons';
@@ -181,18 +182,17 @@ export default function AddTaskModal({
                         />
                     </div>
                     
-                    <label className="grid gap-2">
+                    <div className="grid gap-2">
                         <span className="text-slate-200">Укажите дедлайн задачи</span>
-                        <input
-                            type="date"
-                            value={deadline}
-                            onChange={(e) => {
-                                setDeadline(e.target.value);
-                                clearSubmitError();
-                            }}
-                            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        />
-                    </label>
+                        <div className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 flex items-center">
+                            <DatePicker
+                                value={deadline ? new Date(deadline).toISOString() : undefined}
+                                onChange={iso => { setDeadline(iso ? iso.split('T')[0] : ''); clearSubmitError(); }}
+                                className="text-slate-100 text-sm w-full justify-between"
+                                placeholder="Не задан"
+                            />
+                        </div>
+                    </div>
                     
                     <label className="grid gap-2">
                         <span className="text-slate-200">Выберите приоритет задачи</span>

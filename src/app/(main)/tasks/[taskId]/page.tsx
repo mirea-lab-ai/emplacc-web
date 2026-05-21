@@ -10,6 +10,7 @@ import { fetchProjectById, type UIProject } from '@/features/projects/api';
 import { fetchAllUsers, type UIUser } from '@/features/user/api';
 import { getTaskPriorityMeta, TASK_PRIORITY_OPTIONS, type TaskPriorityValue } from '@/features/tasks/types';
 import MarkdownEditor, { MarkdownView } from '@/components/ui/MarkdownEditor';
+import DatePicker from '@/components/ui/DatePicker';
 import { SkeletonTaskDetail } from '@/components/ui/Skeleton';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
@@ -433,9 +434,13 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                 <div className="flex items-center gap-2 justify-end">
                   {overdueDeadline && <span className="text-[10px] text-red-400 font-medium">просрочено</span>}
                   {soonDeadline && !overdueDeadline && <span className="text-[10px] text-amber-400 font-medium">скоро</span>}
-                  <input type="date" defaultValue={task.deadline ? task.deadline.split('T')[0] : ''}
-                    onChange={e => void handleDeadlineChange(e.target.value)} disabled={savingDeadline}
-                    className={`bg-transparent focus:outline-none disabled:opacity-50 cursor-pointer text-right ${deadlineColor}`}/>
+                  <DatePicker
+                    value={task.deadline}
+                    onChange={iso => void handleDeadlineChange(iso ? iso.split('T')[0] : '')}
+                    disabled={savingDeadline}
+                    className={deadlineColor}
+                    placeholder="Не задан"
+                  />
                 </div>
               }/>
               <Row label="Создана"   value={<span className="text-slate-400">{fmtFull(task.createdAt)}</span>}/>

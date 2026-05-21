@@ -1,139 +1,94 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import Panel from '@/components/ui/Panel';
-import Avatar from '@/components/ui/Avatar';
-import { SkeletonCard } from '@/components/ui/Skeleton';
-import { useAllUsers } from '@/features/user/hooks';
-import { useUserRole, useAllRoles, useAssignRole, useRemoveRole } from '@/features/roles/hooks';
-import type { UIRole } from '@/features/roles/api';
+import { useIsClient } from '@/hooks/useIsClient';
+import { isAuthed } from '@/lib/auth';
+import { useQuery } from '@tanstack/react-query';
+import { http } from '@/lib/http';
+import Link from 'next/link';
 
-const ROLE_COLORS: Record<string, string> = {
-  admin:    'bg-emerald-500/20 text-emerald-300 ring-emerald-500/30',
-  manager:  'bg-lime-500/20   text-lime-300   ring-lime-500/30',
-  employee: 'bg-white/10      text-slate-200  ring-white/15',
-  guest:    'bg-white/5       text-slate-400  ring-white/10',
-};
-function roleBadge(name: string) {
-  return ROLE_COLORS[name.toLowerCase()] ?? 'bg-white/10 text-slate-200 ring-white/15';
+function useAdminStats(enabled: boolean) {
+  return useQuery({
+    queryKey: ['adminStats'],
+    enabled,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const [users, tasks, projects, teams, reports, problems] = await Promise.allSettled([
+        http('/user/all/1/1').then(r => r.json()),
+        http('/task/all/1/1').then(r => r.json()),
+        http('/project/all/1/1').then(r => r.json()),
+        http('/team/all').then(r => r.json()),
+        http('/report/all/1/1').then(r => r.json()),
+        http('/problem/all/1/50').then(r => r.json()),
+      ]);
+      return {
+        users:    users.status    === 'fulfilled' ? (users.value?.total_count    ?? 0) : 0,
+        tasks:    tasks.status    === 'fulfilled' ? (tasks.value?.total_count    ?? 0) : 0,
+        projects: projects.status === 'fulfilled' ? (projects.value?.total_count ?? Array.isArray(projects.value) ? projects.value?.length ?? 0 : 0) : 0,
+        teams:    teams.status    === 'fulfilled' ? (Array.isArray(teams.value) ? teams.value.length : 0) : 0,
+        reports:  reports.status  === 'fulfilled' ? (reports.value?.total_count  ?? 0) : 0,
+        problems: problems.status === 'fulfilled' ? (problems.value?.total_count ?? 0) : 0,
+      };
+    },
+  });
 }
 
-export default function AdminPage() {
-  const [search, setSearch] = useState('');
-  const { data: users = [], isLoading, isError } = useAllUsers(1, 100);
-  const { data: roles = [] } = useAllRoles();
+const SECTIONS = [
+  { href: '/admin/users',      label: 'Сотрудники',   icon: '👥', desc: 'Управление пользователями, роли, бан' },
+  { href: '/admin/tasks',      label: 'Задачи',        icon: '✅', desc: 'Все задачи платформы, удаление' },
+  { href: '/admin/projects',   label: 'Проекты',       icon: '📁', desc: 'Управление проектами' },
+  { href: '/admin/forum',      label: 'Форум',         icon: '💬', desc: 'Модерация тем и сообщений' },
+  { href: '/admin/attendance', label: 'Посещаемость',  icon: '📊', desc: 'Отчёты и посещаемость' },
+  { href: '/admin/roles',      label: 'Роли',          icon: '🔑', desc: 'Управление ролями системы' },
+  { href: '/admin/llm',        label: 'LLM',           icon: '🤖', desc: 'Настройки AI-ассистента' },
+];
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    // Скрываем системного пользователя в списке сотрудников
-    const visible = users.filter(u => u.email !== 'system@system');
-    if (!q) return visible;
-    return visible.filter(u =>
-      u.firstName.toLowerCase().includes(q) ||
-      u.lastName.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      (u.profession ?? '').toLowerCase().includes(q)
-    );
-  }, [users, search]);
+export default function AdminDashboard() {
+  const isClient = useIsClient();
+  const hasCreds = isClient && isAuthed();
+  const { data: stats, isLoading } = useAdminStats(hasCreds);
+
+  const statCards = [
+    { label: 'Сотрудников',   value: stats?.users,    color: 'text-emerald-400' },
+    { label: 'Задач',          value: stats?.tasks,    color: 'text-blue-400' },
+    { label: 'Проектов',       value: stats?.projects, color: 'text-purple-400' },
+    { label: 'Команд',         value: stats?.teams,    color: 'text-orange-400' },
+    { label: 'Отчётов',        value: stats?.reports,  color: 'text-yellow-400' },
+    { label: 'Тем форума',     value: stats?.problems, color: 'text-pink-400' },
+  ];
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-in">
-      <Panel className="p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-          <h2 className="text-xl font-semibold flex-1">
-            Сотрудники{!isLoading && <span className="text-slate-400 text-base font-normal ml-2">({users.length})</span>}
-          </h2>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Поиск по имени, email…"
-            className="w-full sm:w-64 rounded-xl bg-white/5 ring-1 ring-white/10 px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-emerald-500/50"
-          />
-        </div>
+    <div className="space-y-8 animate-fade-in">
+      <div>
+        <h1 className="t-heading text-white">Панель администратора</h1>
+        <p className="t-body mt-1">Обзор платформы и управление системой</p>
+      </div>
 
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.from({length: 4}).map((_,i) => <SkeletonCard key={i}/>)}
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {statCards.map(s => (
+          <div key={s.label} className="t-surface rounded-2xl p-4 text-center space-y-1">
+            <div className={`text-3xl font-bold ${s.color}`}>
+              {isLoading ? <span className="animate-pulse text-slate-600">—</span> : (s.value ?? 0)}
+            </div>
+            <div className="text-xs text-slate-500">{s.label}</div>
           </div>
-        )}
-        {isError  && <div className="text-red-400 py-8 text-center">Не удалось загрузить список сотрудников</div>}
-        {!isLoading && !isError && filtered.length === 0 && (
-          <div className="text-slate-400 py-8 text-center">Ничего не найдено</div>
-        )}
+        ))}
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 list-appear">
-          {filtered.map(u => (
-            <EmployeeCard
-              key={u.id}
-              userId={u.id}
-              name={`${u.firstName} ${u.lastName}`.trim() || u.email}
-              email={u.email}
-              avatarUrl={u.avatarUrl}
-              profession={u.profession}
-              roles={roles}
-            />
+      {/* Quick nav */}
+      <div>
+        <h2 className="t-title text-white mb-4">Разделы</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {SECTIONS.map(s => (
+            <Link key={s.href} href={s.href}
+              className="t-surface-hover rounded-2xl p-5 flex items-start gap-4 ring-1 ring-white/8 hover:ring-white/20 transition-all group">
+              <span className="text-3xl shrink-0">{s.icon}</span>
+              <div className="min-w-0">
+                <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors">{s.label}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{s.desc}</div>
+              </div>
+            </Link>
           ))}
-        </div>
-      </Panel>
-    </div>
-  );
-}
-
-function EmployeeCard({ userId, name, email, avatarUrl, profession, roles }: {
-  userId: string; name: string; email: string; avatarUrl?: string; profession?: string; roles: UIRole[];
-}) {
-  const { data: roleLookup, isLoading: roleLoading } = useUserRole(userId);
-  const assignRole = useAssignRole();
-  const removeRole = useRemoveRole();
-  const [changing, setChanging] = useState(false);
-
-  const currentRole = roleLookup?.role;
-
-  async function handleRoleChange(newRoleId: string) {
-    setChanging(true);
-    try {
-      if (currentRole) await removeRole.mutateAsync({ userId, roleId: currentRole.id });
-      if (newRoleId)   await assignRole.mutateAsync({ userId, roleId: newRoleId });
-    } finally {
-      setChanging(false);
-    }
-  }
-
-  return (
-    <div className="t-surface rounded-2xl p-5 ring-1 ring-white/10 hover:ring-white/20 transition-all">
-      <div className="flex items-start gap-4">
-        <div className="rounded-full p-[2px] bg-gradient-to-br from-emerald-500/70 to-lime-400/70 shrink-0">
-          <Avatar name={name} url={avatarUrl} email={email} fallbackKey={userId} size="lg" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold truncate">{name}</div>
-          <div className="text-slate-400 text-sm truncate">{email}</div>
-          {profession && <div className="text-slate-500 text-xs mt-0.5 truncate">{profession}</div>}
-
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
-            {roleLoading ? (
-              <span className="text-xs text-slate-500">…</span>
-            ) : currentRole ? (
-              <span className={`text-xs px-2 py-0.5 rounded-full ring-1 font-medium ${roleBadge(currentRole.name)}`}>
-                {currentRole.name}
-              </span>
-            ) : (
-              <span className="text-xs text-slate-500 italic">Без роли</span>
-            )}
-
-            {roles.length > 0 && (
-              <select
-                disabled={changing}
-                value={currentRole?.id ?? ''}
-                onChange={e => handleRoleChange(e.target.value)}
-                onClick={e => e.stopPropagation()}
-                className="text-xs rounded-lg bg-white/5 ring-1 ring-white/10 px-2 py-1 text-slate-300 focus:outline-none focus:ring-emerald-500/50 disabled:opacity-50"
-              >
-                <option value="">— Без роли —</option>
-                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-            )}
-          </div>
         </div>
       </div>
     </div>

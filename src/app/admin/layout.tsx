@@ -11,9 +11,12 @@ export const metadata: Metadata = {
   description: 'Track tasks and time',
 };
 const admin_nav = [
-  { label: 'Сотрудники',           href: '/admin' },
+  { label: '📊 Дашборд',           href: '/admin' },
+  { label: 'Сотрудники',           href: '/admin/users' },
+  { label: 'Проекты',              href: '/admin/projects' },
   { label: 'Задачи',               href: '/admin/tasks' },
-  { label: 'Посещаемость и отчёты', href: '/admin/attendance' },
+  { label: 'Форум',                href: '/admin/forum' },
+  { label: 'Посещаемость',         href: '/admin/attendance' },
   { label: 'Роли',                 href: '/admin/roles' },
   { label: '🤖 LLM',              href: '/admin/llm' },
 ];

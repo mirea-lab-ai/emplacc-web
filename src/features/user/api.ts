@@ -9,6 +9,19 @@ export type UIUser = {
   specialization?: string;
   tgId?: string;
   avatarUrl?: string;
+  isActive?: boolean;
+  emailVerified?: boolean;
+  createdAt?: string;
+  lastLogin?: string;
+};
+
+export type CreateUserRequest = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  profession?: string;
+  is_active?: boolean;
+  email_verified?: boolean;
 };
 
 export type UpdateUserRequest = {
@@ -46,6 +59,10 @@ export async function fetchUser(userId: string): Promise<UIUser> {
     specialization,
     tgId: json.tg_id,
     avatarUrl: json.avatar_url || undefined,
+    isActive: json.is_active,
+    emailVerified: json.email_verified,
+    createdAt: json.created_at,
+    lastLogin: json.last_login,
   };
 }
 
@@ -78,6 +95,39 @@ export async function fetchAllUsers(page = 1, pageSize = 100): Promise<UIUser[]>
       tgId: u.tg_id,
       avatarUrl: u.avatar_url || undefined,
     }));
+}
+
+// Создание пользователя
+export async function createUser(payload: CreateUserRequest): Promise<{ id: string }> {
+  const res = await http('/user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, is_active: true, email_verified: false }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<{ id: string }>;
+}
+
+// Бан пользователя (soft delete)
+export async function banUser(userId: string): Promise<void> {
+  const res = await http(`/user/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+// Восстановление забаненного пользователя
+export async function restoreUser(email: string): Promise<void> {
+  const res = await http('/user/restore', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+// Полное удаление пользователя
+export async function deleteUserPermanently(userId: string): Promise<void> {
+  const res = await http(`/user/full-delete/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
 // Обновление данных пользователя

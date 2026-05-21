@@ -4,6 +4,101 @@ import { useEffect, useState } from 'react';
 import { fetchTokens, createToken, revokeToken, type TokenInfo, type CreatedToken } from '@/features/tokens/api';
 import { useToast } from '@/components/ui/Toast';
 
+const MCP_URL = 'https://emplacc.g-309.ru/mcp';
+
+const MCP_AGENTS = [
+  {
+    id: 'claude',
+    label: 'Claude Code',
+    icon: '🤖',
+    description: '~/.claude/settings.json',
+    config: (token: string) => JSON.stringify({
+      mcpServers: { emplacc: { type: 'sse', url: `${MCP_URL}?token=${token}` } }
+    }, null, 2),
+  },
+  {
+    id: 'opencode',
+    label: 'OpenCode',
+    icon: '⚡',
+    description: '~/.config/opencode/config.json',
+    config: (token: string) => JSON.stringify({
+      mcp: { emplacc: { type: 'sse', url: `${MCP_URL}?token=${token}` } }
+    }, null, 2),
+  },
+  {
+    id: 'codex',
+    label: 'OpenAI Codex',
+    icon: '🟢',
+    description: '~/.codex/config.json',
+    config: (token: string) => JSON.stringify({
+      mcpServers: { emplacc: { type: 'sse', url: `${MCP_URL}?token=${token}` } }
+    }, null, 2),
+  },
+  {
+    id: 'copilot',
+    label: 'GitHub Copilot',
+    icon: '🐙',
+    description: '.vscode/mcp.json',
+    config: (token: string) => JSON.stringify({
+      servers: { emplacc: { type: 'sse', url: `${MCP_URL}?token=${token}` } }
+    }, null, 2),
+  },
+];
+
+function MCPGuide({ token }: { token: string }) {
+  const [activeAgent, setActiveAgent] = useState('claude');
+  const [copied, setCopied] = useState(false);
+  const agent = MCP_AGENTS.find(a => a.id === activeAgent)!;
+  const snippet = agent.config(token);
+
+  function copy() {
+    navigator.clipboard.writeText(snippet).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="t-surface rounded-2xl p-5 space-y-4">
+      <div>
+        <h4 className="font-semibold text-white">Подключение MCP к агентам</h4>
+        <p className="t-caption mt-0.5">Добавьте конфиг в нужный файл и перезапустите агента</p>
+      </div>
+
+      {/* Agent tabs */}
+      <div className="flex flex-wrap gap-2">
+        {MCP_AGENTS.map(a => (
+          <button key={a.id} onClick={() => setActiveAgent(a.id)}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors
+              ${activeAgent === a.id
+                ? 'bg-white/10 text-white ring-1 ring-white/20'
+                : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}>
+            <span>{a.icon}</span>{a.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Config block */}
+      <div className="space-y-2">
+        <div className="t-label">{agent.description}</div>
+        <div className="relative rounded-xl bg-black/40 ring-1 ring-white/10">
+          <pre className="text-xs text-emerald-300/90 font-mono p-4 overflow-x-auto whitespace-pre">{snippet}</pre>
+          <button onClick={copy}
+            className="absolute top-2 right-2 btn-ghost text-xs py-1 px-2.5">
+            {copied ? '✓' : 'Копировать'}
+          </button>
+        </div>
+      </div>
+
+      {token === '<ВАШ_ТОКЕН>' && (
+        <p className="t-caption text-amber-400/70">
+          Создайте токен выше — инструкция подставит его автоматически
+        </p>
+      )}
+    </div>
+  );
+}
+
 const EXPIRY_OPTIONS = [
   { label: 'Бессрочный', value: undefined },
   { label: '30 дней', value: '30d' },
@@ -159,6 +254,8 @@ export default function APITokens() {
           ))}
         </div>
       )}
+
+      <MCPGuide token={newToken?.token ?? '<ВАШ_ТОКЕН>'} />
     </div>
   );
 }

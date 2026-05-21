@@ -347,64 +347,8 @@ export default function YourTasks() {
       };
     }, [hasCreds, tasks, taskProjects, ensureProjectName]);
 
-    const navigateToBoard = (projectId: string, boardId?: string) => {
-      const target = boardId
-        ? `/projects/${projectId}?boardId=${encodeURIComponent(boardId)}`
-        : `/projects/${projectId}`;
-      router.push(target);
-    };
-
-    const handleTaskOpen = async (task: UITask) => {
-      const immediate = extractLocationFromTask(task);
-      const cachedProjectId = taskProjects[task.id];
-      if (cachedProjectId === null) {
-        console.warn('Ваши задачи: ранее не удалось определить проект для задачи', task.id);
-        return;
-      }
-
-      if (resolvingTaskId === task.id) {
-        return;
-      }
-
-      setResolvingTaskId(task.id);
-
-      try {
-        const remote = await fetchTaskBoardProject(task.id);
-        const resolvedProjectId = remote.projectId ?? immediate.projectId ?? cachedProjectId ?? undefined;
-        const resolvedBoardId = remote.boardId ?? immediate.boardId ?? undefined;
-
-        if (resolvedProjectId) {
-          void ensureProjectName(resolvedProjectId);
-          setTaskProjects((prev) => {
-            const existing = prev[task.id];
-            if (existing === resolvedProjectId) {
-              return prev;
-            }
-            return {
-              ...prev,
-              [task.id]: resolvedProjectId,
-            };
-          });
-          navigateToBoard(resolvedProjectId, resolvedBoardId);
-          return;
-        }
-
-        console.warn('Ваши задачи: не удалось определить проект для перехода', task, remote);
-        setTaskProjects((prev) => (
-          prev[task.id] === null
-            ? prev
-            : { ...prev, [task.id]: null }
-        ));
-      } catch (err) {
-        console.error('Ваши задачи: ошибка при определении доски задачи', err);
-        setTaskProjects((prev) => (
-          prev[task.id] === null
-            ? prev
-            : { ...prev, [task.id]: null }
-        ));
-      } finally {
-        setResolvingTaskId((current) => (current === task.id ? null : current));
-      }
+    const handleTaskOpen = (task: UITask) => {
+      router.push(`/tasks/${task.id}`);
     };
 
     const { sortedTasks, hiddenCount } = useMemo(() => {

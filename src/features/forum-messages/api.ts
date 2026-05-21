@@ -1,11 +1,29 @@
 import { http } from '@/lib/http';
 
+export type UIForumMessageAuthor = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
+  email?: string | null;
+};
+
+export type UIForumMessageReplyPreview = {
+  id: string;
+  text: string;
+  authorName: string;
+};
+
 export type UIForumMessage = {
   id: string;
   content: string;
   createdAt?: string;
+  updatedAt?: string;
   authorId?: string;
   authorName?: string;
+  authorAvatarUrl?: string | null;
+  replyToId?: string | null;
+  replyTo?: UIForumMessageReplyPreview | null;
   problemId: string;
 };
 
@@ -13,50 +31,58 @@ export type CreateForumMessageRequest = {
   description: string[];
   problem_id: string;
   creator_id: string;
+  reply_to_id?: string;
 };
 
-// Получение сообщений форума по проблеме
 export async function fetchForumMessagesByProblem(
   problemId: string,
   page = 1,
-  pageSize = 20
+  pageSize = 100
 ): Promise<UIForumMessage[]> {
-  const res = await http(`/forum-messages/problem/${encodeURIComponent(problemId)}/${page}/${pageSize}`, {
-    method: 'GET'
-  });
+  const res = await http(`/forum-messages/problem/${encodeURIComponent(problemId)}/${page}/${pageSize}`, { method: 'GET' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = (await res.json()) as any;
+  const json = (await res.json()) as { messages?: unknown[] };
+  const list = json.messages ?? [];
 
-  // Обработка разных форматов ответа
-  const list: any[] = json.messages ?? [];
-
-  return list.map((m: any) => ({
-    id: String(m.id ?? ''),
-    content: Array.isArray(m.description ?? m.desctription) ? (m.description ?? m.desctription).join(' ') : m.content ?? '',
-    createdAt: m.created_at,
-    authorId: m.creator_id,
-    authorName: [m.creator_first_name, m.creator_last_name].filter(Boolean).join(' ') || m.creator_name || '',
-    problemId: String(m.problem_id ?? problemId),
-  }));
+  return (list as Record<string, unknown>[]).map(m => {
+    const desc = Array.isArray(m.description) ? (m.description as string[]).join(' ') : String(m.content ?? '');
+    const author = m.author as Record<string, string> | null | undefined;
+    const replyTo = m.reply_to as Record<string, string> | null | undefined;
+    return {
+      id: String(m.id ?? ''),
+      content: desc,
+      createdAt: m.created_at as string | undefined,
+      updatedAt: m.updated_at as string | undefined,
+      authorId: author?.id ?? String(m.creator_id ?? ''),
+      authorName: author ? `${author.first_name ?? ''} ${author.last_name ?? ''}`.trim() : '',
+      authorAvatarUrl: author?.avatar_url ?? null,
+      replyToId: m.reply_to_id as string | null ?? null,
+      replyTo: replyTo ? { id: replyTo.id, text: replyTo.text, authorName: replyTo.author_name } : null,
+      problemId: String(m.problem_id ?? problemId),
+    };
+  });
 }
 
-// Создание нового сообщения
-export async function createForumMessage(payload: CreateForumMessageRequest): Promise<UIForumMessage> {
+export async function createForumMessage(payload: CreateForumMessageRequest): Promise<{ id: string }> {
   const res = await http('/forum-messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = (await res.json()) as any;
+  return res.json() as Promise<{ id: string }>;
+}
 
-  return {
-    id: String(json.id ?? ''),
-  content: payload.description.join(' '),
-    createdAt: json.created_at ?? new Date().toISOString(),
-    authorId: payload.creator_id,
-    authorName: [json.creator_first_name, json.creator_last_name].filter(Boolean).join(' ') || json.creator_name || '',
-    problemId: payload.problem_id,
-  };
+export async function updateForumMessage(id: string, description: string[]): Promise<void> {
+  const res = await http(`/forum-messages/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+export async function deleteForumMessage(id: string): Promise<void> {
+  const res = await http(`/forum-messages/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }

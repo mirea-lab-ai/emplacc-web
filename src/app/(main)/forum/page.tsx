@@ -9,7 +9,7 @@ import CreateProblemModal from '@/components/forum/CreateProblemModal';
 import EditProblemModal from '@/components/forum/EditProblemModal';
 import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
 import { useAllProblems, useDeleteProblem } from '@/features/problems/hooks';
-import { useForumMessagesByProblem, useCreateForumMessage } from '@/features/forum-messages/hooks';
+import { useForumMessagesByProblem, useCreateForumMessage, useDeleteForumMessage, useUpdateForumMessage } from '@/features/forum-messages/hooks';
 import { useAllUsers } from '@/features/user/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
@@ -45,6 +45,8 @@ function ForumContent() {
 
   const { mutate: createMessage, isPending: isSending } = useCreateForumMessage();
   const { mutate: deleteProblem, isPending: isDeleting } = useDeleteProblem();
+  const { mutate: deleteMessage } = useDeleteForumMessage(activeProblemId);
+  const { mutate: updateMessage } = useUpdateForumMessage(activeProblemId);
 
   // ID системного пользователя для сервисных сообщений
   const systemUserId = useMemo(
@@ -119,20 +121,34 @@ function ForumContent() {
         const lookup = m.authorId ? usersMap.get(m.authorId) : undefined;
         return {
           id: m.id,
-          author: { id: m.authorId || currentUserId || '', name: m.authorName?.trim() || lookup?.name || (isSelf ? 'Я' : 'Неизвестно'), email: lookup?.email ?? null },
+          author: { id: m.authorId || currentUserId || '', name: m.authorName?.trim() || lookup?.name || (isSelf ? 'Я' : 'Неизвестно'), email: lookup?.email ?? null, avatarUrl: m.authorAvatarUrl ?? null },
           text: m.content,
           ts: m.createdAt ? new Date(m.createdAt).getTime() : Date.now(),
           self: isSelf,
+          replyToId: m.replyToId ?? null,
+          replyTo: m.replyTo ?? null,
+          isEdited: !!(m.updatedAt && m.createdAt && m.updatedAt !== m.createdAt),
         };
       });
   }, [forumMessages, usersMap, activeProblemId]);
 
   const chatLoading = messagesLoading || (messagesFetching && !forumMessages?.some(m => m.problemId === activeProblemId));
 
-  const sendMessage = (text: string) => {
+  const sendMessage = (text: string, replyToId?: string) => {
     if (!activeProblemId || !text.trim() || !userId) return;
-    createMessage({ description: [text.trim()], problem_id: activeProblemId, creator_id: userId });
+    createMessage({ description: [text.trim()], problem_id: activeProblemId, creator_id: userId, reply_to_id: replyToId });
   };
+
+  const mentionItems = useMemo(() =>
+    (users ?? [])
+      .filter(u => u.email !== 'system@system')
+      .map(u => ({
+        id: u.id,
+        label: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || u.id,
+        type: 'user' as const,
+      })),
+    [users]
+  );
 
   // Отправляем сервисное сообщение от системного пользователя
   const sendServiceMessage = useCallback((text: string) => {
@@ -264,9 +280,14 @@ function ForumContent() {
                 taskTitle={activeProblem?.name ?? 'Обсуждение'}
                 messages={messages}
                 onSend={canWrite ? sendMessage : () => {}}
+                onDelete={(id) => deleteMessage(id)}
+                onEdit={(id, text) => updateMessage({ id, description: [text] })}
+                currentUserId={userId ?? undefined}
+                canManage={canManage}
                 isLoading={chatLoading}
                 error={null}
                 isSending={isSending}
+                mentionItems={mentionItems}
               />
             </div>
           </div>

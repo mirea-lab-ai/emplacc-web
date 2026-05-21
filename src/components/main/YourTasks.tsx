@@ -479,14 +479,13 @@ function TaskRow({
     }
   };
   const normalizedProjectId = typeof projectId === 'string' ? projectId.trim() : projectId;
-  let projectLabel = projectName
-    ?? (normalizedProjectId ? `ID ${normalizedProjectId}` : undefined);
+  let projectLabel: string | undefined = projectName;
 
   if (!projectLabel) {
-    if (resolving || autoResolving) {
+    if (resolving || autoResolving || normalizedProjectId) {
       projectLabel = 'Определяем проект…';
     } else if (projectResolution === null) {
-      projectLabel = 'Проект не определён';
+      projectLabel = 'Проект не найден';
     }
   }
 

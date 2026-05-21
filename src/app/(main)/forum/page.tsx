@@ -10,6 +10,8 @@ import EditProblemModal from '@/components/forum/EditProblemModal';
 import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
 import { useAllProblems, useDeleteProblem } from '@/features/problems/hooks';
 import { useForumMessagesByProblem, useCreateForumMessage, useDeleteForumMessage, useUpdateForumMessage } from '@/features/forum-messages/hooks';
+import { fetchAllTasks } from '@/features/tasks/api';
+import { useQuery } from '@tanstack/react-query';
 import { useAllUsers } from '@/features/user/hooks';
 import { useAllTeams, useAllProjects } from '@/features/teams/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
@@ -45,6 +47,12 @@ function ForumContent() {
   const { data: users } = useAllUsers(1, 500, hasCreds);
   const { data: allTeams } = useAllTeams(hasCreds);
   const { data: allProjects } = useAllProjects(hasCreds);
+  const { data: allTasksData } = useQuery({
+    queryKey: ['allTasksForMentions'],
+    queryFn: () => fetchAllTasks(1, 100),
+    enabled: hasCreds,
+    staleTime: 60_000,
+  });
 
   const { mutate: createMessage, isPending: isSending } = useCreateForumMessage();
   const { mutate: deleteProblem, isPending: isDeleting } = useDeleteProblem();
@@ -163,7 +171,13 @@ function ForumContent() {
       type: 'team' as const,
     }));
 
-    return [...userItems, ...projectItems, ...teamItems];
+    const taskItems = (allTasksData?.tasks ?? []).map(t => ({
+      id: t.id,
+      label: t.title,
+      type: 'task' as const,
+    }));
+
+    return [...userItems, ...projectItems, ...teamItems, ...taskItems];
   }, [users, allProjects, allTeams]);
 
   // Отправляем сервисное сообщение от системного пользователя

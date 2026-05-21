@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef, useState, useCallback, type DragEvent, type ChangeEvent } from 'react';
+import { useRef, useState, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { uploadImage } from '@/lib/upload';
 import { uploadFile } from '@/lib/upload';
+import { renderMentions, type MentionItem } from '@/components/forum/ChatWindow';
 
 type Props = {
   value: string;
@@ -14,6 +15,7 @@ type Props = {
   rows?: number;
   disabled?: boolean;
   withImages?: boolean;
+  mentionItems?: MentionItem[];
 };
 
 function fileIcon(type: string) {
@@ -38,11 +40,15 @@ function buildMarkdown(file: File, url: string): string {
 
 export default function MarkdownEditor({
   value, onChange, placeholder = 'Описание в формате Markdown…',
-  rows = 8, disabled = false, withImages = true,
+  rows = 8, disabled = false, withImages = true, mentionItems = [],
 }: Props) {
   const [tab, setTab]           = useState<'write' | 'preview'>('write');
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver]  = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionTrigger, setMentionTrigger] = useState<'@' | '#' | null>(null);
+  const [mentionAnchor, setMentionAnchor] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -171,12 +177,65 @@ export default function MarkdownEditor({
         )}
       </div>
 
+      {/* Mention autocomplete */}
+      {mentionOpen && mentionItems.length > 0 && tab === 'write' && (() => {
+        const q = mentionQuery.toLowerCase();
+        const filtered = mentionItems
+          .filter(m => mentionTrigger === '@' ? m.type === 'user' : m.type !== 'user')
+          .filter(m => !q || m.label.toLowerCase().includes(q))
+          .slice(0, 8);
+        if (!filtered.length) return null;
+        return (
+          <div className="mx-3 mb-1 rounded-xl border border-white/10 overflow-hidden"
+               style={{ background: 'rgba(10,22,14,0.97)', backdropFilter: 'blur(12px)' }}>
+            {filtered.map(item => {
+              const icon = { user: '👤', task: '✅', project: '📁', team: '👥' }[item.type];
+              const badge = { user: 'text-blue-300', task: 'text-emerald-300', project: 'text-purple-300', team: 'text-orange-300' }[item.type];
+              return (
+                <button key={item.id}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    const trigger = mentionTrigger ?? '@';
+                    const insertion = `${trigger}[${item.label}](${item.type}:${item.id}) `;
+                    const before = value.slice(0, mentionAnchor);
+                    const after  = value.slice(mentionAnchor + 1 + mentionQuery.length);
+                    onChange(before + insertion + after);
+                    setMentionOpen(false);
+                    setTimeout(() => textareaRef.current?.focus(), 0);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors text-left">
+                  <span className={`text-xs ${badge}`}>{icon} {item.type}</span>
+                  <span className="text-white">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       {/* Content */}
       {tab === 'write' ? (
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={e => {
+            const val = e.target.value;
+            onChange(val);
+            if (mentionItems.length > 0) {
+              const pos = e.target.selectionStart;
+              const before = val.slice(0, pos);
+              const atMatch = before.match(/(?:^|[\s])(@)(\S*)$/);
+              const hashMatch = before.match(/(?:^|[\s])(#)(\S*)$/);
+              if (atMatch) {
+                setMentionTrigger('@'); setMentionQuery(atMatch[2]);
+                setMentionAnchor(pos - atMatch[2].length - 1); setMentionOpen(true);
+              } else if (hashMatch) {
+                setMentionTrigger('#'); setMentionQuery(hashMatch[2]);
+                setMentionAnchor(pos - hashMatch[2].length - 1); setMentionOpen(true);
+              } else { setMentionOpen(false); }
+            }
+          }}
+          onKeyDown={e => { if (e.key === 'Escape') setMentionOpen(false); }}
           placeholder={dragOver ? 'Отпустите файл для загрузки…' : placeholder}
           rows={rows}
           disabled={disabled}
@@ -212,6 +271,7 @@ export default function MarkdownEditor({
 }
 
 export function MarkdownView({ content }: { content: string }) {
+  const processed = useMemo(() => renderMentions(content), [content]);
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
@@ -240,7 +300,7 @@ export function MarkdownView({ content }: { content: string }) {
         ),
       }}
     >
-      {content}
+      {processed}
     </ReactMarkdown>
   );
 }

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Avatar from '@/components/ui/Avatar';
 import { MarkdownView } from '@/components/ui/MarkdownEditor';
-import { uploadFile } from '@/lib/upload';
-import type { UIForumMessage, UIForumMessageReplyPreview } from '@/features/forum-messages/api';
+import { uploadImage, uploadFile } from '@/lib/upload';
+import type { UIForumMessageReplyPreview } from '@/features/forum-messages/api';
 
 export type Message = {
   id: string;
@@ -17,19 +17,52 @@ export type Message = {
   isEdited?: boolean;
 };
 
-type MentionItem = { id: string; label: string; type: 'user' | 'task' | 'project' | 'team' };
+export type MentionItem = { id: string; label: string; type: 'user' | 'task' | 'project' | 'team' };
+
+// ── Mention format: @[Name](user:id) or #[Name](project:id) etc ──
+function buildMentionText(trigger: '@' | '#', item: MentionItem): string {
+  return `${trigger}[${item.label}](${item.type}:${item.id})`;
+}
+
+// Renders structured mentions as styled HTML badges (consumed by MarkdownView via rehypeRaw)
+export function renderMentions(text: string): string {
+  return text
+    .replace(/@\[([^\]]+)\]\(user:[^)]+\)/g,
+      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px">@$1</span>')
+    .replace(/#\[([^\]]+)\]\(project:[^)]+\)/g,
+      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(168,85,247,0.15);color:#c4b5fd;margin:0 2px">📁 $1</span>')
+    .replace(/#\[([^\]]+)\]\(team:[^)]+\)/g,
+      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(249,115,22,0.15);color:#fdba74;margin:0 2px">👥 $1</span>')
+    .replace(/#\[([^\]]+)\]\(task:[^)]+\)/g,
+      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(16,185,129,0.15);color:#6ee7b7;margin:0 2px">✅ $1</span>');
+}
+
+// Extract mention IDs from text for notifications backend
+export function extractMentions(text: string): { type: MentionItem['type']; id: string }[] {
+  const result: { type: MentionItem['type']; id: string }[] = [];
+  const re = /[@#]\[([^\]]+)\]\((user|task|project|team):([^)]+)\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    result.push({ type: m[2] as MentionItem['type'], id: m[3] });
+  }
+  return result;
+}
+
+type FilePreview = { url: string; file: File; type: 'image' | 'video' | 'other' };
+
+function fileIcon(mime: string): string {
+  if (mime.startsWith('video/')) return '🎬';
+  if (mime.includes('pdf')) return '📄';
+  if (mime.includes('zip') || mime.includes('rar')) return '📦';
+  if (mime.includes('word') || mime.includes('document')) return '📝';
+  if (mime.includes('sheet') || mime.includes('excel')) return '📊';
+  return '📎';
+}
 
 export default function ChatWindow({
-  taskTitle,
-  messages,
-  onSend,
-  onDelete,
-  onEdit,
-  currentUserId,
-  canManage = false,
-  isLoading = false,
-  error = null,
-  isSending = false,
+  taskTitle, messages, onSend, onDelete, onEdit,
+  currentUserId, canManage = false,
+  isLoading = false, error = null, isSending = false,
   mentionItems = [],
 }: {
   taskTitle: string;
@@ -47,21 +80,17 @@ export default function ChatWindow({
   const [draft, setDraft] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [imagePreviews, setImagePreviews] = useState<{ url: string; file: File }[]>([]);
+  const [previews, setPreviews] = useState<FilePreview[]>([]);
   const [replyTo, setReplyTo] = useState<{ id: string; text: string; authorName: string } | null>(null);
-
-  // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
-
-  // Mention autocomplete
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionTrigger, setMentionTrigger] = useState<'@' | '#' | null>(null);
-  const [mentionAnchor, setMentionAnchor] = useState(0); // cursor position where trigger started
+  const [mentionAnchor, setMentionAnchor] = useState(0);
 
-  const listRef      = useRef<HTMLDivElement>(null);
-  const textareaRef  = useRef<HTMLTextAreaElement>(null);
+  const listRef     = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -79,15 +108,24 @@ export default function ChatWindow({
     let text = draft.trim();
     if (isSending) return;
 
-    if (imagePreviews.length > 0) {
+    if (previews.length > 0) {
       setUploading(true);
       try {
-        const urls = await Promise.all(
-          imagePreviews.map(p => uploadFile(p.file).then(r => r.url))
-        );
-        const imgMd = urls.map(u => `![image](${u})`).join('\n');
-        text = text ? `${text}\n${imgMd}` : imgMd;
-        setImagePreviews([]);
+        const parts = await Promise.all(previews.map(async p => {
+          if (p.type === 'image') {
+            const { url } = await uploadImage(p.file);
+            return `![${p.file.name}](${url})`;
+          } else if (p.type === 'video') {
+            const { url } = await uploadFile(p.file);
+            return `<video src="${url}" controls style="max-width:100%;border-radius:8px;margin:4px 0"></video>`;
+          } else {
+            const { url } = await uploadFile(p.file);
+            return `[${fileIcon(p.file.type)} ${p.file.name}](${url})`;
+          }
+        }));
+        const mediaText = parts.join('\n');
+        text = text ? `${text}\n${mediaText}` : mediaText;
+        setPreviews([]);
       } catch {
         setUploading(false);
         return;
@@ -113,7 +151,6 @@ export default function ChatWindow({
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); }
   };
 
-  // Mention detection while typing
   const handleDraftChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setDraft(val);
@@ -141,7 +178,7 @@ export default function ChatWindow({
 
   const insertMention = (item: MentionItem) => {
     const trigger = mentionTrigger ?? '@';
-    const insertion = `${trigger}${item.label} `;
+    const insertion = buildMentionText(trigger, item) + ' ';
     const before = draft.slice(0, mentionAnchor);
     const after  = draft.slice(mentionAnchor + 1 + mentionQuery.length);
     setDraft(before + insertion + after);
@@ -150,27 +187,26 @@ export default function ChatWindow({
   };
 
   const filteredMentions = useMemo(() => {
-    if (!mentionOpen || !mentionQuery && !mentionTrigger) return [];
+    if (!mentionOpen) return [];
     const q = mentionQuery.toLowerCase();
     return mentionItems
-      .filter(m => {
-        if (mentionTrigger === '@') return m.type === 'user';
-        if (mentionTrigger === '#') return m.type !== 'user';
-        return true;
-      })
-      .filter(m => m.label.toLowerCase().includes(q))
-      .slice(0, 6);
+      .filter(m => mentionTrigger === '@' ? m.type === 'user' : m.type !== 'user')
+      .filter(m => !q || m.label.toLowerCase().includes(q))
+      .slice(0, 8);
   }, [mentionItems, mentionQuery, mentionTrigger, mentionOpen]);
 
   const addFiles = useCallback((files: FileList | File[]) => {
-    const all = Array.from(files).filter(f => f.type.startsWith('image/'));
-    all.forEach(file => {
-      setImagePreviews(p => [...p, { url: URL.createObjectURL(file), file }]);
+    Array.from(files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      const type = file.type.startsWith('image/') ? 'image'
+        : file.type.startsWith('video/') ? 'video'
+        : 'other';
+      setPreviews(p => [...p, { url, file, type }]);
     });
   }, []);
 
   const removePreview = (idx: number) => {
-    setImagePreviews(p => { URL.revokeObjectURL(p[idx].url); return p.filter((_, i) => i !== idx); });
+    setPreviews(p => { URL.revokeObjectURL(p[idx].url); return p.filter((_, i) => i !== idx); });
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -180,50 +216,41 @@ export default function ChatWindow({
 
   const onPaste = (e: React.ClipboardEvent) => {
     const files = e.clipboardData.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
-      e.preventDefault();
-      addFiles(files);
-    }
+    if (files.length > 0) { e.preventDefault(); addFiles(files); }
   };
 
-  const startEdit = (msg: Message) => {
-    setEditingId(msg.id);
-    setEditDraft(msg.text);
-  };
+  const grouped = useMemo(() => messages.map((m, i) => {
+    const prev = messages[i - 1];
+    const next = messages[i + 1];
+    const isService = m.author.email === 'system@system' || m.author.name === '🤖 Система';
+    const prevSame = prev?.author.id === m.author.id && !isService;
+    const nextSame = next?.author.id === m.author.id && !isService;
+    const timeDiff = prev ? m.ts - prev.ts : Infinity;
+    return {
+      ...m, isService,
+      isFirstInGroup: !prevSame || timeDiff > 5 * 60_000,
+      isLastInGroup: !nextSame || (next ? next.ts - m.ts > 5 * 60_000 : true),
+    };
+  }), [messages]);
 
-  const submitEdit = (id: string) => {
-    const text = editDraft.trim();
-    if (text && onEdit) onEdit(id, text);
-    setEditingId(null);
-    setEditDraft('');
-  };
+  const hasContent = draft.trim() || previews.length > 0;
 
-  const grouped = useMemo(() => {
-    return messages.map((m, i) => {
-      const prev = messages[i - 1];
-      const next = messages[i + 1];
-      const isService = m.author.email === 'system@system' || m.author.name === '🤖 Система';
-      const prevSame = prev?.author.id === m.author.id && !isService;
-      const nextSame = next?.author.id === m.author.id && !isService;
-      const timeDiff = prev ? m.ts - prev.ts : Infinity;
-      const isFirstInGroup = !prevSame || timeDiff > 5 * 60_000;
-      const isLastInGroup  = !nextSame || (next ? next.ts - m.ts > 5 * 60_000 : true);
-      return { ...m, isService, isFirstInGroup, isLastInGroup };
-    });
-  }, [messages]);
-
-  const hasContent = draft.trim() || imagePreviews.length > 0;
   const mentionTypeIcon = (t: MentionItem['type']) =>
-    t === 'user' ? '👤' : t === 'task' ? '✅' : t === 'project' ? '📁' : '👥';
+    ({ user: '👤', task: '✅', project: '📁', team: '👥' })[t];
+  const mentionTypeBadge = (t: MentionItem['type']) => ({
+    user: 'bg-blue-500/15 text-blue-300',
+    task: 'bg-emerald-500/15 text-emerald-300',
+    project: 'bg-purple-500/15 text-purple-300',
+    team: 'bg-orange-500/15 text-orange-300',
+  })[t];
 
   return (
-    <div
-      className="flex h-full w-full flex-col overflow-hidden"
-      style={{ background: 'rgba(5,14,8,0.95)' }}
-      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={onDrop}
-    >
+    <div className="flex h-full w-full flex-col overflow-hidden"
+         style={{ background: 'rgba(5,14,8,0.95)' }}
+         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+         onDragLeave={() => setDragOver(false)}
+         onDrop={onDrop}>
+
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/6 shrink-0"
            style={{ background: 'rgba(10,22,14,0.92)', backdropFilter: 'blur(12px)' }}>
@@ -237,7 +264,7 @@ export default function ChatWindow({
       </div>
 
       {dragOver && (
-        <div className="absolute inset-0 z-50 grid place-items-center bg-emerald-900/40 backdrop-blur-sm border-2 border-dashed border-emerald-400/60 rounded-none pointer-events-none">
+        <div className="absolute inset-0 z-50 grid place-items-center bg-emerald-900/40 backdrop-blur-sm border-2 border-dashed border-emerald-400/60 pointer-events-none">
           <div className="text-emerald-300 text-lg font-semibold">Отпустите файл</div>
         </div>
       )}
@@ -245,11 +272,7 @@ export default function ChatWindow({
       {/* Messages */}
       <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll px-4 py-4 space-y-0.5"
            style={{ backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(16,185,129,0.03), transparent 60%)' }}>
-        {isLoading && (
-          <div className="flex justify-center py-8">
-            <span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
-          </div>
-        )}
+        {isLoading && <div className="flex justify-center py-8"><span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/></div>}
         {!isLoading && error && <div className="text-center text-red-400 py-8 text-sm">Ошибка загрузки</div>}
         {!isLoading && !error && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3 opacity-50">
@@ -260,44 +283,45 @@ export default function ChatWindow({
         {grouped.map(m => (
           m.isService
             ? <ServiceBubble key={m.id} text={m.text} ts={m.ts} />
-            : <Bubble
-                key={m.id}
-                msg={m}
-                isFirstInGroup={m.isFirstInGroup}
-                isLastInGroup={m.isLastInGroup}
-                isEditing={editingId === m.id}
-                editDraft={editDraft}
+            : <Bubble key={m.id} msg={m}
+                isFirstInGroup={m.isFirstInGroup} isLastInGroup={m.isLastInGroup}
+                isEditing={editingId === m.id} editDraft={editDraft}
                 onEditDraftChange={setEditDraft}
-                onEditSubmit={() => submitEdit(m.id)}
-                onEditCancel={() => { setEditingId(null); setEditDraft(''); }}
+                onEditSubmit={() => { if (editDraft.trim() && onEdit) { onEdit(m.id, editDraft.trim()); } setEditingId(null); }}
+                onEditCancel={() => setEditingId(null)}
                 canDelete={!!onDelete && (!!m.self || canManage)}
                 canEdit={!!onEdit && !!m.self}
                 onDelete={() => onDelete?.(m.id)}
-                onEdit={() => startEdit(m)}
+                onEdit={() => { setEditingId(m.id); setEditDraft(m.text); }}
                 onReply={() => setReplyTo({ id: m.id, text: m.text.slice(0, 80), authorName: m.author.name })}
               />
         ))}
         {(isSending || uploading) && (
           <div className="flex justify-end pr-1 mt-1">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl rounded-br-sm"
-                 style={{ background: 'rgba(16,185,129,0.2)' }}>
-              {[0,1,2].map(i => (
-                <span key={i} className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-soft"
-                      style={{ animationDelay: `${i*150}ms` }}/>
-              ))}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl" style={{ background: 'rgba(16,185,129,0.2)' }}>
+              {[0,1,2].map(i => <span key={i} className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-soft" style={{ animationDelay: `${i*150}ms` }}/>)}
             </div>
           </div>
         )}
       </div>
 
-      {/* Image previews */}
-      {imagePreviews.length > 0 && (
-        <div className="flex gap-2 px-4 py-2 border-t border-white/6 overflow-x-auto"
+      {/* File/image previews */}
+      {previews.length > 0 && (
+        <div className="flex gap-2 px-4 py-2 border-t border-white/6 overflow-x-auto shrink-0"
              style={{ background: 'rgba(10,22,14,0.9)' }}>
-          {imagePreviews.map((p, i) => (
+          {previews.map((p, i) => (
             <div key={i} className="relative shrink-0 group">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt="" className="h-16 w-16 object-cover rounded-xl ring-1 ring-white/10"/>
+              {p.type === 'image' ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.url} alt="" className="h-16 w-16 object-cover rounded-xl ring-1 ring-white/10"/>
+              ) : p.type === 'video' ? (
+                <div className="h-16 w-24 rounded-xl ring-1 ring-white/10 bg-black/40 grid place-items-center text-2xl">🎬</div>
+              ) : (
+                <div className="h-16 w-24 rounded-xl ring-1 ring-white/10 bg-white/5 flex flex-col items-center justify-center gap-1 px-2">
+                  <span className="text-xl">{fileIcon(p.file.type)}</span>
+                  <span className="text-[10px] text-slate-400 truncate max-w-full">{p.file.name}</span>
+                </div>
+              )}
               <button onClick={() => removePreview(i)}
                 className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-500 text-white text-xs grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
             </div>
@@ -307,14 +331,13 @@ export default function ChatWindow({
 
       {/* Reply banner */}
       {replyTo && (
-        <div className="flex items-center gap-2 px-4 py-2 border-t border-white/6 shrink-0"
-             style={{ background: 'rgba(10,22,14,0.9)' }}>
+        <div className="flex items-center gap-2 px-4 py-2 border-t border-white/6 shrink-0" style={{ background: 'rgba(10,22,14,0.9)' }}>
           <div className="w-0.5 h-8 rounded-full bg-emerald-400/60 shrink-0"/>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-emerald-300 font-medium">{replyTo.authorName}</div>
             <div className="text-xs text-slate-400 truncate">{replyTo.text}</div>
           </div>
-          <button onClick={() => setReplyTo(null)} className="text-slate-500 hover:text-white transition-colors text-sm shrink-0">✕</button>
+          <button onClick={() => setReplyTo(null)} className="text-slate-500 hover:text-white shrink-0">✕</button>
         </div>
       )}
 
@@ -323,21 +346,29 @@ export default function ChatWindow({
         <div className="mx-4 mb-1 rounded-xl border border-white/10 overflow-hidden shrink-0"
              style={{ background: 'rgba(10,22,14,0.97)', backdropFilter: 'blur(12px)' }}>
           {filteredMentions.map(item => (
-            <button key={item.id}
-              onClick={() => insertMention(item)}
+            <button key={item.id} onClick={() => insertMention(item)}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors text-left">
-              <span>{mentionTypeIcon(item.type)}</span>
+              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${mentionTypeBadge(item.type)}`}>
+                {mentionTypeIcon(item.type)} {item.type}
+              </span>
               <span className="text-white">{item.label}</span>
-              <span className="text-slate-500 text-xs ml-auto">{item.type}</span>
             </button>
           ))}
+        </div>
+      )}
+      {mentionOpen && filteredMentions.length === 0 && mentionQuery && (
+        <div className="mx-4 mb-1 px-3 py-2 rounded-xl border border-white/10 text-xs text-slate-500 shrink-0"
+             style={{ background: 'rgba(10,22,14,0.97)' }}>
+          Ничего не найдено по «{mentionQuery}»
         </div>
       )}
 
       {/* Composer */}
       <div className="px-4 py-3 border-t border-white/6 shrink-0 flex items-end gap-2"
            style={{ background: 'rgba(10,22,14,0.92)', backdropFilter: 'blur(12px)' }}>
-        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
+        <input ref={fileInputRef} type="file"
+               accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt"
+               multiple className="hidden"
                onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }}/>
 
         <button onClick={() => fileInputRef.current?.click()} title="Прикрепить"
@@ -349,22 +380,14 @@ export default function ChatWindow({
 
         <div className="flex-1 flex items-end gap-2 rounded-2xl ring-1 ring-white/8 px-3 py-2"
              style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={draft}
-            onChange={handleDraftChange}
-            onKeyDown={onKey}
-            onPaste={onPaste}
-            placeholder="Сообщение… (@упомянуть, #задача)"
+          <textarea ref={textareaRef} rows={1} value={draft}
+            onChange={handleDraftChange} onKeyDown={onKey} onPaste={onPaste}
+            placeholder="Сообщение… (@человек, #задача, #проект, #команда)"
             className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 resize-none focus:outline-none text-sm leading-relaxed min-h-[24px] max-h-40"
-            style={{ height: '24px' }}
-          />
+            style={{ height: '24px' }}/>
         </div>
 
-        <button
-          onClick={() => void send()}
-          disabled={!hasContent || isSending || uploading}
+        <button onClick={() => void send()} disabled={!hasContent || isSending || uploading}
           className="h-10 w-10 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 disabled:scale-90 press"
           style={{ background: hasContent ? 'linear-gradient(135deg,#10b981,#84cc16)' : 'rgba(255,255,255,0.08)' }}>
           <svg className={`w-4 h-4 transition-transform ${hasContent ? '-rotate-45 text-black' : 'text-slate-500'}`}
@@ -395,36 +418,29 @@ function Bubble({
   isEditing, editDraft, onEditDraftChange, onEditSubmit, onEditCancel,
   canDelete, canEdit, onDelete, onEdit, onReply,
 }: {
-  msg: Message;
-  isFirstInGroup: boolean;
-  isLastInGroup: boolean;
-  isEditing: boolean;
-  editDraft: string;
-  onEditDraftChange: (v: string) => void;
-  onEditSubmit: () => void;
-  onEditCancel: () => void;
-  canDelete: boolean;
-  canEdit: boolean;
-  onDelete: () => void;
-  onEdit: () => void;
-  onReply: () => void;
+  msg: Message; isFirstInGroup: boolean; isLastInGroup: boolean;
+  isEditing: boolean; editDraft: string;
+  onEditDraftChange: (v: string) => void; onEditSubmit: () => void; onEditCancel: () => void;
+  canDelete: boolean; canEdit: boolean;
+  onDelete: () => void; onEdit: () => void; onReply: () => void;
 }) {
   const isSelf = !!msg.self;
   const [hovered, setHovered] = useState(false);
   const time = useMemo(() =>
-    new Date(msg.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-    [msg.ts]);
+    new Date(msg.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), [msg.ts]);
   const displayName = msg.author.name || 'Неизвестно';
+
+  // Border radius: last in group gets pointed tail corner
   const br = isSelf
     ? `16px 16px ${isLastInGroup ? '4px' : '16px'} 16px`
     : `16px 16px 16px ${isLastInGroup ? '4px' : '16px'}`;
 
   return (
-    <div
-      className={`flex items-end gap-2 ${isSelf ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className={`flex items-end gap-2 ${isSelf ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}
+         onMouseEnter={() => setHovered(true)}
+         onMouseLeave={() => setHovered(false)}>
+
+      {/* Avatar placeholder for non-self */}
       {!isSelf && (
         <div className="w-8 shrink-0 self-end">
           {isLastInGroup
@@ -433,76 +449,9 @@ function Bubble({
         </div>
       )}
 
-      <div className="flex flex-col max-w-[72%]">
-        {!isSelf && isFirstInGroup && (
-          <span className="text-xs font-semibold ml-3 mb-1" style={{ color: nameColor(msg.author.id) }}>
-            {displayName}
-          </span>
-        )}
-
-        {/* Reply preview */}
-        {msg.replyTo && (
-          <div className={`flex items-start gap-1.5 mb-1 px-3 py-1.5 rounded-xl text-xs opacity-70 ${isSelf ? 'ml-auto' : ''}`}
-               style={{ background: 'rgba(255,255,255,0.05)', maxWidth: '100%' }}>
-            <div className="w-0.5 h-full rounded-full bg-emerald-400/50 shrink-0 self-stretch min-h-[16px]"/>
-            <div className="min-w-0">
-              <span className="font-medium text-emerald-300">{msg.replyTo.authorName}</span>
-              <p className="truncate text-slate-400">{msg.replyTo.text}</p>
-            </div>
-          </div>
-        )}
-
-        <div className="relative px-3 py-2 text-sm group/bubble"
-             style={{
-               borderRadius: br,
-               background: isSelf
-                 ? 'linear-gradient(135deg, rgba(16,185,129,0.55), rgba(132,204,22,0.45))'
-                 : 'rgba(255,255,255,0.08)',
-               backdropFilter: 'blur(8px)',
-               border: '1px solid rgba(255,255,255,0.06)',
-             }}>
-          {isLastInGroup && <Tail isSelf={isSelf}/>}
-
-          {isEditing ? (
-            <div className="space-y-1.5">
-              <textarea
-                autoFocus
-                value={editDraft}
-                onChange={e => onEditDraftChange(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onEditSubmit(); }
-                  if (e.key === 'Escape') onEditCancel();
-                }}
-                rows={2}
-                className="w-full bg-transparent text-white resize-none focus:outline-none text-sm"
-              />
-              <div className="flex gap-2 justify-end">
-                <button onClick={onEditCancel} className="text-xs text-slate-400 hover:text-white">Отмена</button>
-                <button onClick={onEditSubmit} className="text-xs text-emerald-300 hover:text-emerald-200 font-medium">Сохранить</button>
-              </div>
-            </div>
-          ) : (
-            <div className="prose prose-invert prose-sm max-w-none text-white/90">
-              <MarkdownView content={renderMentions(msg.text)} />
-            </div>
-          )}
-
-          <div className="flex items-center gap-1 mt-1 justify-end">
-            <span className="text-[10px] opacity-60">{time}</span>
-            {msg.isEdited && <span className="text-[10px] opacity-40">изм.</span>}
-            {isSelf && (
-              <svg className="w-3.5 h-3.5 text-emerald-300/70" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 8l4 4L14 4"/><path d="M5 8l4 4 5-8" opacity="0.5"/>
-              </svg>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Action bar */}
+      {/* Action bar — for self: left of bubble; for others: right */}
       {hovered && !isEditing && (
-        <div className={`flex items-center gap-0.5 shrink-0 self-center ${isSelf ? 'order-first' : ''}`}
-             style={{ opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
+        <div className={`flex items-center gap-0.5 shrink-0 self-center ${isSelf ? 'order-first' : ''}`}>
           <ActionBtn title="Ответить" onClick={onReply}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
               <path d="M3 10h11a4 4 0 010 8h-1m-10-8l4-4m-4 4l4 4"/>
@@ -525,7 +474,74 @@ function Bubble({
         </div>
       )}
 
-      {isSelf && <div className="w-8 shrink-0"/>}
+      <div className="flex flex-col" style={{ maxWidth: '72%' }}>
+        {!isSelf && isFirstInGroup && (
+          <span className="text-xs font-semibold ml-3 mb-1" style={{ color: nameColor(msg.author.id) }}>
+            {displayName}
+          </span>
+        )}
+
+        {/* Reply preview */}
+        {(msg.replyTo || msg.replyToId) && (
+          <div className={`flex items-start gap-1.5 mb-1 px-3 py-1.5 rounded-xl text-xs opacity-70 ${isSelf ? 'self-end' : 'self-start'}`}
+               style={{ background: 'rgba(255,255,255,0.05)', maxWidth: '100%' }}>
+            <div className="w-0.5 rounded-full bg-emerald-400/50 shrink-0 self-stretch min-h-[16px]"/>
+            <div className="min-w-0">
+              {msg.replyTo?.text ? (
+                <>
+                  <span className="font-medium text-emerald-300">{msg.replyTo.authorName}</span>
+                  <p className="truncate text-slate-400">{msg.replyTo.text}</p>
+                </>
+              ) : (
+                <p className="italic text-slate-500">🗑 сообщение удалено</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="relative px-3 py-2 text-sm"
+             style={{
+               borderRadius: br,
+               background: isSelf
+                 ? 'linear-gradient(135deg, rgba(16,185,129,0.55), rgba(132,204,22,0.45))'
+                 : 'rgba(255,255,255,0.08)',
+               backdropFilter: 'blur(8px)',
+               border: '1px solid rgba(255,255,255,0.06)',
+             }}>
+          {isLastInGroup && <Tail isSelf={isSelf}/>}
+
+          {isEditing ? (
+            <div className="space-y-1.5">
+              <textarea autoFocus value={editDraft}
+                onChange={e => onEditDraftChange(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onEditSubmit(); }
+                  if (e.key === 'Escape') onEditCancel();
+                }}
+                rows={2}
+                className="w-full bg-transparent text-white resize-none focus:outline-none text-sm"/>
+              <div className="flex gap-2 justify-end">
+                <button onClick={onEditCancel} className="text-xs text-slate-400 hover:text-white">Отмена</button>
+                <button onClick={onEditSubmit} className="text-xs text-emerald-300 hover:text-emerald-200 font-medium">Сохранить</button>
+              </div>
+            </div>
+          ) : (
+            <div className="prose prose-invert prose-sm max-w-none text-white/90">
+              <MarkdownView content={renderMentions(msg.text)}/>
+            </div>
+          )}
+
+          <div className="flex items-center gap-1 mt-1 justify-end">
+            <span className="text-[10px] opacity-60">{time}</span>
+            {msg.isEdited && <span className="text-[10px] opacity-40">изм.</span>}
+            {isSelf && (
+              <svg className="w-3.5 h-3.5 text-emerald-300/70" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 8l4 4L14 4"/><path d="M5 8l4 4 5-8" opacity="0.5"/>
+              </svg>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -534,9 +550,7 @@ function ActionBtn({ children, title, onClick, danger = false }: {
   children: React.ReactNode; title: string; onClick: () => void; danger?: boolean;
 }) {
   return (
-    <button
-      title={title}
-      onClick={e => { e.stopPropagation(); onClick(); }}
+    <button title={title} onClick={e => { e.stopPropagation(); onClick(); }}
       className={`p-1.5 rounded-lg transition-colors ${danger ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-500 hover:text-white hover:bg-white/10'}`}>
       {children}
     </button>
@@ -553,12 +567,6 @@ function Tail({ isSelf }: { isSelf: boolean }) {
         : <path d="M0 0 Q0 10 8 13 Q4 8 3 0 Z" fill="rgba(255,255,255,0.08)"/>}
     </svg>
   );
-}
-
-function renderMentions(text: string): string {
-  return text
-    .replace(/@([\wЀ-ӿ]+(?:\s[\wЀ-ӿ]+)?)/g, '**@$1**')
-    .replace(/#([\wЀ-ӿ]+(?:\s[\wЀ-ӿ]+)?)/g, '`#$1`');
 }
 
 const COLORS = ['#e17076','#faa774','#b0d060','#6eccca','#65aced','#a695e7','#ee7aae'];

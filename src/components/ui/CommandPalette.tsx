@@ -80,6 +80,18 @@ async function searchAll(q: string): Promise<Result[]> {
   return results;
 }
 
+function useShortcutLabel() {
+  const [label, setLabel] = useState('Ctrl+K');
+  useEffect(() => {
+    const p = navigator.platform?.toLowerCase() ?? '';
+    const ua = navigator.userAgent?.toLowerCase() ?? '';
+    if (p.includes('mac') || ua.includes('mac os')) setLabel('⌘K');
+    else if (p.includes('win') || ua.includes('windows')) setLabel('Win+K');
+    else setLabel('Ctrl+K'); // Linux и прочие
+  }, []);
+  return label;
+}
+
 export default function CommandPalette() {
   const [open, setOpen]       = useState(false);
   const [query, setQuery]     = useState('');
@@ -88,6 +100,7 @@ export default function CommandPalette() {
   const [cursor, setCursor]   = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const router   = useRouter();
+  const shortcutLabel = useShortcutLabel();
 
   const close = useCallback(() => { setOpen(false); setQuery(''); setResults([]); }, []);
 
@@ -162,7 +175,10 @@ export default function CommandPalette() {
           {loading && (
             <div className="w-4 h-4 border-2 border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin-slow shrink-0" />
           )}
-          <kbd className="hidden sm:inline-flex items-center rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-500 font-mono shrink-0">Esc</kbd>
+          <div className="hidden sm:flex items-center gap-1 shrink-0">
+            <kbd className="inline-flex items-center rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-500 font-mono">{shortcutLabel}</kbd>
+            <kbd className="inline-flex items-center rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-500 font-mono">Esc</kbd>
+          </div>
         </div>
 
         {/* Results */}

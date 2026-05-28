@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type Props = {
   value?: string;        // ISO date string or empty
@@ -34,6 +35,7 @@ export default function DatePicker({ value, onChange, disabled, className, place
   const [open, setOpen]       = useState(false);
   const [viewYear, setViewYear]   = useState(() => isoToDate(value)?.getFullYear() ?? new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => isoToDate(value)?.getMonth()    ?? new Date().getMonth());
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selected = isoToDate(value);
@@ -44,6 +46,35 @@ export default function DatePicker({ value, onChange, disabled, className, place
     const d = isoToDate(value);
     if (d) { setViewYear(d.getFullYear()); setViewMonth(d.getMonth()); }
   }, [value]);
+
+  // Recalculate dropdown position on open / scroll / resize
+  useEffect(() => {
+    if (!open || !containerRef.current) return;
+
+    const reposition = () => {
+      const rect = containerRef.current!.getBoundingClientRect();
+      const DROPDOWN_HEIGHT = 340; // approximate
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow >= DROPDOWN_HEIGHT || spaceBelow >= rect.top
+        ? rect.bottom + 4
+        : rect.top - DROPDOWN_HEIGHT - 4;
+      setDropdownStyle({
+        position: 'fixed',
+        top,
+        right: window.innerWidth - rect.right,
+        width: 280,
+        zIndex: 9999,
+      });
+    };
+
+    reposition();
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [open]);
 
   // Close on outside click
   useEffect(() => {
@@ -101,11 +132,11 @@ export default function DatePicker({ value, onChange, disabled, className, place
         </svg>
       </button>
 
-      {/* Dropdown */}
-      {open && (
+      {/* Dropdown — rendered via portal to escape overflow-hidden ancestors */}
+      {open && typeof document !== 'undefined' && createPortal(
         <div
-          className="absolute z-[9999] mt-1 right-0 w-[280px] rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
-          style={{ background: 'rgba(10,18,12,0.97)', backdropFilter: 'blur(16px)' }}
+          className="rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
+          style={{ ...dropdownStyle, background: 'rgba(10,18,12,0.97)', backdropFilter: 'blur(16px)' }}
         >
           {/* Header: month navigation */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
@@ -159,7 +190,8 @@ export default function DatePicker({ value, onChange, disabled, className, place
               Сегодня
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -37,6 +37,7 @@ export default function DatePicker({ value, onChange, disabled, className, place
   const [viewMonth, setViewMonth] = useState(() => isoToDate(value)?.getMonth()    ?? new Date().getMonth());
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef  = useRef<HTMLDivElement>(null);
 
   const selected = isoToDate(value);
   const today    = new Date();
@@ -80,7 +81,10 @@ export default function DatePicker({ value, onChange, disabled, className, place
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+      if (
+        containerRef.current && !containerRef.current.contains(e.target as Node) &&
+        dropdownRef.current  && !dropdownRef.current.contains(e.target as Node)
+      ) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -135,6 +139,7 @@ export default function DatePicker({ value, onChange, disabled, className, place
       {/* Dropdown — rendered via portal to escape overflow-hidden ancestors */}
       {open && typeof document !== 'undefined' && createPortal(
         <div
+          ref={dropdownRef}
           className="rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
           style={{ ...dropdownStyle, background: 'rgba(10,18,12,0.97)', backdropFilter: 'blur(16px)' }}
         >

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { getGravatarUrl } from '@/lib/gravatar';
-import { uploadAvatar } from '@/lib/upload';
+import { uploadAvatar, isPresignedUrl, refreshPresignedUrl } from '@/lib/upload';
 import { getUserId } from '@/lib/auth';
 
 export default function AvatarEditor({
@@ -28,16 +28,31 @@ export default function AvatarEditor({
   const [draft, setDraft]     = useState<string | undefined>(src);
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState<string | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [retried,   setRetried]   = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => setDraft(src), [src]);
+  useEffect(() => { setDraft(src); setImgFailed(false); setRetried(false); }, [src]);
+
+  const handleImgError = async () => {
+    const current = draft ?? src;
+    if (!retried && current && isPresignedUrl(current)) {
+      setRetried(true);
+      try {
+        const fresh = await refreshPresignedUrl(current);
+        setDraft(fresh);
+        return;
+      } catch { /* fall through */ }
+    }
+    setImgFailed(true);
+  };
 
   const gravatarUrl = useMemo(() => {
     if (!email) return undefined;
     return getGravatarUrl(email, 256);
   }, [email]);
 
-  const displaySrc = draft ?? src ?? gravatarUrl;
+  const displaySrc = !imgFailed ? (draft ?? src ?? gravatarUrl) : undefined;
 
   // Esc закрывает
   useEffect(() => {
@@ -58,6 +73,7 @@ export default function AvatarEditor({
             sizes="128px"
             className="object-cover"
             unoptimized
+            onError={handleImgError}
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-3xl font-semibold text-white">

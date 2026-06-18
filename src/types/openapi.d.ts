@@ -4,6 +4,1473 @@
  */
 
 export interface paths {
+    "/admin/llm-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Получить настройки LLM */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: never;
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Обновить настройки LLM */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: never;
+        };
+        trace?: never;
+    };
+    "/api/approval-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request approval for a dangerous action */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Approval request */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorApprovalRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approval-requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an approval request */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Approval request ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.ApprovalRequest"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approval-requests/{id}/deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deny an approval request */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Approval request ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["internal_controller.conveyorApprovalDecisionRequest"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approval-requests/{id}/grant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grant an approval request */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Approval request ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["internal_controller.conveyorApprovalDecisionRequest"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/conveyor/pm-import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import PM canon into Conveyor */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description PM import data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorPMImportRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.PMImportSummary"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/waivers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a waiver */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Waiver ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.Waiver"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/agent-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List work item agent runs */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.AgentRun"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Register work item agent run */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Agent run data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorAgentRunRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/agent-runs/{agent_run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get work item agent run */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                    /** @description Agent run ID */
+                    agent_run_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.AgentRun"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update work item agent run */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                    /** @description Agent run ID */
+                    agent_run_id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Agent run update */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorAgentRunUpdateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/work-items/{id}/agent-runs/{agent_run_id}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Heartbeat work item agent run */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                    /** @description Agent run ID */
+                    agent_run_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/approval-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List approval requests for a work item */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.ApprovalRequest"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close work item with evidence gate */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Close request */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorCloseTaskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/criteria": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List work item criteria */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.AcceptanceCriterion"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create work item criterion */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Criterion data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorCriterionRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/criteria/{criterion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update criterion state */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                    /** @description Criterion ID */
+                    criterion_id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Criterion state */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorCriterionStateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/work-items/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List work item events */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.ConveyorEvent"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List work item evidence */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.Evidence"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Attach work item evidence */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Evidence data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorEvidenceRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/evidence-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Summarize a work item's evidence via LLM (draft) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorLLMTextResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/evidence/{evidence_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke work item evidence */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                    /** @description Evidence ID */
+                    evidence_id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Revocation data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorRevokeEvidenceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List work item links */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_domain.TaskLink"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Link work items */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Source work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Task link data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorTaskLinkRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/suggest-criteria": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suggest acceptance criteria for a work item via LLM (draft) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorLLMTextResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-items/{id}/waivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a waiver for a work item */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Work item ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Waiver data */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["internal_controller.conveyorWaiverRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["emplacc-api_internal_service.ConveyorMutationResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_controller.conveyorErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/attendance": {
         parameters: {
             query?: never;
@@ -579,72 +2046,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/oauth": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Аутентификация через OAuth
-         * @description Выполняет аутентификацию с использованием OAuth кода авторизации
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для OAuth аутентификации */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.OAuthRequest"];
-                };
-            };
-            responses: {
-                /** @description Успешная OAuth аутентификация */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.AuthResponse"];
-                    };
-                };
-                /** @description Ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка OAuth аутентификации */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/refresh": {
         parameters: {
             query?: never;
@@ -711,7 +2112,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/register": {
+    "/auth/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -720,10 +2121,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Регистрация нового пользователя
-         * @description Создает нового пользователя в Keycloak с указанным email
-         */
+        /** Создать сессию */
         post: {
             parameters: {
                 query?: never;
@@ -731,55 +2129,26 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description Данные для регистрации */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.RegisterRequest"];
-                };
-            };
-            responses: {
-                /** @description Пользователь успешно зарегистрирован */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при создании пользователя */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
+            requestBody?: never;
+            responses: never;
         };
-        delete?: never;
+        /** Завершить сессию */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: never;
+        };
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/auth/totp": {
+    "/auth/session/rotate": {
         parameters: {
             query?: never;
             header?: never;
@@ -788,10 +2157,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Аутентификация с двухфакторной аутентификацией
-         * @description Выполняет аутентификацию с использованием email, пароля и TOTP кода
-         */
+        /** Ротировать сессию */
         post: {
             parameters: {
                 query?: never;
@@ -799,45 +2165,8 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description Данные для TOTP аутентификации */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.TOTPRequest"];
-                };
-            };
-            responses: {
-                /** @description Успешная TOTP аутентификация */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.AuthResponse"];
-                    };
-                };
-                /** @description Ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Неверные учетные данные или TOTP код */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
+            requestBody?: never;
+            responses: never;
         };
         delete?: never;
         options?: never;
@@ -1104,8 +2433,8 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Доска не найдена */
-                404: {
+                /** @description Ошибка сервера при получении досок */
+                500: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -1115,13 +2444,77 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Ошибка сервера при получении досок */
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/project/{projectId}/export/xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Экспорт задач проекта в XLSX
+         * @description Генерирует XLSX-файл с задачами проекта, сгруппированными по доскам и статусам
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID проекта */
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description XLSX-файл с задачами проекта */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description Некорректный идентификатор проекта */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка при генерации отчёта */
                 500: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
                             [key: string]: string;
                         };
                     };
@@ -1218,7 +2611,7 @@ export interface paths {
         post?: never;
         /**
          * Удаление доски
-         * @description Логическое удаление доски по ID (поле deleted = true)
+         * @description Логическое удаление доски по ID (поле deleted = true), а также всех её статусов и задач
          */
         delete: {
             parameters: {
@@ -1330,449 +2723,18 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Доска не найдена */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
                 /** @description Ошибка сервера при обновлении доски */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/forum-messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Создание нового сообщения форума
-         * @description Создает новое сообщение форума с указанными параметрами
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для создания сообщения форума */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.CreateForumMessageRequest"];
-                };
-            };
-            responses: {
-                /** @description Сообщение форума успешно создано */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ForumMessageUniversalResponse"];
-                    };
-                };
-                /** @description Ошибка в запросе или некорректные идентификаторы */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при создании сообщения форума */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/forum-messages/all/{page}/{pagesize}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Получение списка всех сообщений форума
-         * @description Получает список всех сообщений форума с учетом пагинации, исключая удаленные
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Номер страницы */
-                    page: number;
-                    /** @description Размер страницы */
-                    pagesize: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Список сообщений форума успешно получен */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ForumMessageListResponse"];
-                    };
-                };
-                /** @description Ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при получении сообщений форума */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/forum-messages/problem/{id}/{page}/{pagesize}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Получение сообщений форума по ID проблемы
-         * @description Получает список сообщений форума, связанных с указанной проблемой, с учетом пагинации
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description ID проблемы */
-                    id: string;
-                    /** @description Номер страницы */
-                    page: number;
-                    /** @description Размер страницы */
-                    pagesize: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Список сообщений форума успешно получен */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ForumMessageListByProblemIdResponse"];
-                    };
-                };
-                /** @description Некорректный идентификатор проблемы или ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при получении сообщений форума */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/forum-messages/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Получение сообщения форума по ID
-         * @description Получает данные сообщения форума по его уникальному идентификатору
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description ID сообщения форума */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Сообщение форума успешно получено */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ForumMessageResponse"];
-                    };
-                };
-                /** @description Некорректный идентификатор сообщения */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Сообщение форума не найдено */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при получении сообщения форума */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        /**
-         * Удаление сообщения форума
-         * @description Логическое удаление сообщения форума по ID (поле deleted = true)
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description ID сообщения форума */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Сообщение форума успешно удалено */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ForumMessageUniversalResponse"];
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Сообщение форума не найдено */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при удалении сообщения форума */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        /**
-         * Обновление сообщения форума
-         * @description Обновляет данные сообщения форума по его ID
-         */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description ID сообщения форума */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            /** @description Данные для обновления сообщения форума */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.UpdateForumMessageRequest"];
-                };
-            };
-            responses: {
-                /** @description Сообщение форума успешно обновлено */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ForumMessageUniversalResponse"];
-                    };
-                };
-                /** @description Некорректный идентификатор или ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при обновлении сообщения форума */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -2229,7 +3191,7 @@ export interface paths {
         put?: never;
         /**
          * Создание нового проекта
-         * @description Создает новый проект с указанными параметрами
+         * @description Создает новый проект с указанными параметрами и автоматически создаёт главную доску с двумя статусами: начальным и конечным
          */
         post: {
             parameters: {
@@ -2352,6 +3314,87 @@ export interface paths {
                     };
                 };
                 /** @description Ошибка сервера при получении проектов */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Поиск проектов с автодополнением и пагинацией
+         * @description Ищет проекты по имени, описанию или GitLab URL с автодополнением после каждого введенного символа. Поддерживает автоматическую замену раскладки клавиатуры (английская-русская) для расширенного поиска и пагинацию. Проекты сортируются: сначала проекты где пользователь состоит, потом создатель, потом остальные.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Поисковый запрос */
+                    query: string;
+                    /** @description ID пользователя для приоритетной сортировки */
+                    user_id: string;
+                    /** @description Номер страницы */
+                    page: number;
+                    /** @description Размер страницы */
+                    pagesize: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Результаты поиска проектов */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ProjectSearchResponse"];
+                    };
+                };
+                /** @description Ошибка в запросе */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при поиске проектов */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -2626,7 +3669,7 @@ export interface paths {
         post?: never;
         /**
          * Удаление проекта
-         * @description Логическое удаление проекта по ID, включая связанные данные (поле deleted = true)
+         * @description Логическое удаление проекта по ID, включая все связанные доски, статусы и задачи (поле deleted = true)
          */
         delete: {
             parameters: {
@@ -2998,6 +4041,134 @@ export interface paths {
         };
         trace?: never;
     };
+    "/report/export/tomorrow-plans/xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Экспорт планов на завтра в XLSX
+         * @description Генерирует XLSX-файл с планами на завтра из последних отчетов всех пользователей
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description XLSX-файл с планами на завтра */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description Ошибка при генерации отчёта */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/report/export/xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Экспорт отчётов по выполненным работам в XLSX
+         * @description Генерирует XLSX-файл с отчётами по выполненным работам за указанный период.
+         *     Строки — сотрудники, столбцы — даты, ячейки — список выполненных задач за день.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Диапазон дат для экспорта */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.ReportsByDateInXLSX"];
+                };
+            };
+            responses: {
+                /** @description XLSX-файл с отчётами */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description Некорректные входные данные (например, даты) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен авторизации */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка при генерации отчёта */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/report/help-request/{id}": {
         parameters: {
             query?: never;
@@ -3008,7 +4179,77 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Удаление запроса на помощь
+         * @description Логическое удаление запроса на помощь по ID (установка поля deleted = true)
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID запроса на помощь */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Запрос на помощь успешно удален */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ReportUniversalResponse"];
+                    };
+                };
+                /** @description Некорректный идентификатор запроса на помощь */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Запрос на помощь не найден */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при удалении запроса на помощь */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         /**
@@ -3513,7 +4754,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["response.ReportResponse"];
+                        "application/json": components["schemas"]["response.ReportFullResponse"];
                     };
                 };
                 /** @description Некорректный идентификатор отчета */
@@ -3527,18 +4768,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Отчет, пользователь, запрос на помощь, выполненная работа или план на завтра не найдены */
+                /** @description Отчет не найден */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3858,6 +5088,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/role/user/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение роли по ID пользователя
+         * @description Получает роль пользователя по его ID
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Роль пользователя успешно получена */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.GetRoleByUserId"];
+                    };
+                };
+                /** @description Некорректный идентификатор пользователя */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Роль не найдена для данного пользователя */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении роли */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/role/{id}": {
         parameters: {
             query?: never;
@@ -4144,160 +5460,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/status/add-to-board": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Добавление статуса к доске
-         * @description Создание связи между статусом и доской
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для добавления статуса к доске */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.AddStatusToBoardRequest"];
-                };
-            };
-            responses: {
-                /** @description Статус успешно добавлен к доске */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.AddStatusToBoardResponse"];
-                    };
-                };
-                /** @description Ошибка при привязке данных или парсинге UUID */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при добавлении статуса к доске */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/status/add-to-task": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Добавление статуса к задаче
-         * @description Создание связи между статусом и задачей
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для добавления статуса к задаче */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.AddStatusToTaskRequest"];
-                };
-            };
-            responses: {
-                /** @description Статус успешно добавлен к задаче */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.AddStatusToTaskResponse"];
-                    };
-                };
-                /** @description Ошибка при привязке данных или парсинге UUID */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при добавлении статуса к задаче */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/status/all/{page}/{pagesize}": {
         parameters: {
             query?: never;
@@ -4307,7 +5469,7 @@ export interface paths {
         };
         /**
          * Получение всех статусов
-         * @description Получение списка всех статусов с пагинацией (только неудаленные)
+         * @description Получение списка всех статусов с пагинацией (только неудаленные), отсортированных по полю order
          */
         get: {
             parameters: {
@@ -4375,183 +5537,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/status/delete-from-board": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Удаление статуса с доски
-         * @description Удаление связи между статусом и доской (мягкое удаление)
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для удаления статуса с доски */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.DeleteStatusFromBoardRequest"];
-                };
-            };
-            responses: {
-                /** @description Статус успешно удалён с доски */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.StatusUniversalResponse"];
-                    };
-                };
-                /** @description Ошибка при привязке данных или парсинге UUID */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Связь не найдена или уже удалена */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при удалении статуса с доски */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/status/delete-from-task": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Удаление статуса из задачи
-         * @description Удаление связи между статусом и задачей (мягкое удаление)
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Данные для удаления статуса из задачи */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["request.DeleteStatusFromTaskRequest"];
-                };
-            };
-            responses: {
-                /** @description Статус успешно удалён из задачи */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.StatusUniversalResponse"];
-                    };
-                };
-                /** @description Ошибка при привязке данных или парсинге UUID */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Связь не найдена или уже удалена */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при удалении статуса из задачи */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/status/project/{board_id}": {
+    "/status/board/{board_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -4560,7 +5546,7 @@ export interface paths {
         };
         /**
          * Получение статусов по ID доски
-         * @description Получение списка статусов, связанных с доской по ее ID
+         * @description Получение списка статусов, связанных с доской по её ID, включая все задачи для каждого статуса
          */
         get: {
             parameters: {
@@ -4626,81 +5612,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/status/task/{task_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Получение статусов по ID задачи
-         * @description Получение списка статусов, связанных с задачей по ее ID
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description ID задачи */
-                    task_id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Список статусов для задачи */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.StatusByTaskIdResponse"];
-                    };
-                };
-                /** @description Ошибка при парсинге ID задачи */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при получении статусов */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/status/{id}": {
         parameters: {
             query?: never;
@@ -4710,7 +5621,7 @@ export interface paths {
         };
         /**
          * Получение статуса по ID
-         * @description Получение информации о статусе по его ID
+         * @description Получение информации о статусе по его ID, включая все связанные задачи
          */
         get: {
             parameters: {
@@ -4783,7 +5694,7 @@ export interface paths {
         post?: never;
         /**
          * Удаление статуса
-         * @description Логическое удаление статуса по ID, включая связанные данные (поле deleted = true)
+         * @description Логическое удаление статуса по ID, включая все связанные задачи (поле deleted = true)
          */
         delete: {
             parameters: {
@@ -5449,7 +6360,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Исполнитель или поручитель не найден */
+                /** @description Исполнитель, поручитель или статус не найдены */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5556,7 +6467,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/task/project/{projectId}/{page}/{pagesize}": {
+    "/task/board-project/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -5564,35 +6475,208 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Получение задач по ID проекта
-         * @description Получает список задач, связанных с указанным проектом
+         * Получение доски и проекта задачи
+         * @description Возвращает ID доски и ID проекта, к которым принадлежит задача
          */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description ID проекта */
-                    projectId: string;
-                    /** @description Номер страницы */
-                    page: number;
-                    /** @description Размер страницы */
-                    pagesize: number;
+                    /** @description ID задачи */
+                    id: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Список задач успешно получен */
+                /** @description Информация о доске и проекте */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["response.TaskListResponse"];
+                        "application/json": unknown;
                     };
                 };
-                /** @description Некорректный идентификатор проекта */
+                /** @description Некорректный ID задачи */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Задача, статус или доска не найдены */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/task/export/active-tasks/xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Экспорт активных задач всех пользователей в XLSX
+         * @description Генерирует XLSX-файл с активными задачами всех пользователей, сгруппированными по пользователям
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description XLSX-файл с активными задачами */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description Ошибка при генерации отчёта */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/task/improve-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Улучшить произвольный текст для описания задачи через LLM
+         * @description Улучшает текст без привязки к конкретной задаче — для использования при создании задачи
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Текст для улучшения */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.ImproveReportRequest"];
+                };
+            };
+            responses: {
+                /** @description improved_text */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/task/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Переместить задачу в другой статус (столбец)
+         * @description Перемещает задачу в указанный статус на той же доске
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Данные для перемещения задачи */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.MoveTaskToAnotherStatus"];
+                };
+            };
+            responses: {
+                /** @description Задача успешно перемещена */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Некорректные данные запроса */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -5614,7 +6698,108 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Ошибка сервера при получении задач */
+                /** @description Задача или статус не найдены */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нельзя переместить задачу в статус с другой доски */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при перемещении задачи */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/task/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Поиск задач с автодополнением и пагинацией
+         * @description Ищет задачи по названию с автодополнением после каждого введенного символа. Поддерживает автоматическую замену раскладки клавиатуры (английская-русская) для расширенного поиска и пагинацию. Задачи сортируются: сначала задачи где пользователь исполнитель, потом где создатель, потом остальные.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Поисковый запрос */
+                    query: string;
+                    /** @description ID пользователя для приоритетной сортировки */
+                    user_id: string;
+                    /** @description Номер страницы */
+                    page: number;
+                    /** @description Размер страницы */
+                    pagesize: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Результаты поиска задач */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.TaskSearchResponse"];
+                    };
+                };
+                /** @description Ошибка в запросе */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при поиске задач */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -5668,7 +6853,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["response.TaskListResponse"];
+                        "application/json": components["schemas"]["response.UserTasksResponse"];
                     };
                 };
                 /** @description Ошибка при парсинге параметров или некорректный ID пользователя */
@@ -5714,6 +6899,177 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/task/user/{id}/{page}/{pagesize}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение активных задач по ID пользователя (исключая статус Done)
+         * @description Получение списка задач, назначенных на пользователя, где статус != 'done' и deleted = false
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя */
+                    id: string;
+                    /** @description Номер страницы */
+                    page: number;
+                    /** @description Размер страницы */
+                    pagesize: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список активных задач успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.UserTasksResponse"];
+                    };
+                };
+                /** @description Ошибка при парсинге параметров или некорректный ID пользователя */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении задач */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/task/user/{user_id}/project/{project_id}/{page}/{pagesize}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение задач пользователя в рамках проекта
+         * @description Получает список задач, назначенных на указанного пользователя и принадлежащих заданному проекту, с пагинацией
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя */
+                    user_id: string;
+                    /** @description ID проекта */
+                    project_id: string;
+                    /** @description Номер страницы */
+                    page: number;
+                    /** @description Размер страницы */
+                    pagesize: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список задач успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.UserProjectTasksResponse"];
+                    };
+                };
+                /** @description Некорректный ID пользователя или проекта */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description user or project not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении задач */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/task/{id}": {
         parameters: {
             query?: never;
@@ -5723,7 +7079,7 @@ export interface paths {
         };
         /**
          * Получение задачи по ID
-         * @description Получает данные задачи по её уникальному идентификатору
+         * @description Получает данные задачи по её уникальному идентификатору, включая статус и пользователей
          */
         get: {
             parameters: {
@@ -5746,7 +7102,7 @@ export interface paths {
                         "application/json": components["schemas"]["response.GetTaskByIDResponse"];
                     };
                 };
-                /** @description Некорректный идентификатор задачи */
+                /** @description invalid task id */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -5768,7 +7124,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Задача не найдена */
+                /** @description task not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5830,7 +7186,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Задача не найдена */
+                /** @description task not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5908,7 +7264,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Задача не найдена */
+                /** @description task not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5932,6 +7288,86 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/task/{id}/improve-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Улучшить отчет по задаче с помощью LLM
+         * @description Принимает текст пользователя и улучшает его на основе описания задачи через LLM
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID задачи */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Данные для улучшения отчета */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.ImproveReportRequest"];
+                };
+            };
+            responses: {
+                /** @description Улучшенный отчет */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ImprovedReportResponse"];
+                    };
+                };
+                /** @description Некорректный ID задачи или данные запроса */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description task not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка при обработке LLM */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/team": {
@@ -6070,6 +7506,94 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/team/member/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Изменение роли участника в команде
+         * @description Обновляет специализацию (роль) пользователя в указанной команде
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Данные для обновления роли */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["request.TeamUpdateMemberRoleRequest"];
+                };
+            };
+            responses: {
+                /** @description Роль успешно обновлена */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.TeamUniversalUserResponse"];
+                    };
+                };
+                /** @description Ошибка в запросе или некорректные идентификаторы */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Участник команды не найден */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при обновлении роли */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/team/project": {
@@ -6330,7 +7854,7 @@ export interface paths {
             /** @description Данные для добавления пользователя в команду */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["request.TeamAddUserRequest"];
+                    "application/json": components["schemas"]["request.TeamAddUsersRequest"];
                 };
             };
             responses: {
@@ -6451,6 +7975,92 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/team/user/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение команд пользователя
+         * @description Получает список всех активных команд, в которых состоит пользователь
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID пользователя */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список команд успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.TeamsListResponse"];
+                    };
+                };
+                /** @description Некорректный идентификатор пользователя */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Команды для пользователя не найдены */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении команд */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -6665,7 +8275,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/user/all/{page}/{pagesize}": {
+    "/upload/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -6673,56 +8283,23 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Получение списка всех пользователей
-         * @description Получает список всех пользователей с учетом пагинации, исключая удаленных
+         * Обновить presigned URL для файла
+         * @description Генерирует новый presigned URL для объекта по его пути
          */
         get: {
             parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Номер страницы */
-                    page: number;
-                    /** @description Размер страницы */
-                    pagesize: number;
+                query: {
+                    /** @description Путь к объекту (например: images/uuid.jpg) */
+                    path: string;
                 };
+                header?: never;
+                path?: never;
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Список пользователей успешно получен */
+                /** @description url */
                 200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.GetAllUsersResponse"];
-                    };
-                };
-                /** @description Ошибка в запросе */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Нет или неверный токен */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Ошибка сервера при получении пользователей */
-                500: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -6742,7 +8319,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/create": {
+    "/user": {
         parameters: {
             query?: never;
             header?: never;
@@ -6821,6 +8398,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/user/all/{page}/{pagesize}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Получение списка всех пользователей
+         * @description Получает список всех пользователей с учетом пагинации, исключая удаленных
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Номер страницы */
+                    page: number;
+                    /** @description Размер страницы */
+                    pagesize: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Список пользователей успешно получен */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.GetAllUsersResponse"];
+                    };
+                };
+                /** @description Ошибка в запросе */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Нет или неверный токен */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Ошибка сервера при получении пользователей */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/full-delete/{id}": {
         parameters: {
             query?: never;
@@ -6891,6 +8545,56 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Текущий пользователь
+         * @description Возвращает данные пользователя из токена (sess_*, emplacc_*, JWT)
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.GetUserResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -7335,18 +9039,117 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        "emplacc-api_internal_domain.AcceptanceCriterion": {
+            ac_id?: string;
+            created_at?: string;
+            created_by?: string;
+            id?: string;
+            required?: boolean;
+            spec_ids?: number[];
+            state?: string;
+            task_id?: string;
+            title?: string;
+            updated_at?: string;
+        };
+        "emplacc-api_internal_domain.AgentRun": {
+            actor_type?: string;
+            agent_id?: string;
+            api_token_id?: string;
+            created_at?: string;
+            created_by?: string;
+            finished_at?: string;
+            harness?: string;
+            heartbeat_at?: string;
+            id?: string;
+            log_uri?: string;
+            metadata?: number[];
+            on_behalf_of_user_id?: string;
+            source?: string;
+            started_at?: string;
+            status?: string;
+            summary?: string;
+            updated_at?: string;
+            work_item_id?: string;
+            workspace_uri?: string;
+        };
+        "emplacc-api_internal_domain.ApprovalRequest": {
+            action?: string;
+            actor_type?: string;
+            agent_id?: string;
+            api_token_id?: string;
+            created_at?: string;
+            decided_at?: string;
+            decided_by?: string;
+            decision_reason?: string;
+            expires_at?: string;
+            id?: string;
+            on_behalf_of_user_id?: string;
+            reason?: string;
+            requested_by?: string;
+            resource?: number[];
+            risk_level?: string;
+            status?: string;
+            work_item_id?: string;
+        };
+        "emplacc-api_internal_domain.ConveyorEvent": {
+            actor_id?: string;
+            actor_type?: string;
+            agent_id?: string;
+            api_token_id?: string;
+            causation_id?: string;
+            correlation_id?: string;
+            id?: string;
+            idempotency_key?: string;
+            on_behalf_of_user_id?: string;
+            payload?: number[];
+            request_id?: string;
+            schema_version?: number;
+            source?: string;
+            timestamp?: string;
+            type?: string;
+            work_item_id?: string;
+        };
+        "emplacc-api_internal_domain.Evidence": {
+            created_at?: string;
+            created_by?: string;
+            criterion_id?: string;
+            id?: string;
+            metadata?: number[];
+            revoked?: boolean;
+            revoked_at?: string;
+            revoked_by?: string;
+            revoked_reason?: string;
+            sha256?: string;
+            task_id?: string;
+            title?: string;
+            type?: string;
+            uri?: string;
+            verdict?: string;
+        };
+        "emplacc-api_internal_domain.TaskLink": {
+            created_at?: string;
+            created_by?: string;
+            id?: string;
+            link_type?: string;
+            source_task_id?: string;
+            target_task_id?: string;
+        };
+        "emplacc-api_internal_domain.Waiver": {
+            approval_request_id?: string;
+            approved_by?: string;
+            created_at?: string;
+            created_by?: string;
+            criterion_id?: string;
+            expires_at?: string;
+            id?: string;
+            reason?: string;
+            scope?: string;
+            work_item_id?: string;
+        };
         "request.AddRoleUserRequest": {
             assigner_id?: string;
             role_id?: string;
             user_id?: string;
-        };
-        "request.AddStatusToBoardRequest": {
-            board_id?: string;
-            status_id?: string;
-        };
-        "request.AddStatusToTaskRequest": {
-            status_id?: string;
-            task_id?: string;
         };
         "request.AttendanceCreateRequest": {
             actual_start?: string;
@@ -7378,7 +9181,6 @@ export interface components {
         };
         "request.BoardUpdateRequest": {
             description?: string;
-            filter?: string;
             name?: string;
         };
         "request.CompletedWorkCreateRequest": {
@@ -7394,33 +9196,22 @@ export interface components {
             description?: string;
             task_id?: string;
         };
-        "request.CreateForumMessageRequest": {
-            creator_id: string;
-            description: string[];
-            problem_id: string;
-        };
         "request.CreateProjectRequest": {
             created_by: string;
             description?: string;
-            gitlab_project_id: number;
-            gitlab_url: string;
+            gitlab_project_id?: number;
+            gitlab_url?: string;
             name: string;
             status?: string;
         };
         "request.CreateStatusRequest": {
+            board_id?: string;
             color: string;
             is_active?: boolean;
             is_default?: boolean;
             is_open?: boolean;
             name: string;
-        };
-        "request.DeleteStatusFromBoardRequest": {
-            board_id?: string;
-            status_id?: string;
-        };
-        "request.DeleteStatusFromTaskRequest": {
-            status_id?: string;
-            task_id?: string;
+            order?: number;
         };
         "request.HelpRequest": {
             description?: string;
@@ -7438,13 +9229,16 @@ export interface components {
             helper_id?: string;
             status?: string;
         };
+        "request.ImproveReportRequest": {
+            user_text: string;
+        };
         "request.LoginRequest": {
             email: string;
             password: string;
         };
-        "request.OAuthRequest": {
-            code?: string;
-            redirect_uri?: string;
+        "request.MoveTaskToAnotherStatus": {
+            status_id: string;
+            task_id: string;
         };
         "request.ProblemCreateRequest": {
             creator_id?: string;
@@ -7453,16 +9247,10 @@ export interface components {
         };
         "request.ProblemUpdateRequest": {
             description?: string[];
+            name?: string;
         };
         "request.RefreshRequest": {
             refresh_token: string;
-        };
-        "request.RegisterRequest": {
-            email: string;
-            first_name: string;
-            last_name: string;
-            password: string;
-            profession?: string;
         };
         "request.RemoveRoleUserRequest": {
             role_id?: string;
@@ -7485,6 +9273,10 @@ export interface components {
             report_date?: string;
             user_id?: string;
         };
+        "request.ReportsByDateInXLSX": {
+            end_date?: string;
+            start_date?: string;
+        };
         "request.RestoreUserRequest": {
             email?: string;
         };
@@ -7501,11 +9293,6 @@ export interface components {
             type_id?: number;
             user_id?: string;
         };
-        "request.TOTPRequest": {
-            email?: string;
-            password?: string;
-            totp?: string;
-        };
         "request.TaskCreateRequest": {
             assigned_to?: string;
             category?: number;
@@ -7515,8 +9302,8 @@ export interface components {
             gitlab_issue_id?: number;
             name: string;
             priority: number;
-            project_id: string;
             start_date: string;
+            status_id: string;
         };
         "request.TaskUpdateRequest": {
             assigned_to?: string;
@@ -7532,13 +9319,14 @@ export interface components {
             project_id?: string;
             team_id?: string;
         };
-        "request.TeamAddUserRequest": {
+        "request.TeamAddUsersRequest": {
             team_id?: string;
-            user_id?: string;
+            user_ids?: string[];
         };
         "request.TeamCreateRequest": {
             description?: string;
             name: string;
+            user_ids?: string[];
         };
         "request.TeamDeleteProjectRequest": {
             project_id?: string;
@@ -7548,12 +9336,18 @@ export interface components {
             team_id?: string;
             user_id?: string;
         };
+        "request.TeamUpdateMemberRoleRequest": {
+            specialization: string;
+            team_id: string;
+            user_id: string;
+        };
         "request.TeamUpdateRequest": {
             description?: string;
             name?: string;
         };
         "request.TomorrowPlanCreateRequest": {
             description?: string;
+            task_id?: string;
         };
         "request.TomorrowPlanReplaceRequest": {
             description?: string;
@@ -7561,11 +9355,6 @@ export interface components {
         };
         "request.TomorrowPlansUpdateRequest": {
             description?: string;
-        };
-        "request.UpdateForumMessageRequest": {
-            creator_id?: string;
-            description?: string[];
-            problem_id?: string;
         };
         "request.UpdateProjectRequest": {
             description?: string;
@@ -7575,11 +9364,13 @@ export interface components {
             status?: string;
         };
         "request.UpdateStatusRequest": {
+            board_id?: string;
             color?: string;
             is_active?: boolean;
             is_default?: boolean;
             is_open?: boolean;
             name?: string;
+            order?: number;
         };
         "request.UpdateUserRequest": {
             email?: string;
@@ -7606,16 +9397,6 @@ export interface components {
             message?: string;
             role_id?: string;
             user_id?: string;
-        };
-        "response.AddStatusToBoardResponse": {
-            board_id?: string;
-            message?: string;
-            status_id?: string;
-        };
-        "response.AddStatusToTaskResponse": {
-            message?: string;
-            status_id?: string;
-            task_id?: string;
         };
         "response.AttendanceResponse": {
             actual_start?: string;
@@ -7661,7 +9442,7 @@ export interface components {
             userId?: string;
         };
         "response.BoardForProjectResponse": {
-            board?: components["schemas"]["response.BoardResponse"][];
+            boards?: components["schemas"]["response.BoardResponse"][];
             project_id?: string;
         };
         "response.BoardListResponse": {
@@ -7670,9 +9451,14 @@ export interface components {
             page_size?: number;
             total_count?: number;
         };
+        "response.BoardRef": {
+            id?: string;
+            name?: string;
+            project_id?: string;
+        };
         "response.BoardResponse": {
             created_at?: string;
-            descroption?: string;
+            description?: string;
             id?: string;
             name?: string;
             project_id?: string;
@@ -7688,30 +9474,10 @@ export interface components {
             id?: string;
             task_id?: string;
         };
-        "response.ForumMessageListByProblemIdResponse": {
-            messages?: components["schemas"]["response.ForumMessageResponse"][];
-            page?: number;
-            page_size?: number;
-            problem_id?: string;
-            total_count?: number;
-        };
-        "response.ForumMessageListResponse": {
-            messages?: components["schemas"]["response.ForumMessageResponse"][];
-            page?: number;
-            page_size?: number;
-            total_count?: number;
-        };
-        "response.ForumMessageResponse": {
-            created_at?: string;
-            creator_id?: string;
-            desctription?: string[];
+        "response.CompletedWorkWithTask": {
+            description?: string;
             id?: string;
-            problem_id?: string;
-            updated_at?: string;
-        };
-        "response.ForumMessageUniversalResponse": {
-            id?: string;
-            message?: string;
+            task?: components["schemas"]["response.TaskForReport"];
         };
         "response.GetAllRolesResponse": {
             page?: number;
@@ -7724,6 +9490,10 @@ export interface components {
             page_size?: number;
             total_count?: number;
             users?: components["schemas"]["response.GetUserResponse"][];
+        };
+        "response.GetRoleByUserId": {
+            role?: components["schemas"]["response.GetRoleResponse"];
+            user_id?: string;
         };
         "response.GetRoleResponse": {
             created_at?: string;
@@ -7746,15 +9516,15 @@ export interface components {
             id?: string;
             name?: string;
             priority?: number;
-            project_id?: string;
             /** @description DATE в БД */
             start_date?: string;
-            statuses?: components["schemas"]["response.StatusResponse"][];
+            status_id?: string;
             /** @description INTERVAL в БД */
             time_spent?: string;
             updated_at?: string;
         };
         "response.GetUserResponse": {
+            avatar_url?: string;
             created_at?: string;
             email?: string;
             email_verified?: boolean;
@@ -7774,12 +9544,27 @@ export interface components {
             status?: string;
         };
         "response.HelpRequestWithAssignerID": {
-            help_requests?: components["schemas"]["response.HelpRequestItem"];
+            help_request?: components["schemas"]["response.HelpRequestItem"];
             user_first_name?: string;
             user_last_name?: string;
         };
         "response.HelpRequestsForUser": {
             help_requests?: components["schemas"]["response.HelpRequestWithAssignerID"][];
+        };
+        "response.ImprovedReportResponse": {
+            improved_text?: string;
+            original_text?: string;
+            task_description?: string;
+            task_id?: string;
+            task_title?: string;
+        };
+        "response.InTaskBoard": {
+            id?: string;
+            name?: string;
+        };
+        "response.InTaskProject": {
+            id?: string;
+            name?: string;
         };
         "response.ProblemListResponse": {
             page?: number;
@@ -7809,6 +9594,18 @@ export interface components {
         "response.ProjectByTeamResponse": {
             projects?: components["schemas"]["response.ProjectResponse"][];
         };
+        "response.ProjectForSearchResponse": {
+            created_at?: string;
+            created_by?: string;
+            created_by_user?: components["schemas"]["response.UserShort"];
+            description?: string;
+            gitlab_project_id?: number;
+            gitlab_url?: string;
+            id?: string;
+            name?: string;
+            status?: string;
+            updated_at?: string;
+        };
         "response.ProjectListResponse": {
             page?: number;
             page_size?: number;
@@ -7826,6 +9623,20 @@ export interface components {
             status?: string;
             updated_at?: string;
         };
+        "response.ProjectSearchResponse": {
+            page?: number;
+            pageSize?: number;
+            projects?: components["schemas"]["response.ProjectForSearchResponse"][];
+            query?: string;
+            totalCount?: number;
+        };
+        "response.ProjectShort": {
+            created_by?: string;
+            description?: string;
+            gitlab_url?: string;
+            id?: string;
+            name?: string;
+        };
         "response.ProjectUniversalResponse": {
             id?: string;
             message?: string;
@@ -7842,6 +9653,19 @@ export interface components {
             message?: string;
             role_id?: string;
             user_id?: string;
+        };
+        "response.ReportFullResponse": {
+            checked?: number;
+            completed_work?: components["schemas"]["response.CompletedWorkWithTask"][];
+            created_at?: string;
+            help_requests?: components["schemas"]["response.HelpRequestItem"][];
+            id?: string;
+            plan_tomorrow?: components["schemas"]["response.TomorrowPlansWithTask"][];
+            problem?: components["schemas"]["response.ProblemResponse"][];
+            report_date?: string;
+            updated_at?: string;
+            user_id?: string;
+            user_info?: components["schemas"]["response.UserShort"];
         };
         "response.ReportListByProjectId": {
             project_id?: string;
@@ -7879,17 +9703,21 @@ export interface components {
             message?: string;
         };
         "response.StatusByBoardIdResponse": {
-            project_id?: string;
+            board_id?: string;
             statuses?: components["schemas"]["response.StatusResponse"][];
         };
-        "response.StatusByTaskIdResponse": {
-            statuses?: components["schemas"]["response.StatusResponse"][];
-            task_id?: string;
+        "response.StatusFull": {
+            board?: components["schemas"]["response.BoardRef"];
+            color?: string;
+            id?: string;
+            is_open?: boolean;
+            key?: string;
+            name?: string;
         };
         "response.StatusListResponse": {
             page?: number;
             page_size?: number;
-            statuses?: components["schemas"]["response.StatusResponse"][];
+            statuses?: components["schemas"]["response.StatusShort"][];
             total_count?: number;
         };
         "response.StatusResponse": {
@@ -7901,6 +9729,20 @@ export interface components {
             is_open?: boolean;
             key?: string;
             name?: string;
+            order?: number;
+            tasks?: components["schemas"]["response.TaskShort"][];
+            updated_at?: string;
+        };
+        "response.StatusShort": {
+            color?: string;
+            created_at?: string;
+            id?: string;
+            is_active?: boolean;
+            is_default?: boolean;
+            is_open?: boolean;
+            key?: string;
+            name?: string;
+            order?: number;
             updated_at?: string;
         };
         "response.StatusUniversalResponse": {
@@ -7939,11 +9781,61 @@ export interface components {
             id?: string;
             message?: string;
         };
+        "response.TaskForReport": {
+            board?: components["schemas"]["response.InTaskBoard"];
+            description?: string;
+            id?: string;
+            name?: string;
+            project?: components["schemas"]["response.InTaskProject"];
+        };
+        "response.TaskFull": {
+            assigned_to_user?: components["schemas"]["response.UserFull"];
+            category?: number;
+            created_at?: string;
+            created_by_user?: components["schemas"]["response.UserFull"];
+            deadline?: string;
+            deleted?: boolean;
+            description?: string;
+            gitlab_issue_id?: number;
+            id?: string;
+            name?: string;
+            priority?: number;
+            start_date?: string;
+            status?: components["schemas"]["response.StatusFull"];
+            time_spent?: string;
+            updated_at?: string;
+        };
         "response.TaskListResponse": {
             page?: number;
             page_size?: number;
             tasks?: components["schemas"]["response.TaskShort"][];
             total_count?: number;
+        };
+        "response.TaskProjectInfo": {
+            description?: string;
+            id?: string;
+            name?: string;
+        };
+        "response.TaskSearchItem": {
+            assigned_to?: components["schemas"]["response.UserShort"];
+            created_at?: string;
+            created_by?: components["schemas"]["response.UserShort"];
+            deadline?: string;
+            description?: string;
+            id?: string;
+            name?: string;
+            priority?: number;
+            project?: components["schemas"]["response.TaskProjectInfo"];
+            start_date?: string;
+            status?: components["schemas"]["response.TaskStatusInfo"];
+            updated_at?: string;
+        };
+        "response.TaskSearchResponse": {
+            page?: number;
+            pageSize?: number;
+            query?: string;
+            tasks?: components["schemas"]["response.TaskSearchItem"][];
+            totalCount?: number;
         };
         "response.TaskShort": {
             created_at?: string;
@@ -7951,16 +9843,22 @@ export interface components {
             id?: string;
             name?: string;
             priority?: number;
-            project_id?: string;
             start_date?: string;
-            statuses?: components["schemas"]["response.StatusResponse"][];
+            status_id?: string;
             updated_at?: string;
+        };
+        "response.TaskStatusInfo": {
+            color?: string;
+            id?: string;
+            key?: string;
+            name?: string;
         };
         "response.TaskUniversaResponse": {
             id?: string;
             message?: string;
         };
         "response.TeamMemberResponse": {
+            avatar_url?: string;
             email?: string;
             first_name?: string;
             last_name?: string;
@@ -7995,10 +9893,23 @@ export interface components {
         "response.TokenValidationResponse": {
             /** @description "Token is valid" или описание ошибки */
             message?: string;
+            user_id?: string;
         };
         "response.TomorrowPlans": {
             description?: string;
             id?: string;
+            task_id?: string;
+        };
+        "response.TomorrowPlansWithTask": {
+            description?: string;
+            id?: string;
+            task?: components["schemas"]["response.TaskForReport"];
+        };
+        "response.UserFull": {
+            email?: string;
+            first_name?: string;
+            id?: string;
+            last_name?: string;
         };
         /** @description Структура с информацией о пользователе из Keycloak */
         "response.UserInfo": {
@@ -8017,19 +9928,221 @@ export interface components {
             /** @description ID пользователя */
             sub?: string;
         };
+        "response.UserProjectTasksResponse": {
+            page?: number;
+            page_size?: number;
+            project?: components["schemas"]["response.ProjectShort"];
+            tasks?: components["schemas"]["response.TaskFull"][];
+            total_count?: number;
+            user?: components["schemas"]["response.UserFull"];
+        };
         "response.UserShort": {
+            avatar_url?: string;
             first_name?: string;
             id?: string;
             last_name?: string;
+        };
+        "response.UserTasksResponse": {
+            page?: number;
+            page_size?: number;
+            tasks?: components["schemas"]["response.TaskFull"][];
+            total_count?: number;
         };
         "response.UserUniversalResponse": {
             id?: string;
             message?: string;
         };
+        "emplacc-api_internal_service.ConveyorMutationResult": {
+            entity_id?: string;
+            event_id?: string;
+            replayed?: boolean;
+        };
+        "emplacc-api_internal_service.PMImportCounter": {
+            created?: number;
+            reused?: number;
+            total?: number;
+        };
+        "emplacc-api_internal_service.PMImportSummary": {
+            criteria?: components["schemas"]["emplacc-api_internal_service.PMImportCounter"];
+            dry_run?: boolean;
+            events?: components["schemas"]["emplacc-api_internal_service.PMImportCounter"];
+            evidence?: components["schemas"]["emplacc-api_internal_service.PMImportCounter"];
+            links?: components["schemas"]["emplacc-api_internal_service.PMImportCounter"];
+            status_facts?: components["schemas"]["emplacc-api_internal_service.PMImportCounter"];
+            switch_over_accepted?: boolean;
+            tickets?: components["schemas"]["emplacc-api_internal_service.PMImportCounter"];
+        };
+        "internal_controller.conveyorAgentRunRequest": {
+            /** @example external-harness */
+            harness?: string;
+            /** @example agent-run-register-1 */
+            idempotency_key?: string;
+            /** @example https://example.test/log */
+            log_uri?: string;
+            metadata?: Record<string, never>;
+            /** @example rest */
+            source?: string;
+            /** @example queued */
+            status?: string;
+            /** @example Run queued */
+            summary?: string;
+            /** @example file:///workspace */
+            workspace_uri?: string;
+        };
+        "internal_controller.conveyorAgentRunUpdateRequest": {
+            /** @example agent-run-update-1 */
+            idempotency_key?: string;
+            /** @example https://example.test/log */
+            log_uri?: string;
+            metadata?: Record<string, never>;
+            /** @example running */
+            status?: string;
+            /** @example Run started */
+            summary?: string;
+            /** @example file:///workspace */
+            workspace_uri?: string;
+        };
+        "internal_controller.conveyorApprovalDecisionRequest": {
+            /** @example approval-decide-1 */
+            idempotency_key?: string;
+            /** @example approved by owner */
+            reason?: string;
+        };
+        "internal_controller.conveyorApprovalRequest": {
+            /** @example production_deploy */
+            action?: string;
+            /** @example  */
+            expires_at?: string;
+            /** @example approval-request-1 */
+            idempotency_key?: string;
+            /** @example deploy product-a to staging */
+            reason?: string;
+            resource?: Record<string, never>;
+            /** @example high */
+            risk_level?: string;
+            /** @example  */
+            work_item_id?: string;
+        };
+        "internal_controller.conveyorCloseTaskRequest": {
+            /** @example false */
+            allow_dependency_auto_ready?: boolean;
+            /** @example false */
+            approval_granted?: boolean;
+            /** @example approval-1 */
+            approval_token?: string;
+            /** @example task-close-1 */
+            idempotency_key?: string;
+            /** @example medium */
+            risk_level?: string;
+            /** @example  */
+            task_waiver_id?: string;
+            /** @example 9a888cc9-0e34-4f3e-8d9d-4924d9e35687 */
+            to_status_id?: string;
+        };
+        "internal_controller.conveyorCriterionRequest": {
+            /** @example AC-1 */
+            ac_id?: string;
+            /** @example criterion-create-1 */
+            idempotency_key?: string;
+            /** @example true */
+            required?: boolean;
+            /**
+             * @example [
+             *       "SPEC-1",
+             *       "SPEC-2"
+             *     ]
+             */
+            spec_ids?: string[];
+            /** @example Run targeted backend tests */
+            title?: string;
+        };
+        "internal_controller.conveyorCriterionStateRequest": {
+            /** @example criterion-update-1 */
+            idempotency_key?: string;
+            /** @example passed */
+            state?: string;
+        };
+        "internal_controller.conveyorErrorResponse": {
+            /** @example validation_error */
+            error?: string;
+        };
+        "internal_controller.conveyorEvidenceRequest": {
+            /** @example false */
+            approval_granted?: boolean;
+            /** @example approval-1 */
+            approval_token?: string;
+            /** @example  */
+            criterion_id?: string;
+            /** @example evidence-attach-1 */
+            idempotency_key?: string;
+            metadata?: Record<string, never>;
+            /** @example  */
+            sha256?: string;
+            /** @example Test evidence */
+            title?: string;
+            /** @example link */
+            type?: string;
+            /** @example https://example.test/evidence */
+            uri?: string;
+            /** @example supports */
+            verdict?: string;
+        };
+        "internal_controller.conveyorLLMTextResponse": {
+            /** @example draft text */
+            text?: string;
+        };
+        "internal_controller.conveyorPMImportRequest": {
+            /** @example false */
+            approval_granted?: boolean;
+            /** @example approval-1 */
+            approval_token?: string;
+            /** @example true */
+            dry_run?: boolean;
+            /** @example pm-import-1 */
+            idempotency_key?: string;
+            /** @example default */
+            scope?: string;
+            status_by_pm_state?: Record<string, never>;
+        };
+        "internal_controller.conveyorRevokeEvidenceRequest": {
+            /** @example evidence-revoke-1 */
+            idempotency_key?: string;
+            /** @example superseded */
+            reason?: string;
+        };
+        "internal_controller.conveyorTaskLinkRequest": {
+            /** @example task-link-1 */
+            idempotency_key?: string;
+            /** @example relates_to */
+            link_type?: string;
+            /** @example 9a888cc9-0e34-4f3e-8d9d-4924d9e35687 */
+            target_task_id?: string;
+        };
+        "internal_controller.conveyorWaiverRequest": {
+            /** @example  */
+            approval_request_id?: string;
+            /** @example  */
+            criterion_id?: string;
+            /** @example  */
+            expires_at?: string;
+            /** @example waiver-create-1 */
+            idempotency_key?: string;
+            /** @example deferred to follow-up ticket */
+            reason?: string;
+            /** @example task */
+            scope?: string;
+        };
     };
     responses: never;
     parameters: never;
-    requestBodies: never;
+    requestBodies: {
+        /** @description Decision */
+        "internal_controller.conveyorApprovalDecisionRequest": {
+            content: {
+                "application/json": components["schemas"]["internal_controller.conveyorApprovalDecisionRequest"];
+            };
+        };
+    };
     headers: never;
     pathItems: never;
 }

@@ -11,6 +11,7 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
 import { useRouter } from 'next/navigation';
+import { ConveyorGeneratedReportPanel } from '@/features/conveyor/components';
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);
@@ -67,6 +68,7 @@ export default function ReportingPage() {
       <div className="flex-1 overflow-auto pb-6">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4">
           <ReportDownload />
+          <ConveyorGeneratedReportContainer />
           <ProjectExportPanel />
           <ActiveTasksExportPanel />
           <TomorrowPlansExportPanel />
@@ -74,6 +76,14 @@ export default function ReportingPage() {
       </div>
     </main>
   );
+}
+
+function ConveyorGeneratedReportContainer() {
+  const isClient = useIsClient();
+  const hasCreds = isClient && isAuthed();
+  const { data: projects, isLoading } = useAllUserProjects(hasCreds);
+
+  return <ConveyorGeneratedReportPanel projects={projects} projectsLoading={isLoading} />;
 }
 
 function ProjectExportPanel() {

@@ -4,10 +4,14 @@
 	"private": true,
 	"scripts": {
 		"gen:api": "openapi-typescript https://api.emplacc.g-309.ru/swagger/doc.json -o src/types/openapi.d.ts",
+		"gen:api:local": "node tools/gen-api-local.mjs",
 		"dev": "next dev --turbopack",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "eslint .",
+		"check:conveyor-web": "node tools/check-conveyor-web-contract.mjs",
+		"test:conveyor-web": "bun test test/conveyor-web-behavior.test.tsx",
+		"test:conveyor-performance": "bun test test/conveyor-performance.test.tsx"
 	},
 	"dependencies": {
 		"@tanstack/react-query": "^5.99.0",

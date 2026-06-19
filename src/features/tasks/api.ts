@@ -116,7 +116,21 @@ export async function moveTask(payload: MoveTaskRequest): Promise<MoveTaskRespon
         body: JSON.stringify(payload),
     });
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+        // Разбираем тело, чтобы 409 close-gate не превращался в немой "HTTP 409".
+        let serverError = '';
+        try {
+            const body = (await res.clone().json()) as any;
+            serverError = String(body?.error ?? body?.message ?? '');
+        } catch { /* тело не JSON */ }
+
+        if (res.status === 409 && serverError === 'approval_required') {
+            throw new Error(
+                'Эту колонку нельзя закрыть перетаскиванием — задача требует приёмки (критерии/evidence или подтверждение). Откройте задачу, чтобы закрыть её через приёмочный гейт.',
+            );
+        }
+        throw new Error(serverError || `HTTP ${res.status}`);
+    }
     const json = (await res.json()) as any;
 
     return {

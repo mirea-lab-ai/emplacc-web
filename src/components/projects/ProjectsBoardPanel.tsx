@@ -8,6 +8,8 @@ import { useBoardStatus, useCreateStatus, useDeleteStatus } from '@/features/sta
 import { useCreateTask, useDeleteTask, useMoveTask, useUpdateTask } from '@/features/tasks/hooks';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { getErrorMessage } from '@/lib/errors';
+import { useToast } from '@/components/ui/Toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useIsClient } from '@/hooks/useIsClient';
 import DeleteBoardModal from './DeleteBoardModal';
 import type { UIBoard } from '@/features/boards/api';
@@ -104,6 +106,8 @@ export default function ProjectsBoardPanel({
   const { mutateAsync: createTaskAsync, isPending: isCreatingTask } = useCreateTask();
   const { mutate: removeTask, isPending: isDeletingTask } = useDeleteTask();
   const { mutate: moveTask, isPending: isMovingTask } = useMoveTask();
+  const { error: toastError } = useToast();
+  const queryClient = useQueryClient();
   const { mutateAsync: updateTaskAsync, isPending: isUpdatingTask } = useUpdateTask();
 
   const boardsList: UIBoard[] = useMemo(() => boards ?? [], [boards]);
@@ -285,7 +289,19 @@ export default function ProjectsBoardPanel({
 
   const handleMoveTask = (taskId: string, statusId: string) => {
     if (readOnly) return;
-    moveTask({ task_id: taskId, status_id: statusId });
+    moveTask(
+      { task_id: taskId, status_id: statusId },
+      {
+        onError: (err) => {
+          // Сообщаем причину (например 409 close-gate) и откатываем оптимистичный
+          // перенос: рефетч статусов вернёт доске истинное состояние, KanbanBoard
+          // ре-синкает колонки из props.
+          toastError(getErrorMessage(err));
+          queryClient.invalidateQueries({ queryKey: ['boardStatus'] });
+          queryClient.invalidateQueries({ queryKey: ['boardTasks'] });
+        },
+      },
+    );
   };
 
   const handlePrevBoard = () => {

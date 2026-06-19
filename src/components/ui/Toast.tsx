@@ -41,20 +41,50 @@ const ICON_COLORS: Record<ToastType, string> = {
   warning: 'bg-amber-500/30  text-amber-300',
 };
 
+// Дольше показываем ошибки/предупреждения — их нужно успеть прочитать.
+function toastDuration(type: ToastType): number {
+  return type === 'error' || type === 'warning' ? 6500 : 4000;
+}
+
+type TimerState = { handle: ReturnType<typeof setTimeout>; remaining: number; start: number };
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timers = useRef<Map<number, TimerState>>(new Map());
 
   const dismiss = useCallback((id: number) => {
-    setToasts(ts => ts.map(t => t.id === id ? { ...t, leaving: true } : t));
-    setTimeout(() => setToasts(ts => ts.filter(t => t.id !== id)), 300);
+    const t = timers.current.get(id);
+    if (t) { clearTimeout(t.handle); timers.current.delete(id); }
+    setToasts(ts => ts.map(x => x.id === id ? { ...x, leaving: true } : x));
+    setTimeout(() => setToasts(ts => ts.filter(x => x.id !== id)), 300);
   }, []);
+
+  const arm = useCallback((id: number, ms: number) => {
+    const handle = setTimeout(() => dismiss(id), ms);
+    timers.current.set(id, { handle, remaining: ms, start: Date.now() });
+  }, [dismiss]);
+
+  // Пауза при наведении/фокусе, чтобы тост не исчез пока пользователь читает/наводит мышь.
+  const pause = useCallback((id: number) => {
+    const t = timers.current.get(id);
+    if (!t) return;
+    clearTimeout(t.handle);
+    t.remaining = Math.max(0, t.remaining - (Date.now() - t.start));
+  }, []);
+
+  const resume = useCallback((id: number) => {
+    const t = timers.current.get(id);
+    if (!t) return;
+    t.start = Date.now();
+    t.handle = setTimeout(() => dismiss(id), t.remaining);
+  }, [dismiss]);
 
   const toast = useCallback((message: string, type: ToastType = 'info') => {
     const id = ++_counter;
     setToasts(ts => [...ts, { id, message, type }]);
-    setTimeout(() => dismiss(id), 4000);
+    arm(id, toastDuration(type));
     return id;
-  }, [dismiss]);
+  }, [arm]);
 
   const ctx: ToastCtx = {
     toast,
@@ -67,10 +97,21 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={ctx}>
       {children}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none">
+      <div
+        className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none"
+        role="region"
+        aria-live="polite"
+        aria-label="Уведомления"
+      >
         {toasts.map(t => (
           <div
             key={t.id}
+            role={t.type === 'error' || t.type === 'warning' ? 'alert' : 'status'}
+            aria-atomic="true"
+            onMouseEnter={() => pause(t.id)}
+            onMouseLeave={() => resume(t.id)}
+            onFocus={() => pause(t.id)}
+            onBlur={() => resume(t.id)}
             className={[
               'pointer-events-auto flex items-center gap-3 rounded-2xl px-4 py-3',
               'backdrop-blur-md ring-1 shadow-xl min-w-[240px] max-w-[380px]',
@@ -82,7 +123,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               {ICONS[t.type]}
             </span>
             <span className="text-sm font-medium flex-1">{t.message}</span>
-            <button onClick={() => dismiss(t.id)} className="shrink-0 opacity-50 hover:opacity-100 transition-opacity text-lg leading-none">
+            <button
+              onClick={() => dismiss(t.id)}
+              aria-label="Закрыть уведомление"
+              className="shrink-0 opacity-50 hover:opacity-100 transition-opacity text-lg leading-none">
               ×
             </button>
           </div>

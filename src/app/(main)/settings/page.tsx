@@ -162,17 +162,15 @@ export default function SettingsPage() {
           <Panel className="p-6 space-y-5">
             <h2 className="t-title text-white">Личные данные</h2>
 
-            {false ? null : (
-              <div className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <TextField label="Имя"     value={firstName}  onChange={setFirstName}  placeholder="Иван"   />
-                  <TextField label="Фамилия" value={lastName}   onChange={setLastName}   placeholder="Иванов" />
-                </div>
-                <TextField label="Email" value={userData?.email ?? ''} onChange={() => {}} placeholder="ivan@company.com" type="email" disabled />
-                <TextField label="Профессия / специализация" value={profession} onChange={setProfession} placeholder="Frontend Developer" />
-                <TextField label="Telegram" value={tgId} onChange={setTgId} placeholder="@username" />
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <TextField label="Имя"     value={firstName}  onChange={setFirstName}  placeholder="Иван"   />
+                <TextField label="Фамилия" value={lastName}   onChange={setLastName}   placeholder="Иванов" />
               </div>
-            )}
+              <TextField label="Email" value={userData?.email ?? ''} onChange={() => {}} placeholder="ivan@company.com" type="email" disabled />
+              <TextField label="Профессия / специализация" value={profession} onChange={setProfession} placeholder="Frontend Developer" />
+              <TextField label="Telegram" value={tgId} onChange={setTgId} placeholder="@username" />
+            </div>
 
             <div className="flex justify-end pt-2">
               <button

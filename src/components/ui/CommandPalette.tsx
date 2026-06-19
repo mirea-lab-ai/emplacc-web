@@ -31,7 +31,7 @@ async function searchAll(q: string): Promise<Result[]> {
     http(`/task/search?${base}`).then(r => r.json()),
     http(`/project/search?${base}`).then(r => r.json()),
     http('/team/all').then(r => r.json()),
-    http('/problem/all/1/100').then(r => r.json()),
+    http(`/problem/search?${base}`).then(r => r.json()),
   ]);
 
   const results: Result[] = [];
@@ -68,13 +68,12 @@ async function searchAll(q: string): Promise<Result[]> {
 
   if (problems.status === 'fulfilled') {
     const list: any[] = problems.value?.problems ?? [];
-    list
-      .filter((p: any) => p.name?.toLowerCase().includes(ql) || p.description?.toLowerCase().includes(ql))
-      .slice(0, 3)
-      .forEach((p: any) => results.push({
-        id: `forum-${p.id}`, title: p.name, subtitle: p.description,
-        href: `/forum?problem=${p.id}`, kind: 'forum',
-      }));
+    list.slice(0, 3).forEach((p: any) => results.push({
+      id: `forum-${p.id}`,
+      title: p.name,
+      subtitle: Array.isArray(p.description) ? p.description.join(' ') : p.description,
+      href: `/forum?problem=${p.id}`, kind: 'forum',
+    }));
   }
 
   return results;
@@ -157,6 +156,9 @@ export default function CommandPalette() {
     <div
       className="fixed inset-0 z-[9998] flex items-start justify-center pt-[15vh] px-4 bg-black/50 backdrop-blur-sm animate-fade-in-scale"
       onClick={e => e.target === e.currentTarget && close()}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Командная палитра"
     >
       <div className="w-full max-w-xl t-surface rounded-2xl ring-1 ring-white/15 shadow-2xl overflow-hidden animate-fade-in-scale">
 
@@ -171,6 +173,12 @@ export default function CommandPalette() {
             onChange={e => setQuery(e.target.value)}
             placeholder="Поиск задач, проектов, команд, форума…"
             className="flex-1 bg-transparent text-white placeholder-slate-500 focus:outline-none text-base"
+            role="combobox"
+            aria-expanded={results.length > 0}
+            aria-controls="cmdk-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={results[cursor] ? `cmdk-opt-${results[cursor].id}` : undefined}
+            aria-label="Поиск"
           />
           {loading && (
             <div className="w-4 h-4 border-2 border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin-slow shrink-0" />
@@ -182,7 +190,7 @@ export default function CommandPalette() {
         </div>
 
         {/* Results */}
-        <div className="max-h-[60vh] overflow-y-auto py-2">
+        <div className="max-h-[60vh] overflow-y-auto py-2" role="listbox" id="cmdk-listbox" aria-label="Результаты поиска">
           {!query.trim() && (
             <div className="px-4 py-6 text-sm text-slate-500 text-center space-y-1">
               <div>Начните вводить для поиска</div>
@@ -217,6 +225,10 @@ export default function CommandPalette() {
                   return (
                     <button
                       key={r.id}
+                      type="button"
+                      role="option"
+                      id={`cmdk-opt-${r.id}`}
+                      aria-selected={i === cursor}
                       onClick={() => navigate(r.href)}
                       onMouseEnter={() => setCursor(i)}
                       className={[

@@ -2,7 +2,16 @@
 import { getSessionToken, saveSession, clearSession, updateSessionExpiry, type Session } from '@/lib/auth';
 import { getApiBaseUrl, getKeycloakConfig } from '@/lib/publicEnv';
 
-let rotating: Promise<void> | null = null;
+let rotating: Promise<boolean> | null = null;
+
+// Уводим на логин, когда восстановить сессию не удалось. Без редиректа на самих
+// страницах логина/коллбэка, чтобы не зациклиться.
+function redirectToLogin() {
+  if (typeof window === 'undefined') return;
+  const p = window.location.pathname;
+  if (p.startsWith('/login') || p.startsWith('/callback')) return;
+  window.location.href = '/login';
+}
 
 async function doFetch(path: string, init: RequestInit = {}) {
   const token = getSessionToken();
@@ -66,12 +75,19 @@ export async function http(path: string, init: RequestInit = {}) {
     return res;
   }
 
-  // Обычное истечение → ротируем
-  if (!rotating) rotating = rotateSession().then(() => { rotating = null; }).catch(() => { rotating = null; });
-  await rotating;
+  // Обычное истечение → ротируем (один общий промис на все параллельные запросы)
+  if (!rotating) {
+    rotating = rotateSession().finally(() => { rotating = null; });
+  }
+  const rotated = await rotating;
 
-  const newToken = getSessionToken();
-  if (!newToken) return res;
+  // Ротация не удалась — токен мёртв. Чистим сессию и уводим на логин,
+  // иначе повтор с тем же токеном даёт бесконечные 401 и тихий сбой.
+  if (!rotated || !getSessionToken()) {
+    clearSession();
+    redirectToLogin();
+    return res;
+  }
 
   return doFetch(path, init);
 }

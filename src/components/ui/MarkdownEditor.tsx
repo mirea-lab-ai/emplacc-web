@@ -133,7 +133,7 @@ export default function MarkdownEditor({
         {tab === 'write' && (
           <div className="flex items-center gap-0.5 ml-2 border-l border-white/10 pl-2 flex-wrap">
             {TOOLBAR.map(t => (
-              <button key={t.icon} title={t.title} disabled={disabled}
+              <button key={t.icon} type="button" title={t.title} aria-label={t.title} disabled={disabled}
                 onClick={() => insertAtCursor(t.wrap[0], t.wrap[1])}
                 className="px-1.5 py-1 text-xs text-slate-400 hover:text-white hover:bg-white/5 rounded transition-colors disabled:opacity-40 font-mono">
                 {t.icon}
@@ -150,21 +150,27 @@ export default function MarkdownEditor({
                 />
                 <div className="w-px h-4 bg-white/10 mx-1" />
                 <button
+                  type="button"
                   title="Загрузить изображение"
+                  aria-label="Загрузить изображение"
                   disabled={disabled || uploading}
                   onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
                   className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
                   🖼
                 </button>
                 <button
+                  type="button"
                   title="Загрузить видео"
+                  aria-label="Загрузить видео"
                   disabled={disabled || uploading}
                   onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
                   className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
                   🎬
                 </button>
                 <button
+                  type="button"
                   title="Прикрепить файл"
+                  aria-label="Прикрепить файл"
                   disabled={disabled || uploading}
                   onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
                   className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
@@ -316,13 +322,96 @@ function RefreshableLink({ href, children }: { href?: string; children?: React.R
 }
 
 // ─────────────────────────────────────────────────────────────
+// Allowlist-санитайзер HAST-дерева. Запускается ПОСЛЕ rehypeRaw и убирает всё,
+// что может привести к XSS: опасные теги (script/iframe/...), обработчики событий
+// (on*) и опасные схемы URL (javascript:/vbscript:/data:). Без внешних зависимостей —
+// аналог rehype-sanitize, который нельзя добавить в package.json (его правит соседняя ветка).
+
+interface HastNode {
+  type: string;
+  tagName?: string;
+  value?: string;
+  properties?: Record<string, unknown>;
+  children?: HastNode[];
+}
+
+const SANITIZE_ALLOWED_TAGS = new Set([
+  'p', 'br', 'strong', 'em', 'b', 'i', 'u', 's', 'del', 'ins', 'mark', 'sub', 'sup',
+  'code', 'pre', 'kbd', 'samp', 'blockquote',
+  'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'a', 'img', 'video',
+  'span', 'div', 'hr',
+  'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
+]);
+
+// Опасные теги удаляются вместе с содержимым (текст внутри <script> не должен попасть в DOM).
+const SANITIZE_DROP_TAGS = new Set([
+  'script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button',
+  'textarea', 'select', 'option', 'link', 'meta', 'base', 'title', 'noscript',
+  'svg', 'math', 'frame', 'frameset', 'applet',
+]);
+
+const SANITIZE_GLOBAL_ATTRS = new Set(['classname', 'class', 'style', 'id', 'align']);
+const SANITIZE_TAG_ATTRS: Record<string, Set<string>> = {
+  a: new Set(['href', 'target', 'rel', 'title']),
+  img: new Set(['src', 'alt', 'title', 'width', 'height']),
+  video: new Set(['src', 'controls', 'width', 'height', 'poster']),
+  td: new Set(['colspan', 'rowspan']),
+  th: new Set(['colspan', 'rowspan']),
+};
+const SANITIZE_URL_ATTRS = new Set(['href', 'src', 'poster']);
+
+function sanitizeUrlSafe(value: unknown): boolean {
+  if (typeof value !== 'string') return true;
+  const v = value.trim().toLowerCase();
+  return !(v.startsWith('javascript:') || v.startsWith('vbscript:') || v.startsWith('data:'));
+}
+
+function sanitizeProps(tag: string, props: Record<string, unknown>): Record<string, unknown> {
+  const allowed = SANITIZE_TAG_ATTRS[tag];
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(props)) {
+    const lk = key.toLowerCase();
+    if (lk.startsWith('on')) continue;                       // обработчики событий
+    if (!SANITIZE_GLOBAL_ATTRS.has(lk) && !(allowed && allowed.has(lk))) continue;
+    if (SANITIZE_URL_ATTRS.has(lk) && !sanitizeUrlSafe(props[key])) continue;
+    out[key] = props[key];
+  }
+  return out;
+}
+
+function sanitizeNode(node: HastNode): HastNode[] {
+  if (node.type === 'text') return [node];
+  if (node.type === 'element') {
+    const tag = String(node.tagName ?? '').toLowerCase();
+    const kids = (node.children ?? []).flatMap(sanitizeNode);
+    if (SANITIZE_DROP_TAGS.has(tag)) return [];
+    if (!SANITIZE_ALLOWED_TAGS.has(tag)) return kids;        // неизвестный тег — разворачиваем, оставляя текст
+    node.tagName = tag;
+    node.children = kids;
+    node.properties = sanitizeProps(tag, node.properties ?? {});
+    return [node];
+  }
+  if (node.type === 'comment') return [];
+  if (node.children) node.children = node.children.flatMap(sanitizeNode);
+  return [node];
+}
+
+function rehypeSanitizeInline() {
+  return (tree: HastNode) => {
+    if (tree.children) tree.children = tree.children.flatMap(sanitizeNode);
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 
 export function MarkdownView({ content }: { content: string }) {
   const processed = useMemo(() => renderMentions(content), [content]);
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeRaw]}
+      rehypePlugins={[rehypeRaw, rehypeSanitizeInline]}
       components={{
         img: ({ src, alt }) => <RefreshableImage src={src} alt={alt} />,
         video: ({ src }: { src?: string | Blob | MediaSource | MediaStream }) => <RefreshableVideo src={typeof src === 'string' ? src : undefined} />,

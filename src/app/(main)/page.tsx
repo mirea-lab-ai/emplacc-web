@@ -15,9 +15,9 @@ import { useMyTasks } from '@/features/tasks/hooks';
 import { useAllReports } from '@/features/reports/hooks';
 import { SkeletonStatCard, SkeletonWidget, SkeletonTaskItem } from '@/components/ui/Skeleton';
 
-const demoPlan: PlanItem[] = [
-  { id: 'pl1', task: 'Emplacc', subtask: 'фронт', text: 'доделать панель админа' },
-];
+// Фолбэк для неавторизованного состояния — без фейковых данных:
+// TodayPlan покажет честное пустое состояние.
+const demoPlan: PlanItem[] = [];
 
 function greeting() {
   const h = new Date().getHours();

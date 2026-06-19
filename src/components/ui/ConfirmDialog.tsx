@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 type ConfirmOptions = {
   title?: string;
@@ -32,12 +32,36 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     setPending(null);
   };
 
+  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Escape отменяет, фокус ставится на кнопку подтверждения, при закрытии — возвращается.
+  useEffect(() => {
+    if (!pending) return;
+    const prevActive = document.activeElement as HTMLElement | null;
+    const raf = requestAnimationFrame(() => confirmBtnRef.current?.focus());
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        pending.resolve(false);
+        setPending(null);
+      }
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', onKey, true);
+      prevActive?.focus?.();
+    };
+  }, [pending]);
+
   return (
     <Ctx.Provider value={{ confirm }}>
       {children}
       {pending && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
              style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+             role="dialog" aria-modal="true"
+             aria-label={pending.title ?? 'Подтверждение'}
              onClick={() => handle(false)}>
           <div
             className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl"
@@ -54,6 +78,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 {pending.cancelLabel ?? 'Отмена'}
               </button>
               <button
+                ref={confirmBtnRef}
                 onClick={() => handle(true)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                   pending.danger

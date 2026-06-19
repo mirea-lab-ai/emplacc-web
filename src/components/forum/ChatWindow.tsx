@@ -24,17 +24,28 @@ function buildMentionText(trigger: '@' | '#', item: MentionItem): string {
   return `${trigger}[${item.label}](${item.type}:${item.id})`;
 }
 
-// Renders structured mentions as styled HTML badges (consumed by MarkdownView via rehypeRaw)
+// Экранирование label, чтобы имя упоминания не могло вырваться из HTML-бейджа (XSS).
+function escapeMentionLabel(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Renders structured mentions as styled HTML badges (consumed by MarkdownView via rehypeRaw).
+// MarkdownView дополнительно прогоняет результат через allowlist-санитайзер, label здесь экранируется.
 export function renderMentions(text: string): string {
   return text
     .replace(/@\[([^\]]+)\]\(user:[^)]+\)/g,
-      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px">@$1</span>')
+      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px">@${escapeMentionLabel(name)}</span>`)
     .replace(/#\[([^\]]+)\]\(project:[^)]+\)/g,
-      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(168,85,247,0.15);color:#c4b5fd;margin:0 2px">📁 $1</span>')
+      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(168,85,247,0.15);color:#c4b5fd;margin:0 2px">📁 ${escapeMentionLabel(name)}</span>`)
     .replace(/#\[([^\]]+)\]\(team:[^)]+\)/g,
-      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(249,115,22,0.15);color:#fdba74;margin:0 2px">👥 $1</span>')
+      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(249,115,22,0.15);color:#fdba74;margin:0 2px">👥 ${escapeMentionLabel(name)}</span>`)
     .replace(/#\[([^\]]+)\]\(task:[^)]+\)/g,
-      '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(16,185,129,0.15);color:#6ee7b7;margin:0 2px">✅ $1</span>');
+      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(16,185,129,0.15);color:#6ee7b7;margin:0 2px">✅ ${escapeMentionLabel(name)}</span>`);
 }
 
 // Extract mention IDs from text for notifications backend

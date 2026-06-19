@@ -14,6 +14,7 @@ import DatePicker from '@/components/ui/DatePicker';
 import { SkeletonTaskDetail } from '@/components/ui/Skeleton';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
+import { ConveyorTaskPanel } from '@/features/conveyor/components';
 
 type TaskFull = {
   id: string; name: string; description: string; priority: number; statusId: string;
@@ -331,6 +332,8 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
               </button>
             </div>
           </div>
+
+          <ConveyorTaskPanel taskId={task.id} />
         </div>
 
         {/* ── Right sidebar ── */}

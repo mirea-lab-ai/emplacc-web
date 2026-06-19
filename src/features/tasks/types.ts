@@ -216,8 +216,9 @@ export function mapTask(dto: TaskShort): UITask {
     }
     considerProjectFromObject((extended as { project_info?: unknown }).project_info);
 
-    const statusSummaries: TaskStatusSummary[] = Array.isArray(dto.statuses)
-        ? (dto.statuses as StatusResponse[]).reduce<TaskStatusSummary[]>((acc, raw) => {
+    const dtoStatuses = (dto as { statuses?: unknown }).statuses;
+    const statusSummaries: TaskStatusSummary[] = Array.isArray(dtoStatuses)
+        ? (dtoStatuses as StatusResponse[]).reduce<TaskStatusSummary[]>((acc, raw) => {
             if (!raw) return acc;
             const data = raw as Record<string, unknown>;
             const boardCandidate = data.board_id ?? data.boardId ?? data.list_id ?? data.status_board_id ?? data.statusBoardId;

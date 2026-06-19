@@ -18,6 +18,8 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
 import type { UIProblem } from '@/features/problems/api';
+import { ConveyorForumDigestPanel } from '@/features/conveyor/components';
+import conveyorCopy from '@/locales/en/conveyor.json';
 
 function ForumContent() {
   const searchParams  = useSearchParams();
@@ -288,21 +290,24 @@ function ForumContent() {
           <div className="h-full flex flex-col gap-3">
             {/* Problem header */}
             {activeProblem && (
-              <div className="t-surface rounded-2xl px-5 py-3 flex items-center gap-3 shrink-0">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white truncate">{activeProblem.name}</div>
-                  {activeProblem.description && (
-                    <div className="t-caption truncate mt-0.5">{activeProblem.description}</div>
+              <div className="space-y-3 shrink-0">
+                <div className="t-surface rounded-2xl px-5 py-3 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white truncate">{activeProblem.name}</div>
+                    {activeProblem.description && (
+                      <div className="t-caption truncate mt-0.5">{activeProblem.description}</div>
+                    )}
+                  </div>
+                  {canWrite && (
+                    <button
+                      onClick={() => setEditProblem(activeProblem)}
+                      className="btn-secondary text-xs py-1.5 px-3 shrink-0"
+                    >
+                      ✏️ {conveyorCopy.common.edit}
+                    </button>
                   )}
                 </div>
-                {canWrite && (
-                  <button
-                    onClick={() => setEditProblem(activeProblem)}
-                    className="btn-secondary text-xs py-1.5 px-3 shrink-0"
-                  >
-                    ✏️ Редактировать
-                  </button>
-                )}
+                <ConveyorForumDigestPanel sourceId={activeProblem.id} sourceTitle={activeProblem.name} />
               </div>
             )}
             <div className="flex-1 min-h-0">

@@ -10,7 +10,10 @@ type AuthResp   = components['schemas']['response.AuthResponse'];
 type RefreshReq = components['schemas']['request.RefreshRequest'];
 type RefreshResp= components['schemas']['response.RefreshResponse'];
 export type UserInfo   = components['schemas']['response.UserInfo'];
-type OAuthReq  = components['schemas']['request.OAuthRequest'];
+// The backend defines OAuthRequest but registers no documented /auth/oauth route,
+// so it is absent from the generated schema. Type it locally from the Go struct
+// (internal/dto/request/Auth.go: { code, redirect_uri }).
+type OAuthReq  = { code: string; redirect_uri: string };
 export type TokenValidationResponse = components['schemas']['response.TokenValidationResponse'];
 
 export async function apiLogin(payload: LoginReq): Promise<AuthRespStrict> {

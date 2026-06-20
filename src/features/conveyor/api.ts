@@ -335,6 +335,12 @@ export async function listApprovalRequests(workItemId: string) {
   return normalizeList<ConveyorApprovalRequest>(payload, ['approval_requests', 'approvalRequests', 'items']);
 }
 
+// Глобальная очередь: все ожидающие решения approval-запросы (admin/manager).
+export async function listPendingApprovals(limit = 200) {
+  const payload = await requestJson<unknown>(`/api/conveyor/pending-approvals?limit=${limit}`);
+  return normalizeList<ConveyorApprovalRequest>(payload, ['approval_requests', 'approvalRequests', 'items']);
+}
+
 export async function requestApproval(payload: RequestApprovalPayload) {
   return requestJson<ConveyorMutationResult>(APPROVAL_REQUESTS_PATH, jsonPost(payload));
 }

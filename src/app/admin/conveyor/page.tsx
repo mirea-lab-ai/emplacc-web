@@ -10,6 +10,7 @@ import { useAllTasks } from '@/features/tasks/hooks';
 import {
   fetchConveyorSnapshot,
   listApprovalRequests,
+  listPendingApprovals,
   grantApprovalRequest,
   denyApprovalRequest,
   type ConveyorApprovalRequest,
@@ -195,6 +196,81 @@ function Inspector({ taskId }: { taskId: string }) {
   );
 }
 
+function PendingApprovalsQueue({ onInspect }: { onInspect: (workItemId: string) => void }) {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const queue = useQuery({
+    queryKey: ['conveyorPendingApprovals'],
+    queryFn: () => listPendingApprovals(200),
+    staleTime: 15_000,
+  });
+
+  const refetch = () => qc.invalidateQueries({ queryKey: ['conveyorPendingApprovals'] });
+
+  const grant = useMutation({
+    mutationFn: (id: string) => grantApprovalRequest(id, { idempotency_key: newKey() }),
+    onSuccess: () => { toast.success('Одобрено'); refetch(); },
+    onError: (e: any) => toast.error(e?.message || 'Не удалось одобрить'),
+  });
+  const deny = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => denyApprovalRequest(id, { idempotency_key: newKey(), reason }),
+    onSuccess: () => { toast.success('Отклонено'); refetch(); },
+    onError: (e: any) => toast.error(e?.message || 'Не удалось отклонить'),
+  });
+
+  async function onDeny(a: ConveyorApprovalRequest) {
+    if (!(await confirm({ title: 'Отклонить запрос', message: `Отклонить approval «${a.action ?? a.id}»?`, danger: true, confirmLabel: 'Отклонить' }))) return;
+    deny.mutate({ id: a.id, reason: 'rejected by admin' });
+  }
+
+  const items = queue.data ?? [];
+
+  return (
+    <div className="t-surface rounded-2xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="t-title text-white">Очередь одобрений</h2>
+        <span className={`rounded-full text-xs px-2 py-0.5 ${items.length ? 'bg-amber-500/15 text-amber-300' : 'bg-white/8 text-slate-400'}`}>
+          {queue.isLoading ? '…' : items.length}
+        </span>
+        <button onClick={refetch} className="ml-auto t-caption hover:text-emerald-300">Обновить</button>
+      </div>
+      {queue.isLoading ? (
+        <div className="t-body py-2">Загрузка…</div>
+      ) : queue.isError ? (
+        <div className="t-caption text-red-300">Нет доступа или ошибка загрузки очереди</div>
+      ) : items.length === 0 ? (
+        <div className="t-caption py-2">✓ Нет запросов, ожидающих решения</div>
+      ) : (
+        <div className="space-y-2">
+          {items.map(a => (
+            <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-500/[0.06] ring-1 ring-amber-500/15 px-3 py-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-white truncate">{a.action ?? 'approval'}</span>
+                  {a.risk_level && <span className="t-caption">риск: {a.risk_level}</span>}
+                </div>
+                {a.reason && <div className="t-caption truncate">{a.reason}</div>}
+              </div>
+              <div className="flex shrink-0 gap-1">
+                {a.work_item_id && (
+                  <button onClick={() => onInspect(a.work_item_id!)}
+                    className="rounded-lg px-3 py-1.5 text-xs text-slate-300 bg-white/5 hover:bg-white/10 transition-colors">Инспектировать</button>
+                )}
+                <button onClick={() => grant.mutate(a.id)} disabled={grant.isPending}
+                  className="rounded-lg px-3 py-1.5 text-xs text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 disabled:opacity-50 transition-colors">Одобрить</button>
+                <button onClick={() => onDeny(a)} disabled={deny.isPending}
+                  className="rounded-lg px-3 py-1.5 text-xs text-red-300 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-50 transition-colors">Отклонить</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminConveyorPage() {
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
@@ -219,9 +295,7 @@ export default function AdminConveyorPage() {
         <p className="t-body mt-1">Инспекция приёмочного конвейера задачи: одобрения, критерии, evidence, agent-runs, лог</p>
       </div>
 
-      <div className="rounded-2xl bg-amber-500/8 ring-1 ring-amber-500/20 px-4 py-3 text-sm text-amber-200/90">
-        Глобальная очередь одобрений требует отдельного API-эндпоинта (его пока нет). Здесь — инспекция по конкретной задаче: выберите задачу слева.
-      </div>
+      <PendingApprovalsQueue onInspect={setSelected} />
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-4">
         {/* task picker */}

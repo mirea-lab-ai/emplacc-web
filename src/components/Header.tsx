@@ -205,6 +205,15 @@ export default function Header({ items }: Props) {
                       </svg>
                       Настройки профиля
                     </Link>
+                    {(normalizedRole === 'admin' || normalizedRole === 'manager') && (
+                      <Link href="/admin" onClick={() => setProfileOpen(false)}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-emerald-300/85 transition hover:bg-emerald-500/10 hover:text-emerald-200">
+                        <svg className="h-4 w-4 opacity-70" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 4v5c0 4.418-3.134 7.582-7 9-3.866-1.418-7-4.582-7-9V7l7-4z"/>
+                        </svg>
+                        Админка
+                      </Link>
+                    )}
                     <div className="my-1 h-px bg-white/5" />
                     <button type="button" onClick={() => { setProfileOpen(false); void onLogout(); }}
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-red-300/80 transition hover:bg-red-500/8 hover:text-red-300">
@@ -268,6 +277,12 @@ export default function Header({ items }: Props) {
               </Link>
             );
           })}
+          {(normalizedRole === 'admin' || normalizedRole === 'manager') && (
+            <Link href="/admin" onClick={() => setMobileMenuOpen(false)}
+              className="rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-300/85 transition hover:bg-emerald-500/10 hover:text-emerald-200">
+              🛡 Админка
+            </Link>
+          )}
           <div className="t-divider" />
           <button type="button"
             onClick={() => { setMobileMenuOpen(false); setProfileOpen(false); void onLogout(); }}

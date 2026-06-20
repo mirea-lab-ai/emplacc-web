@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, type DragEvent } from 'react';
+import { useRef, useState, type DragEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
@@ -13,6 +13,8 @@ type Props = {
   onEdit: () => void;
   isDeleting?: boolean;
   readOnly?: boolean;
+  moveTargets?: { id: string; title: string }[];
+  onMove?: (toColId: string) => void;
 };
 
 const formatDate = (value: string) => {
@@ -29,9 +31,13 @@ export default function Card({
   onEdit,
   isDeleting = false,
   readOnly = false,
+  moveTargets = [],
+  onMove,
 }: Props) {
   const router = useRouter();
   const wasDragged = useRef(false);
+  const [moveOpen, setMoveOpen] = useState(false);
+  const canMove = !readOnly && !!onMove && moveTargets.length > 0;
 
   const handleDragStart = (event: DragEvent<HTMLDivElement>) => {
     if (readOnly) return;
@@ -74,7 +80,7 @@ export default function Card({
       className={containerClasses}
       title={readOnly ? undefined : 'Нажмите чтобы открыть · Тяните чтобы переместить'}
     >
-      <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
+      <div className="absolute right-2 top-2 flex gap-1 lg:hidden lg:group-hover:flex">
         <Link
           href={`/tasks/${task.id}`}
           onClick={(e) => e.stopPropagation()}
@@ -121,7 +127,38 @@ export default function Card({
             </button>
           </>
         )}
+        {canMove && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setMoveOpen((v) => !v); }}
+            className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-indigo-800"
+            title="Переместить в колонку"
+            aria-label="Переместить в колонку"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M5 9l-3 3 3 3" /><path d="M9 5l3-3 3 3" /><path d="M15 19l-3 3-3-3" /><path d="M19 9l3 3-3 3" />
+              <line x1="2" y1="12" x2="22" y2="12" /><line x1="12" y1="2" x2="12" y2="22" />
+            </svg>
+          </button>
+        )}
       </div>
+
+      {canMove && moveOpen && (
+        <div
+          className="absolute right-2 top-10 z-20 w-44 overflow-hidden rounded-xl bg-[#0c1a10] ring-1 ring-white/15 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-slate-500">Переместить в</div>
+          {moveTargets.map((col) => (
+            <button
+              key={col.id}
+              onClick={(e) => { e.stopPropagation(); setMoveOpen(false); onMove?.(col.id); }}
+              className="block w-full truncate px-3 py-2 text-left text-sm text-white/85 hover:bg-white/8"
+            >
+              {col.title}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="font-medium pr-20">{task.title}</div>
       {task.due && <div className="mt-1 text-sm text-slate-400">Срок: {formatDate(task.due)}</div>}

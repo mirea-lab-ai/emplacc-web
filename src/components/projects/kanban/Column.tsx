@@ -25,6 +25,8 @@ type Props = {
   canEdit?: boolean;
   showActions?: boolean;
   readOnly?: boolean;
+  allColumns?: { id: string; title: string }[];
+  onMoveCard?: (taskId: string, fromColId: string, toColId: string) => void;
 };
 
 export default function Column({
@@ -42,6 +44,8 @@ export default function Column({
   canEdit = true,
   showActions = false,
   readOnly = false,
+  allColumns = [],
+  onMoveCard,
 }: Props) {
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -62,7 +66,7 @@ export default function Column({
   const canAddTask = !readOnly;
 
   return (
-    <div className="group flex h-full min-h-0 min-w-[320px] flex-1 flex-col">
+    <div className="group flex w-full flex-col lg:h-full lg:min-h-0 lg:w-auto lg:min-w-[320px] lg:flex-1">
       <div className="mb-2 flex items-center justify-between px-3">
         <div className="flex min-w-0 flex-1 items-center gap-2 font-semibold">
           {column.color && (
@@ -139,11 +143,11 @@ export default function Column({
       </div>
 
       <Panel
-        className="relative flex h-full min-h-0 flex-1 flex-col text-white"
+        className="relative flex flex-col text-white lg:h-full lg:min-h-0 lg:flex-1"
         onDragOver={readOnly ? undefined : (event: DragEvent<HTMLDivElement>) => event.preventDefault()}
         onDrop={readOnly ? undefined : handleDrop}
       >
-        <div className="custom-scroll flex-1 space-y-2 overflow-auto p-3 list-appear">
+        <div className="custom-scroll space-y-2 overflow-auto p-3 list-appear max-h-[60dvh] lg:max-h-none lg:flex-1">
           {column.tasks.map((task) => (
             <Card
               key={task.id}
@@ -153,6 +157,8 @@ export default function Column({
               onEdit={() => onEditTask(task.id)}
               isDeleting={isDeletingTask}
               readOnly={readOnly}
+              moveTargets={allColumns.filter((c) => c.id !== column.id)}
+              onMove={onMoveCard ? (toColId) => onMoveCard(task.id, column.id, toColId) : undefined}
             />
           ))}
           {column.tasks.length === 0 && <div className="text-sm text-slate-400">Задач пока нет</div>}

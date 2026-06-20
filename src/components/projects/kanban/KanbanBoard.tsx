@@ -318,13 +318,16 @@ export default function KanbanBoard({
   );
 
   return (
-    <div className="flex flex-col gap-4" style={{ height: `calc(100dvh - ${viewportOffset}px)` }}>
+    <div
+      className="flex flex-col gap-4 min-h-[60dvh] lg:min-h-0 lg:[height:var(--kb-h)]"
+      style={{ ['--kb-h' as string]: `calc(100dvh - ${viewportOffset}px)` } as React.CSSProperties}
+    >
       {!hideHeader && !readOnly && (
         <KanbanHeader canAdd={canAddColumn} onAddColumn={handleOpenAddColumn} isCreating={isCreatingStatus} />
       )}
 
-      <div className="flex-1 min-h-0 overflow-x-auto custom-scroll">
-        <div className="flex h-full items-stretch gap-3 pb-2 list-appear">
+      <div className="min-h-0 lg:flex-1 lg:overflow-x-auto custom-scroll">
+        <div className="flex flex-col gap-3 pb-2 list-appear lg:h-full lg:flex-row lg:items-stretch">
           {local.map((column, index) => (
             <Column
               key={column.id}
@@ -345,6 +348,8 @@ export default function KanbanBoard({
               showActions={showColumnActions && !readOnly}
               readOnly={readOnly}
               isMovingTask={isMovingTask}
+              allColumns={local.map((c) => ({ id: c.id, title: c.title }))}
+              onMoveCard={(taskId, fromColId, toColId) => onDropCard(toColId, { taskId, fromColId })}
             />
           ))}
         </div>

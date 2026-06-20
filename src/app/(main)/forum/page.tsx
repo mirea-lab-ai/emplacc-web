@@ -191,9 +191,9 @@ function ForumContent() {
   }, [activeProblemId, systemUserId, userId, createMessage]);
 
   return (
-    <div className="flex h-full min-h-0 gap-5 overflow-hidden animate-fade-in">
+    <div className="flex flex-col lg:flex-row h-full min-h-0 gap-5 lg:overflow-hidden animate-fade-in">
       {/* ── Sidebar ── */}
-      <aside className="w-72 shrink-0 flex flex-col gap-3 overflow-hidden">
+      <aside className={`${activeProblemId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 shrink-0 flex-col gap-3 overflow-hidden min-h-0`}>
         {/* Header */}
         <div className="flex items-center justify-between gap-2">
           <h1 className="t-heading text-white">Форум</h1>
@@ -285,13 +285,20 @@ function ForumContent() {
       </aside>
 
       {/* ── Chat ── */}
-      <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+      <div className={`${activeProblemId ? 'flex' : 'hidden lg:flex'} flex-col flex-1 min-w-0 min-h-0 overflow-hidden`}>
         {activeProblemId ? (
           <div className="h-full flex flex-col gap-3">
             {/* Problem header */}
             {activeProblem && (
               <div className="space-y-3 shrink-0">
                 <div className="t-surface rounded-2xl px-5 py-3 flex items-center gap-3">
+                  <button
+                    onClick={() => setActiveProblemId('')}
+                    className="lg:hidden shrink-0 rounded-lg p-1.5 text-slate-300 hover:bg-white/8 hover:text-white transition-colors"
+                    aria-label="Назад к списку"
+                  >
+                    ←
+                  </button>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-white truncate">{activeProblem.name}</div>
                     {activeProblem.description && (

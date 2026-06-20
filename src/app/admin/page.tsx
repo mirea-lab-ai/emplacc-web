@@ -5,6 +5,7 @@ import { isAuthed } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import { http } from '@/lib/http';
 import { useAllUsers } from '@/features/user/hooks';
+import { listPendingApprovals } from '@/features/conveyor/api';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
@@ -77,6 +78,7 @@ const SECTIONS = [
   { href: '/admin/teams', label: 'Команды', icon: '🧩', desc: 'Состав, участники, проекты' },
   { href: '/admin/tasks', label: 'Задачи', icon: '✅', desc: 'Все задачи платформы' },
   { href: '/admin/projects', label: 'Проекты', icon: '📁', desc: 'Управление проектами' },
+  { href: '/admin/boards', label: 'Доски', icon: '🗂', desc: 'Доски и статусы-колонки' },
   { href: '/admin/conveyor', label: 'Конвейер', icon: '🛠', desc: 'Одобрения, agent-runs, лог' },
   { href: '/admin/forum', label: 'Форум', icon: '💬', desc: 'Модерация тем и сообщений' },
   { href: '/admin/attendance', label: 'Посещаемость', icon: '📊', desc: 'Отчёты и посещаемость' },
@@ -97,6 +99,13 @@ export default function AdminDashboard() {
   const { data: stats, isLoading } = useAdminStats(hasCreds);
   const { data: recentProblems = [], isLoading: problemsLoading } = useRecentProblems(hasCreds);
   const { data: users = [] } = useAllUsers(1, 200, hasCreds);
+  const { data: pending = [] } = useQuery({
+    queryKey: ['adminPendingApprovals'],
+    queryFn: () => listPendingApprovals(200),
+    enabled: hasCreds,
+    staleTime: 30_000,
+    retry: false,
+  });
 
   const newUsers = useMemo(() => {
     return [...users]
@@ -111,6 +120,21 @@ export default function AdminDashboard() {
         <h1 className="t-heading text-white">Панель администратора</h1>
         <p className="t-body mt-1">Обзор платформы и управление системой</p>
       </div>
+
+      {/* Pending approvals badge */}
+      {pending.length > 0 && (
+        <Link href="/admin/conveyor"
+          className="flex items-center gap-3 rounded-2xl bg-amber-500/10 ring-1 ring-amber-500/25 px-4 py-3 hover:bg-amber-500/15 transition-colors">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-500/20 text-lg">⏳</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-amber-200">
+              Ожидают одобрения: {pending.length}
+            </div>
+            <div className="t-caption text-amber-200/70">Запросы конвейера, требующие решения админа</div>
+          </div>
+          <span className="shrink-0 text-amber-200/80 text-sm">Открыть →</span>
+        </Link>
+      )}
 
       {/* Stats — clickable */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

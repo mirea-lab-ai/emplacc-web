@@ -15,6 +15,7 @@ const admin_nav = [
   { label: 'Сотрудники',           href: '/admin/users' },
   { label: 'Команды',              href: '/admin/teams' },
   { label: 'Проекты',              href: '/admin/projects' },
+  { label: 'Доски',                href: '/admin/boards' },
   { label: 'Задачи',               href: '/admin/tasks' },
   { label: 'Конвейер',             href: '/admin/conveyor' },
   { label: 'Форум',                href: '/admin/forum' },

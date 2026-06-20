@@ -1,6 +1,6 @@
 'use client';
 
-import type { DragEvent } from 'react';
+import { useState, type DragEvent } from 'react';
 import Panel from '@/components/ui/Panel';
 import Card from './Card';
 import { type KBColumn } from './types';
@@ -27,6 +27,7 @@ type Props = {
   readOnly?: boolean;
   allColumns?: { id: string; title: string }[];
   onMoveCard?: (taskId: string, fromColId: string, toColId: string) => void;
+  onQuickAdd?: (title: string) => void;
 };
 
 export default function Column({
@@ -46,7 +47,16 @@ export default function Column({
   readOnly = false,
   allColumns = [],
   onMoveCard,
+  onQuickAdd,
 }: Props) {
+  const [quickTitle, setQuickTitle] = useState('');
+
+  const submitQuickAdd = () => {
+    const t = quickTitle.trim();
+    if (!t || !onQuickAdd) return;
+    onQuickAdd(t);
+    setQuickTitle('');
+  };
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     if (readOnly) return;
@@ -162,6 +172,16 @@ export default function Column({
             />
           ))}
           {column.tasks.length === 0 && <div className="text-sm text-slate-400">Задач пока нет</div>}
+          {canAddTask && onQuickAdd && (
+            <input
+              value={quickTitle}
+              onChange={(e) => setQuickTitle(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitQuickAdd(); } }}
+              onBlur={submitQuickAdd}
+              placeholder="+ Быстрая задача (Enter)"
+              className="w-full rounded-lg bg-white/[0.03] px-3 py-2 text-sm text-white placeholder-slate-500 ring-1 ring-white/8 focus:ring-emerald-500/40 focus:outline-none transition"
+            />
+          )}
         </div>
 
         {isMovingTask && !readOnly && (

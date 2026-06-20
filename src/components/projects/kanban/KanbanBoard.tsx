@@ -9,7 +9,8 @@ import AddTaskModal from './modals/AddTaskModal';
 import EditTaskModal from './modals/EditTaskModal';
 import { uid } from '@/lib/uid';
 import { type KBColumn } from './types';
-import { type UITask } from '@/features/tasks/types';
+import { type UITask, TASK_PRIORITY_OPTIONS } from '@/features/tasks/types';
+import { getUserId } from '@/lib/auth';
 
 type HeaderState = {
   openAddColumn: () => void;
@@ -77,6 +78,27 @@ export default function KanbanBoard({
   const [local, setLocal] = useState<KBColumn[]>(columns);
 
   useEffect(() => setLocal(columns), [columns]);
+
+  // ── Фильтры доски ──
+  const [boardQuery, setBoardQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState<number | ''>('');
+  const [onlyMine, setOnlyMine] = useState(false);
+  const myId = getUserId();
+  const hasFilter = boardQuery.trim() !== '' || priorityFilter !== '' || onlyMine;
+
+  const displayColumns = useMemo(() => {
+    if (!hasFilter) return local;
+    const q = boardQuery.trim().toLowerCase();
+    return local.map((col) => ({
+      ...col,
+      tasks: col.tasks.filter((t) => {
+        if (q && !t.title.toLowerCase().includes(q)) return false;
+        if (priorityFilter !== '' && (t.priority ?? 0) !== priorityFilter) return false;
+        if (onlyMine && myId && !(t.assignees ?? []).some((a) => a.id === myId)) return false;
+        return true;
+      }),
+    }));
+  }, [local, hasFilter, boardQuery, priorityFilter, onlyMine, myId]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -326,9 +348,44 @@ export default function KanbanBoard({
         <KanbanHeader canAdd={canAddColumn} onAddColumn={handleOpenAddColumn} isCreating={isCreatingStatus} />
       )}
 
+      {/* Панель фильтров доски */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={boardQuery}
+          onChange={(e) => setBoardQuery(e.target.value)}
+          placeholder="Поиск задач…"
+          className="t-input w-full sm:w-56"
+        />
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value === '' ? '' : Number(e.target.value))}
+          className="t-input w-auto"
+        >
+          <option value="">Все приоритеты</option>
+          {TASK_PRIORITY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        {myId && (
+          <button
+            type="button"
+            onClick={() => setOnlyMine((v) => !v)}
+            className={`rounded-xl px-3 py-2 text-sm transition-colors ${onlyMine ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
+          >
+            Мои задачи
+          </button>
+        )}
+        {hasFilter && (
+          <button type="button" onClick={() => { setBoardQuery(''); setPriorityFilter(''); setOnlyMine(false); }}
+            className="rounded-xl px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            Сбросить
+          </button>
+        )}
+      </div>
+
       <div className="min-h-0 lg:flex-1 lg:overflow-x-auto custom-scroll">
         <div className="flex flex-col gap-3 pb-2 list-appear lg:h-full lg:flex-row lg:items-stretch">
-          {local.map((column, index) => (
+          {displayColumns.map((column, index) => (
             <Column
               key={column.id}
               column={column}
@@ -350,6 +407,7 @@ export default function KanbanBoard({
               isMovingTask={isMovingTask}
               allColumns={local.map((c) => ({ id: c.id, title: c.title }))}
               onMoveCard={(taskId, fromColId, toColId) => onDropCard(toColId, { taskId, fromColId })}
+              onQuickAdd={(title) => addTask(column.id, title)}
             />
           ))}
         </div>

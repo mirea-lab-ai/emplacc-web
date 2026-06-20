@@ -15,7 +15,7 @@ type Props = {
   items: { label: string; href: string }[];
 };
 
-const GUEST_BLOCKED_LABELS = ['РјРѕРё Р·Р°РґР°С‡Рё', 'РєРѕРјР°РЅРґС‹'];
+const GUEST_BLOCKED_LABELS = ['мои задачи', 'команды'];
 const GUEST_BLOCKED_PATHS = ['/tasks', '/teams'];
 
 export default function Header({ items }: Props) {
@@ -234,7 +234,7 @@ export default function Header({ items }: Props) {
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-200 ring-1 ring-white/10 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 lg:hidden"
             aria-expanded={mobileMenuOpen}
-            aria-label={mobileMenuOpen ? 'Р—Р°РєСЂС‹С‚СЊ РјРµРЅСЋ' : 'РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ'}
+            aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
           >
             {mobileMenuOpen ? (
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -299,7 +299,7 @@ function formatUserLabel(user: { firstName: string; lastName: string }) {
   const firstInitial = user.firstName?.trim().charAt(0).toUpperCase() ?? '';
   const lastName = user.lastName?.trim() ?? '';
   if (!lastName && !firstInitial) {
-    return 'РџСЂРѕС„РёР»СЊ';
+    return 'Профиль';
   }
   return [lastName, firstInitial ? `${firstInitial}.` : ''].join(' ').trim();
 }

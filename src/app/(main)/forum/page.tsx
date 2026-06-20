@@ -19,7 +19,7 @@ import { isAuthed, getUserId } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
 import type { UIProblem } from '@/features/problems/api';
 import { ConveyorForumDigestPanel } from '@/features/conveyor/components';
-import conveyorCopy from '@/locales/en/conveyor.json';
+import conveyorCopy from '@/locales/ru/conveyor.json';
 
 function ForumContent() {
   const searchParams  = useSearchParams();

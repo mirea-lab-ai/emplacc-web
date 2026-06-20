@@ -14,6 +14,7 @@ import { isAuthed } from '@/lib/auth';
 import { Employee } from '@/lib/types';
 import { TASK_PRIORITY_OPTIONS, type TaskPriorityValue } from '@/features/tasks/types';
 import { getErrorMessage } from '@/lib/errors';
+import { useToast } from '@/components/ui/Toast';
 
 export default function AddTaskModal({
                                         open,
@@ -26,6 +27,7 @@ export default function AddTaskModal({
     onCreate: (title: string, desc?: string, assignedTo?: string, deadline?: string, priority?: number) => Promise<void>;
     isSubmitting?: boolean;
 }) {
+    const toast = useToast();
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [improving, setImproving] = useState(false);
@@ -166,7 +168,7 @@ export default function AddTaskModal({
                                 disabled={improving || !desc.trim()}
                                 onClick={async () => {
                                     setImproving(true);
-                                    try { setDesc(await improveText(desc)); } catch { /* ignore */ }
+                                    try { setDesc(await improveText(desc)); } catch { toast.error('Не удалось улучшить текст'); }
                                     finally { setImproving(false); }
                                 }}
                                 className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors disabled:opacity-40"

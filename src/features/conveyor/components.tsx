@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Panel from '@/components/ui/Panel';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
-import copy from '@/locales/en/conveyor.json';
+import copy from '@/locales/ru/conveyor.json';
 import {
   ConveyorApiError,
   ConveyorAgentRun,

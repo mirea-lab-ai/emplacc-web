@@ -22,6 +22,12 @@ type ToastCtx = {
 const Ctx = createContext<ToastCtx | null>(null);
 let _counter = 0;
 
+// Мост для показа ошибок из мест вне React-дерева (например, глобальный onError React Query).
+let _externalError: ((message: string) => void) | null = null;
+export function notifyGlobalError(message: string) {
+  _externalError?.(message);
+}
+
 const ICONS: Record<ToastType, string> = {
   success: '✓',
   error:   '✕',
@@ -93,6 +99,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     info:    (m) => toast(m, 'info'),
     warning: (m) => toast(m, 'warning'),
   };
+
+  // Регистрируем error-тост как глобальный обработчик (для React Query onError и т.п.).
+  useEffect(() => {
+    _externalError = (m: string) => toast(m, 'error');
+    return () => { _externalError = null; };
+  }, [toast]);
 
   return (
     <Ctx.Provider value={ctx}>

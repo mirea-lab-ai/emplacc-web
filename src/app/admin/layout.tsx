@@ -13,11 +13,14 @@ export const metadata: Metadata = {
 const admin_nav = [
   { label: '📊 Дашборд',           href: '/admin' },
   { label: 'Сотрудники',           href: '/admin/users' },
+  { label: 'Команды',              href: '/admin/teams' },
   { label: 'Проекты',              href: '/admin/projects' },
   { label: 'Задачи',               href: '/admin/tasks' },
+  { label: 'Конвейер',             href: '/admin/conveyor' },
   { label: 'Форум',                href: '/admin/forum' },
   { label: 'Посещаемость',         href: '/admin/attendance' },
   { label: 'Роли',                 href: '/admin/roles' },
+  { label: '🔑 Токены',           href: '/admin/tokens' },
   { label: '🤖 LLM',              href: '/admin/llm' },
 ];
 

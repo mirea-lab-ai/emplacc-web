@@ -70,6 +70,7 @@ const QUICK_ACTIONS = [
   { label: 'Команда', icon: '➕', href: '/admin/teams' },
   { label: 'Конвейер', icon: '🛠', href: '/admin/conveyor' },
   { label: 'API-токен', icon: '🔑', href: '/admin/tokens' },
+  { label: 'Экспорт', icon: '📥', href: '/admin/export' },
   { label: 'Настроить LLM', icon: '🤖', href: '/admin/llm' },
 ];
 
@@ -84,6 +85,7 @@ const SECTIONS = [
   { href: '/admin/attendance', label: 'Посещаемость', icon: '📊', desc: 'Отчёты и посещаемость' },
   { href: '/admin/roles', label: 'Роли', icon: '🔑', desc: 'Роли системы' },
   { href: '/admin/tokens', label: 'Токены', icon: '🎫', desc: 'API-токены интеграций' },
+  { href: '/admin/export', label: 'Экспорт', icon: '📥', desc: 'Выгрузка данных в Excel' },
   { href: '/admin/llm', label: 'LLM', icon: '🤖', desc: 'Настройки AI-ассистента' },
 ];
 

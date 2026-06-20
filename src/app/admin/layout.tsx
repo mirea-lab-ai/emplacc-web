@@ -22,6 +22,7 @@ const admin_nav = [
   { label: 'Посещаемость',         href: '/admin/attendance' },
   { label: 'Роли',                 href: '/admin/roles' },
   { label: '🔑 Токены',           href: '/admin/tokens' },
+  { label: '📥 Экспорт',          href: '/admin/export' },
   { label: '🤖 LLM',              href: '/admin/llm' },
 ];
 

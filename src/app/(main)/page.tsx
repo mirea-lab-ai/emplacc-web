@@ -105,7 +105,7 @@ export default function Home() {
               Array.from({ length: 3 }).map((_, i) => <SkeletonStatCard key={i} />)
             ) : (
               <>
-                <StatCard label="Мои задачи" value={tasksLoading ? '…' : taskCount} sub="активных" href="/projects" accent />
+                <StatCard label="Мои задачи" value={tasksLoading ? '…' : taskCount} sub="активных" href="/tasks" accent />
                 <StatCard label="Отчётов" value={reportsLoading ? '…' : reportCount} sub="в системе" href="/report" />
                 <StatCard label="Роль" value={userRole?.role?.name ?? '—'} sub="в системе" />
               </>

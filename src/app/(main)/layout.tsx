@@ -6,11 +6,11 @@ import AuthGate from '@/components/AuthGate';
 
 const nav = [
   { label: 'Главная', href: '/' },
+  { label: 'Мои задачи', href: '/tasks' },
   { label: 'Проекты', href: '/projects' },
   { label: 'Команды', href: '/teams' },
   { label: 'Отчет', href: '/report' },
   { label: 'Форум', href: '/forum' },
-  { label: 'Настройки профиля', href: '/settings' },
 ];
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {

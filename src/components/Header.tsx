@@ -10,6 +10,7 @@ import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
 import { http } from '@/lib/http';
 import { useUser } from '@/features/user/hooks';
 import { useUserRole } from '@/features/roles/hooks';
+import { useTheme } from '@/lib/theme';
 
 type Props = {
   items: { label: string; href: string }[];
@@ -22,6 +23,7 @@ export default function Header({ items }: Props) {
   const router = useRouter();
   const userId = typeof window !== 'undefined' ? getUserId() : null;
   const [profileOpen, setProfileOpen] = useState(false);
+  const { theme, toggle: toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hasCreds = isAuthed();
   const { data: user } = useUser(userId, hasCreds);
@@ -197,6 +199,11 @@ export default function Header({ items }: Props) {
                     <div className="t-caption truncate">{user.email}</div>
                   </div>
                   <div className="p-1.5">
+                    <button type="button" onClick={toggleTheme}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/75 transition hover:bg-white/7 hover:text-white">
+                      <span className="text-base leading-none">{theme === 'light' ? '🌙' : '☀️'}</span>
+                      {theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
+                    </button>
                     <Link href="/settings" onClick={() => setProfileOpen(false)}
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/75 transition hover:bg-white/7 hover:text-white">
                       <svg className="h-4 w-4 opacity-60" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">

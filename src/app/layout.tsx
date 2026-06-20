@@ -9,10 +9,13 @@ export const metadata: Metadata = {
     description: 'Track tasks and time',
 };
 
+const THEME_INIT = `try{var t=localStorage.getItem('emplacc-theme');if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}if(t==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en" className="h-full">
-        <body className={`${inter.className} flex h-full flex-col overflow-hidden text-white`}>
+        <html lang="ru" className="h-full">
+        <body className={`${inter.className} flex h-full flex-col overflow-hidden`}>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <div className="flex h-full flex-1 flex-col overflow-hidden">
         {children}
         </div>

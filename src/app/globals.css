@@ -4,8 +4,10 @@
 /* 1) ВКЛЮЧАЕМ TAILWIND */
 @tailwind utilities;
 
-/* ── Design tokens ── */
+/* ── Design tokens (выровнены на mirea-ai-design-system) ── */
+/* Тёмная тема — по умолчанию на :root. Светлая — [data-theme="light"]. */
 :root {
+  color-scheme: dark;
   /* Backgrounds */
   --page-bg:        #050e08;
   --surface-bg:     rgba(255,255,255,0.035);
@@ -13,12 +15,30 @@
   --surface-elevated: rgba(255,255,255,0.06);
   --surface-border: rgba(255,255,255,0.08);
   --surface-border-hover: rgba(255,255,255,0.14);
+  --surface-grad-2: rgba(255,255,255,0.015);
+  --hover-bg:       rgba(255,255,255,0.06);
+  --input-bg:       rgba(255,255,255,0.05);
+  --input-bg-focus: rgba(255,255,255,0.07);
+  --input-border:   rgba(255,255,255,0.10);
+  --select-bg:      #0d1f12;
+  --chevron-stroke: rgba(255,255,255,0.4);
+  --btn-secondary-bg: rgba(255,255,255,0.07);
+  --btn-secondary-bg-hover: rgba(255,255,255,0.11);
+  --btn-secondary-border: rgba(255,255,255,0.12);
+  --shadow-surface: 0 12px 40px rgba(0,0,0,0.4);
+  --shadow-surface-hover: 0 16px 48px rgba(0,0,0,0.5);
+  --shadow-elevated: 0 20px 60px rgba(0,0,0,0.5);
+  --skeleton-1: rgba(255,255,255,0.04);
+  --skeleton-2: rgba(255,255,255,0.10);
 
   /* Accent */
   --accent-start:  #10b981;
   --accent-end:    #84cc16;
   --accent-mid:    #34d399;
   --accent-glow:   rgba(16,185,129,0.25);
+  --accent-ink:    #052b14;      /* текст на акцентной заливке */
+  --accent-text-a: #34d399;
+  --accent-text-b: #a3e635;
 
   /* Text */
   --text-primary:   rgba(255,255,255,0.93);
@@ -29,6 +49,45 @@
   --bg-fx-1: radial-gradient(ellipse 900px 600px at 15% -5%,  rgba(16,185,129,0.15), transparent 65%);
   --bg-fx-2: radial-gradient(ellipse 700px 400px at 90%  15%, rgba(132,204,22,0.10), transparent 60%);
   --bg-fx-3: radial-gradient(ellipse 500px 300px at 50%  80%, rgba(16,185,129,0.06), transparent 70%);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --page-bg:        #f7faf8;
+  --surface-bg:     rgba(255,255,255,0.85);
+  --surface-bg-hover: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-border: rgba(16,40,30,0.12);
+  --surface-border-hover: rgba(16,40,30,0.22);
+  --surface-grad-2: rgba(255,255,255,0.55);
+  --hover-bg:       rgba(16,40,30,0.06);
+  --input-bg:       #ffffff;
+  --input-bg-focus: #ffffff;
+  --input-border:   rgba(16,40,30,0.18);
+  --select-bg:      #ffffff;
+  --chevron-stroke: rgba(20,40,30,0.5);
+  --btn-secondary-bg: rgba(16,40,30,0.05);
+  --btn-secondary-bg-hover: rgba(16,40,30,0.09);
+  --btn-secondary-border: rgba(16,40,30,0.14);
+  --shadow-surface: 0 12px 32px rgba(20,50,40,0.10);
+  --shadow-surface-hover: 0 16px 40px rgba(20,50,40,0.14);
+  --shadow-elevated: 0 16px 44px rgba(20,50,40,0.16);
+  --skeleton-1: rgba(16,40,30,0.06);
+  --skeleton-2: rgba(16,40,30,0.12);
+
+  --accent-mid:    #047857;      /* темнее для текста/ссылок на белом */
+  --accent-glow:   rgba(16,185,129,0.22);
+  --accent-ink:    rgba(255,255,255,0.96);
+  --accent-text-a: #059669;
+  --accent-text-b: #4d7c0f;
+
+  --text-primary:   rgba(15,28,22,0.92);
+  --text-secondary: rgba(30,46,38,0.62);
+  --text-muted:     rgba(40,58,48,0.46);
+
+  --bg-fx-1: radial-gradient(ellipse 900px 600px at 15% -5%,  rgba(16,185,129,0.10), transparent 65%);
+  --bg-fx-2: radial-gradient(ellipse 700px 400px at 90%  15%, rgba(132,204,22,0.08), transparent 60%);
+  --bg-fx-3: radial-gradient(ellipse 500px 300px at 50%  80%, rgba(16,185,129,0.05), transparent 70%);
 }
 
 /* ── Base body ── */
@@ -42,29 +101,29 @@ body {
 
 /* ── Surfaces ── */
 .t-surface {
-  background: linear-gradient(145deg, var(--surface-bg), rgba(255,255,255,0.015));
+  background: linear-gradient(145deg, var(--surface-bg), var(--surface-grad-2));
   border: 1px solid var(--surface-border);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, var(--shadow-surface);
 }
 
 .t-surface-hover:hover {
-  background: linear-gradient(145deg, var(--surface-bg-hover), rgba(255,255,255,0.02));
+  background: linear-gradient(145deg, var(--surface-bg-hover), var(--surface-grad-2));
   border-color: var(--surface-border-hover);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 16px 48px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, var(--shadow-surface-hover);
 }
 
 .t-surface-elevated {
-  background: linear-gradient(145deg, var(--surface-elevated), rgba(255,255,255,0.025));
-  border: 1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(145deg, var(--surface-elevated), var(--surface-grad-2));
+  border: 1px solid var(--surface-border-hover);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, var(--shadow-elevated);
 }
 
 .t-surface-no-shadow {
-  background: linear-gradient(145deg, var(--surface-bg), rgba(255,255,255,0.015));
+  background: linear-gradient(145deg, var(--surface-bg), var(--surface-grad-2));
   border: 1px solid var(--surface-border);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -82,7 +141,7 @@ body {
 /* ── Gradients ── */
 .t-accent-grad { background-image: linear-gradient(135deg, var(--accent-start), var(--accent-end)); }
 .t-accent-grad\/20 { background-image: linear-gradient(135deg, rgba(16,185,129,0.14), rgba(132,204,22,0.08)); }
-.t-accent-text { background: linear-gradient(135deg, #34d399, #a3e635); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.t-accent-text { background: linear-gradient(135deg, var(--accent-text-a), var(--accent-text-b)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
 /* ── Glow effects ── */
 .t-glow-sm   { box-shadow: 0 0 16px var(--accent-glow); }
@@ -101,8 +160,8 @@ body {
 .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.625rem 1.25rem; border-radius: 0.875rem;
-  background: linear-gradient(135deg, #10b981, #84cc16);
-  color: #052b14; font-weight: 700; font-size: 0.875rem;
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  color: var(--accent-ink); font-weight: 700; font-size: 0.875rem;
   transition: all 0.2s;
   box-shadow: 0 4px 16px rgba(16,185,129,0.30), 0 1px 0 rgba(255,255,255,0.2) inset;
 }
@@ -112,11 +171,11 @@ body {
 .btn-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.625rem 1.25rem; border-radius: 0.875rem;
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.875rem;
+  background: var(--btn-secondary-bg); border: 1px solid var(--btn-secondary-border);
+  color: var(--text-primary); font-weight: 600; font-size: 0.875rem;
   transition: all 0.2s;
 }
-.btn-secondary:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.18); }
+.btn-secondary:hover { background: var(--btn-secondary-bg-hover); border-color: var(--surface-border-hover); }
 
 .btn-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -124,7 +183,7 @@ body {
   color: var(--text-secondary); font-size: 0.875rem;
   transition: all 0.15s;
 }
-.btn-ghost:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+.btn-ghost:hover { color: var(--text-primary); background: var(--hover-bg); }
 
 /* ── Stat card ── */
 .stat-card {
@@ -138,23 +197,21 @@ body {
 /* ── Input ── */
 .t-input {
   width: 100%; padding: 0.625rem 1rem; border-radius: 0.875rem;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+  background: var(--input-bg); border: 1px solid var(--input-border);
   color: var(--text-primary); font-size: 0.875rem;
   transition: all 0.15s; outline: none;
 }
 .t-input::placeholder { color: var(--text-muted); }
-.t-input:focus { border-color: rgba(16,185,129,0.45); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
-/* Фикс белого фона нативного <select> на Windows/Linux */
-select { color-scheme: dark; }
+.t-input:focus { border-color: rgba(16,185,129,0.45); background: var(--input-bg-focus); box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
 select.t-input {
-  background-color: #0d1f12;
+  background-color: var(--select-bg);
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23808080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.875rem center;
   padding-right: 2.5rem;
 }
-select.t-input option { background-color: #0d1f12; color: var(--text-primary); }
+select.t-input option { background-color: var(--select-bg); color: var(--text-primary); }
 
 /* ── Divider ── */
 .t-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--surface-border), transparent); }
@@ -282,9 +339,9 @@ select.t-input option { background-color: #0d1f12; color: var(--text-primary); }
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.04) 25%,
-    rgba(255,255,255,0.10) 50%,
-    rgba(255,255,255,0.04) 75%
+    var(--skeleton-1) 25%,
+    var(--skeleton-2) 50%,
+    var(--skeleton-1) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;

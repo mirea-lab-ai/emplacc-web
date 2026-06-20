@@ -116,7 +116,7 @@ export default function GuestProjects() {
 
   if (!hasCreds) {
     return (
-      <Panel className="t-surface p-6 text-slate-300">
+      <Panel className="t-surface p-6 text-app-2">
         Авторизуйтесь, чтобы увидеть проекты.
       </Panel>
     );
@@ -125,8 +125,8 @@ export default function GuestProjects() {
   return (
     <div className="w-full space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Проекты</h1>
-        <p className="text-sm text-slate-300">
+        <h1 className="text-2xl font-semibold text-app">Проекты</h1>
+        <p className="text-sm text-app-2">
           Просматривайте доступные проекты и переходите к нужному.
         </p>
       </div>
@@ -136,16 +136,16 @@ export default function GuestProjects() {
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         placeholder="Поиск по названию проекта"
-        className="h-11 w-full rounded-xl border border-white/15 bg-white/10 px-4 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+        className="h-11 w-full rounded-xl border border-app bg-app-hover px-4 text-sm text-app placeholder:text-app-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
       />
 
       <Panel className="t-surface p-0">
         {loading ? (
-          <div className="p-6 text-slate-400">Загружаем проекты…</div>
+          <div className="p-6 text-app-2">Загружаем проекты…</div>
         ) : filtered.length === 0 ? (
-          <div className="p-6 text-slate-400">Проекты не найдены.</div>
+          <div className="p-6 text-app-2">Проекты не найдены.</div>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-[var(--surface-border)]">
             {filtered.map((project) => {
               const meta = project.status ? STATUS_META[project.status.toLowerCase().trim()] : null;
 
@@ -154,21 +154,21 @@ export default function GuestProjects() {
                   <button
                     type="button"
                     onClick={() => router.push(`/projects/${project.id}`)}
-                    className="flex w-full flex-col gap-2 rounded-xl px-4 py-4 text-left transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+                    className="flex w-full flex-col gap-2 rounded-xl px-4 py-4 text-left transition hover:bg-app-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <span className="text-lg font-semibold text-white">
+                      <span className="text-lg font-semibold text-app">
                         {project.name ?? 'Без названия'}
                       </span>
                       {meta && (
-                        <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+                        <span className="inline-flex items-center rounded-full bg-app-hover px-3 py-1 text-xs text-app-2">
                           <span className="mr-1">{meta.emoji}</span>
                           {meta.label}
                         </span>
                       )}
                     </div>
                     {project.description && (
-                      <p className="line-clamp-2 text-sm text-slate-300">{project.description}</p>
+                      <p className="line-clamp-2 text-sm text-app-2">{project.description}</p>
                     )}
                     <span className="text-xs text-emerald-200">Перейти к проекту →</span>
                   </button>

@@ -16,16 +16,16 @@ export default function DeleteTeamModal({ open, onClose, onConfirm, teamName, is
 
   return (
     <Modal open onClose={onClose}>
-      <div className="w-full max-w-md rounded-xl border border-white/20 bg-white/5 p-6 shadow-lg backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-app t-surface-elevated p-6 shadow-lg backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
             <TrashIcon className="w-5 h-5 text-red-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white">Расформировать команду</h2>
+          <h2 className="text-xl font-semibold text-app">Расформировать команду</h2>
         </div>
 
-        <p className="text-slate-300 mb-4">
-          Вы уверены, что хотите расформировать команду <span className="font-semibold text-white">&ldquo;{teamName}&rdquo;</span>?
+        <p className="text-app-2 mb-4">
+          Вы уверены, что хотите расформировать команду <span className="font-semibold text-app">&ldquo;{teamName}&rdquo;</span>?
         </p>
         <p className="text-sm text-red-300 mb-6">
           Это действие нельзя отменить. Все участники команды будут удалены из неё.
@@ -35,7 +35,7 @@ export default function DeleteTeamModal({ open, onClose, onConfirm, teamName, is
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-4 py-2 text-slate-300 hover:bg-white/10 transition-colors"
+            className="rounded-md px-4 py-2 text-app-2 hover:bg-app-hover transition-colors"
             disabled={isDeleting}
           >
             Отмена

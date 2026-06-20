@@ -7,23 +7,13 @@ import { isAuthed } from "@/lib/auth";
 import { useIsClient } from '@/hooks/useIsClient';
 import type { UIProblem } from "@/features/problems/api";
 import { SkeletonForumItem } from '@/components/ui/Skeleton';
+import { formatDate } from '@/lib/date';
 
 export type ForumNote = {
   id: string;
   topic: string;
   text: string;
   href?: string;
-};
-
-const formatDate = (value?: string) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
 };
 
 export default function ForumUpdates() {
@@ -51,16 +41,16 @@ export default function ForumUpdates() {
             {problems.map((problem) => (
               <li
                 key={problem.id}
-                className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 px-4 py-2"
+                className="rounded-xl backdrop-blur-sm bg-app-hover border border-app text-app hover:bg-app-hover ring-1 ring-app px-4 py-2"
               >
                 <Link href={`/forum?problem=${problem.id}`}>
                   <div className="font-semibold">{problem.name}</div>
                   {problem.description && (
-                    <div className="text-slate-400 text-sm line-clamp-2">
+                    <div className="text-app-2 text-sm line-clamp-2">
                       {problem.description}
                     </div>
                   )}
-                  <div className="text-slate-400 text-xs mt-1">
+                  <div className="text-app-2 text-xs mt-1">
                     {formatDate(problem.createdAt)}
                   </div>
                 </Link>
@@ -68,7 +58,7 @@ export default function ForumUpdates() {
             ))}
           </ul>
         ) : (
-          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 ring-1 ring-white/10 text-slate-400">
+          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-app-hover border border-app ring-1 ring-app text-app-2">
             Проблем пока нет
           </div>
         )}

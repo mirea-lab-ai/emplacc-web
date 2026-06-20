@@ -394,7 +394,7 @@ export default function YourTasks() {
         ) : error ? (
           <div className="text-center text-red-400 py-8">Ошибка загрузки задач</div>
         ) : sortedTasks.length === 0 ? (
-          <div className="text-center text-slate-400 py-8">
+          <div className="text-center text-app-2 py-8">
             {tasks.length > 0
               ? 'Все ваши задачи уже в завершённых статусах — отличный результат!'
               : 'У вас пока нет задач'}
@@ -499,8 +499,8 @@ function TaskRow({
       aria-busy={resolving}
       title={hasLocation ? 'Открыть доску с этой задачей' : 'Определяем доску задачи'}
       className={[
-        'relative overflow-hidden rounded-2xl ring-1 ring-white/10 px-4 py-2 backdrop-blur-sm border border-white/20 text-white transition-colors bg-white/10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300',
-        resolving ? 'pointer-events-none opacity-60' : 'hover:bg-white/20',
+        'relative overflow-hidden rounded-2xl ring-1 ring-app px-4 py-2 backdrop-blur-sm border border-app text-app transition-colors bg-app-hover cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300',
+        resolving ? 'pointer-events-none opacity-60' : 'hover:bg-app-hover',
       ].join(' ')}
     >
       {resolving && (
@@ -512,12 +512,12 @@ function TaskRow({
         <div className="flex-1 min-w-0">
           <div className="font-semibold">{t.title}</div>
           {projectLabel && (
-            <div className="text-slate-200 text-sm mt-0.5">
+            <div className="text-app-2 text-sm mt-0.5">
               Проект: {projectLabel}
             </div>
           )}
           {t.due && (
-            <div className="text-slate-400 text-sm mt-0.5">
+            <div className="text-app-3 text-sm mt-0.5">
               Срок: {formatDueDate(t.due)}
             </div>
           )}

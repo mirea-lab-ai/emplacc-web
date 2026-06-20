@@ -61,7 +61,7 @@ export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: A
 
   if (displayUrl) {
     return (
-      <div className={`${box} relative overflow-hidden rounded-full ring-1 ring-white/10`}>
+      <div className={`${box} relative overflow-hidden rounded-full ring-1 ring-app`}>
         <Image
           src={displayUrl}
           alt={name}
@@ -77,7 +77,7 @@ export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: A
 
   const initials = deriveInitials(name);
   return (
-    <div className={`${box} rounded-full bg-teal-600/40 text-white flex items-center justify-center ring-1 ring-white/10`}>
+    <div className={`${box} rounded-full bg-teal-600/40 text-white flex items-center justify-center ring-1 ring-app`}>
       <span className={`opacity-90 ${text}`}>{initials}</span>
     </div>
   );

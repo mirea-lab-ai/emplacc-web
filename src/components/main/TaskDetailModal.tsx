@@ -14,15 +14,15 @@ export default function TaskDetailModal({ open, onClose, taskName, taskDescripti
 
   return (
     <Modal open onClose={onClose}>
-      <div className="w-full max-w-lg rounded-xl border border-white/20 bg-white/5 p-6 shadow-lg backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-xl border border-app t-surface-elevated p-6 shadow-lg backdrop-blur-sm">
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white mb-2">{taskName}</h2>
+          <h2 className="text-xl font-semibold text-app mb-2">{taskName}</h2>
           <div className="h-px bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
         </div>
 
         <div className="mb-6">
-          <h3 className="text-slate-200 text-sm font-medium mb-2">Описание</h3>
-          <div className="text-slate-300 leading-relaxed whitespace-pre-wrap">
+          <h3 className="text-app-2 text-sm font-medium mb-2">Описание</h3>
+          <div className="text-app-2 leading-relaxed whitespace-pre-wrap">
             {taskDescription || 'Описание отсутствует'}
           </div>
         </div>

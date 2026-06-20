@@ -59,8 +59,8 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="w-full max-w-2xl rounded-2xl bg-black border border-white/20 p-6">
-        <h3 className="text-2xl font-semibold text-slate-100 mb-4">Добавить команду к проекту</h3>
+      <div className="w-full max-w-2xl rounded-2xl t-surface-elevated border border-app p-6">
+        <h3 className="text-2xl font-semibold text-app mb-4">Добавить команду к проекту</h3>
 
         <div className="relative mb-4">
           <input
@@ -68,12 +68,12 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
             value={query} 
             onChange={e => setQuery(e.target.value)}
             placeholder="Поиск по названию команды..."
-            className="w-full rounded-xl t-surface text-slate-100 placeholder:text-slate-400 px-4 py-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
+            className="w-full rounded-xl t-surface text-app placeholder:text-app-3 px-4 py-3 ring-1 ring-app focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
           />
           {query && (
             <button 
               onClick={() => setQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200" 
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-app-2 hover:text-app"
               aria-label="Очистить"
             >
               ×
@@ -82,12 +82,12 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
         </div>
 
         <div className="mb-6">
-          <div className="text-sm text-slate-300 mb-2">Доступные команды</div>
-          <div className="max-h-64 overflow-auto rounded-xl bg-white/5 ring-1 ring-white/10">
+          <div className="text-sm text-app-2 mb-2">Доступные команды</div>
+          <div className="max-h-64 overflow-auto rounded-xl bg-app-subtle ring-1 ring-app">
             {isLoading ? (
-              <div className="p-4 text-slate-400 text-center">Загрузка команд...</div>
+              <div className="p-4 text-app-2 text-center">Загрузка команд...</div>
             ) : filteredTeams.length === 0 ? (
-              <div className="p-4 text-slate-400 text-center">
+              <div className="p-4 text-app-2 text-center">
                 {query ? 'Команды не найдены' : 'Нет доступных команд'}
               </div>
             ) : (
@@ -96,15 +96,15 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
                   <button
                     key={team.id}
                     onClick={() => setSelectedTeam(team)}
-                    className={`w-full text-left p-3 hover:bg-white/10 transition-colors ${
+                    className={`w-full text-left p-3 hover:bg-app-hover transition-colors ${
                       selectedTeam?.id === team.id ? 'bg-emerald-500/20 border-l-4 border-emerald-500' : ''
                     }`}
                   >
-                    <div className="font-semibold text-white">{team.name}</div>
+                    <div className="font-semibold text-app">{team.name}</div>
                     {team.description && (
-                      <div className="text-slate-400 text-sm mt-1">{team.description}</div>
+                      <div className="text-app-2 text-sm mt-1">{team.description}</div>
                     )}
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-app-3 mt-1">
                       Участников: {team.members?.length || 0}
                     </div>
                   </button>
@@ -117,9 +117,9 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
         {selectedTeam && (
           <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
             <div className="text-sm text-emerald-400 mb-1">Выбранная команда:</div>
-            <div className="font-semibold text-white">{selectedTeam.name}</div>
+            <div className="font-semibold text-app">{selectedTeam.name}</div>
             {selectedTeam.description && (
-              <div className="text-slate-300 text-sm mt-1">{selectedTeam.description}</div>
+              <div className="text-app-2 text-sm mt-1">{selectedTeam.description}</div>
             )}
           </div>
         )}
@@ -128,7 +128,7 @@ export default function AddTeamToProjectModal({ open, onClose, projectId, existi
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-4 py-2 text-slate-300 hover:bg-white/10 transition-colors"
+            className="rounded-md px-4 py-2 text-app-2 hover:bg-app-hover transition-colors"
             disabled={addTeamMutation.isPending}
           >
             Отмена

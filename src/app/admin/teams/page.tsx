@@ -24,21 +24,21 @@ function initials(name: string) {
 
 function MemberChip({ member, onRemove }: { member: UITeamMember; onRemove?: () => void }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-white/[0.04] ring-1 ring-white/8 px-2.5 py-1.5">
+    <div className="flex items-center gap-2 rounded-xl bg-app-subtle ring-1 ring-app px-2.5 py-1.5">
       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-bold">
         {initials(member.name)}
       </span>
       <div className="min-w-0">
-        <div className="text-sm text-white truncate">{member.name}</div>
+        <div className="text-sm text-app truncate">{member.name}</div>
         {(member.specialization || member.email) && (
-          <div className="text-[11px] text-slate-500 truncate">{member.specialization || member.email}</div>
+          <div className="text-[11px] text-app-3 truncate">{member.specialization || member.email}</div>
         )}
       </div>
       {onRemove && (
         <button
           onClick={onRemove}
           aria-label={`Удалить ${member.name} из команды`}
-          className="ml-1 shrink-0 text-slate-500 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-1.5 py-0.5 transition-colors"
+          className="ml-1 shrink-0 text-app-3 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-1.5 py-0.5 transition-colors"
         >
           ✕
         </button>
@@ -159,7 +159,7 @@ export default function AdminTeamsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="t-heading text-white">Команды</h1>
+          <h1 className="t-heading text-app">Команды</h1>
           <p className="t-body mt-1">Управление командами, участниками и составом</p>
         </div>
         <button onClick={openCreate} className="btn-primary text-sm py-2 px-4">+ Создать команду</button>
@@ -169,17 +169,17 @@ export default function AdminTeamsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="t-surface rounded-2xl p-4 text-center">
           <div className="text-3xl font-bold text-emerald-400">{isLoading ? '—' : teams.length}</div>
-          <div className="text-xs text-slate-500">Команд</div>
+          <div className="text-xs text-app-3">Команд</div>
         </div>
         <div className="t-surface rounded-2xl p-4 text-center">
           <div className="text-3xl font-bold text-blue-400">{isLoading ? '—' : totalMembers}</div>
-          <div className="text-xs text-slate-500">Участников всего</div>
+          <div className="text-xs text-app-3">Участников всего</div>
         </div>
         <div className="t-surface rounded-2xl p-4 text-center">
           <div className="text-3xl font-bold text-purple-400">
             {isLoading || teams.length === 0 ? '—' : (totalMembers / teams.length).toFixed(1)}
           </div>
-          <div className="text-xs text-slate-500">В среднем на команду</div>
+          <div className="text-xs text-app-3">В среднем на команду</div>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export default function AdminTeamsPage() {
       {isLoading ? (
         <div className="t-body py-6">Загрузка…</div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 px-6 py-10 text-center">
+        <div className="rounded-2xl border border-dashed border-app px-6 py-10 text-center">
           <div className="text-3xl mb-2">👥</div>
           <div className="t-body">{search ? 'Ничего не найдено' : 'Пока нет команд'}</div>
         </div>
@@ -203,34 +203,34 @@ export default function AdminTeamsPage() {
           {filtered.map(team => {
             const isOpen = expanded === team.id;
             return (
-              <div key={team.id} className="t-surface rounded-2xl ring-1 ring-white/8 overflow-hidden">
+              <div key={team.id} className="t-surface rounded-2xl ring-1 ring-app overflow-hidden">
                 <div className="flex items-center gap-4 p-4">
                   <button
                     onClick={() => setExpanded(isOpen ? null : team.id)}
                     className="flex-1 min-w-0 flex items-center gap-3 text-left"
                   >
-                    <span className={`text-slate-500 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+                    <span className={`text-app-3 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-500/15 text-emerald-300 font-bold">
                       {initials(team.name)}
                     </span>
                     <div className="min-w-0">
-                      <div className="font-semibold text-white truncate">{team.name}</div>
-                      <div className="text-xs text-slate-500 truncate">
+                      <div className="font-semibold text-app truncate">{team.name}</div>
+                      <div className="text-xs text-app-3 truncate">
                         {team.members.length} участ. {team.description ? `· ${team.description}` : ''}
                       </div>
                     </div>
                   </button>
                   <div className="flex shrink-0 items-center gap-1">
                     <button onClick={() => openAddMembers(team)} className="rounded-xl px-3 py-1.5 text-xs text-emerald-300/80 hover:text-emerald-200 hover:bg-emerald-500/10 transition-colors">+ Участник</button>
-                    <button onClick={() => openEdit(team)} className="rounded-xl px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/5 transition-colors">Изм.</button>
+                    <button onClick={() => openEdit(team)} className="rounded-xl px-3 py-1.5 text-xs text-app-2 hover:text-app hover:bg-app-hover transition-colors">Изм.</button>
                     <button onClick={() => handleDelete(team)} className="rounded-xl px-3 py-1.5 text-xs text-red-400/70 hover:text-red-300 hover:bg-red-500/10 transition-colors">Удалить</button>
                   </div>
                 </div>
 
                 {isOpen && (
-                  <div className="border-t border-white/8 p-4">
+                  <div className="border-t border-app p-4">
                     {team.members.length === 0 ? (
-                      <div className="text-sm text-slate-500">В команде пока нет участников.</div>
+                      <div className="text-sm text-app-3">В команде пока нет участников.</div>
                     ) : (
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {team.members.map(m => (
@@ -249,7 +249,7 @@ export default function AdminTeamsPage() {
       {/* create/edit modal */}
       <Modal open={formOpen} onClose={() => setFormOpen(false)}>
         <div className="t-surface-elevated rounded-2xl p-6 space-y-4 w-full">
-          <h3 className="t-title text-white">{editing ? 'Редактировать команду' : 'Новая команда'}</h3>
+          <h3 className="t-title text-app">{editing ? 'Редактировать команду' : 'Новая команда'}</h3>
           <div>
             <label className="t-label mb-1.5 block">Название</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Например: Backend" className="t-input"
@@ -273,25 +273,25 @@ export default function AdminTeamsPage() {
       <Modal open={!!membersFor} onClose={() => setMembersFor(null)}>
         <div className="t-surface-elevated rounded-2xl p-6 space-y-4 w-full">
           <div>
-            <h3 className="t-title text-white">Добавить участников</h3>
+            <h3 className="t-title text-app">Добавить участников</h3>
             <p className="t-caption mt-0.5">в команду «{membersFor?.name}»</p>
           </div>
           <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="Поиск по имени или email…" className="t-input" autoFocus />
           <div className="max-h-72 overflow-y-auto space-y-1 custom-scroll">
             {candidateUsers.length === 0 ? (
-              <div className="text-sm text-slate-500 py-4 text-center">Нет доступных пользователей</div>
+              <div className="text-sm text-app-3 py-4 text-center">Нет доступных пользователей</div>
             ) : candidateUsers.map(u => {
               const on = picked.has(u.id);
               return (
                 <button key={u.id}
                   onClick={() => setPicked(prev => { const n = new Set(prev); n.has(u.id) ? n.delete(u.id) : n.add(u.id); return n; })}
-                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors ${on ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30' : 'hover:bg-white/5'}`}>
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/8 text-xs font-bold text-slate-300">
+                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors ${on ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30' : 'hover:bg-app-hover'}`}>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-app-hover text-xs font-bold text-app-2">
                     {initials(`${u.firstName} ${u.lastName}`)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white truncate">{`${u.firstName} ${u.lastName}`.trim() || u.email}</div>
-                    <div className="text-[11px] text-slate-500 truncate">{u.email}{u.profession ? ` · ${u.profession}` : ''}</div>
+                    <div className="text-sm text-app truncate">{`${u.firstName} ${u.lastName}`.trim() || u.email}</div>
+                    <div className="text-[11px] text-app-3 truncate">{u.email}{u.profession ? ` · ${u.profession}` : ''}</div>
                   </div>
                   {on && <span className="text-emerald-300 text-sm">✓</span>}
                 </button>

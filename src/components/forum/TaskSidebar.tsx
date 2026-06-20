@@ -25,7 +25,7 @@ export default function TaskSidebar({
             onClick={() => onSelect(t.id)}
             className={[
               'relative w-full text-left rounded-2xl px-4 py-3 transition-colors',
-              'ring-1 ring-white/10 t-surface',
+              'ring-1 ring-app t-surface',
               active ? 'ring-2 ring-indigo-500/40' : '',
             ].join(' ')}
           >
@@ -39,9 +39,9 @@ export default function TaskSidebar({
               ].join(' ')}
             />
             <div className="relative z-[1]">
-              <div className={['font-semibold', active ? 'text-black' : 'text-white'].join(' ')}>{t.title}</div>
+              <div className={['font-semibold', active ? 'text-black' : 'text-app'].join(' ')}>{t.title}</div>
               {typeof t.subtasksCount === 'number' && (
-                <div className={['text-sm', active ? 'text-slate-800' : 'text-slate-400'].join(' ')}>
+                <div className={['text-sm', active ? 'text-slate-800' : 'text-app-2'].join(' ')}>
                   Подзадач: {t.subtasksCount}
                 </div>
               )}

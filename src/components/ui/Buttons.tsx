@@ -41,7 +41,7 @@ export function ButtonGhost({
     <button
       type={type}
       onClick={onClick}
-      className={`rounded-lg px-4 py-2 text-slate-300 hover:text-white ${className}`}
+      className={`rounded-lg px-4 py-2 text-app-2 hover:text-app ${className}`}
     >
       {children}
     </button>

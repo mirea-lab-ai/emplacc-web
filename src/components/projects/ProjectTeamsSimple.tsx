@@ -27,7 +27,7 @@ export default function ProjectTeamsSimple({ groups: initial }: { groups: Simple
   if (!groups.length) {
     return (
       <Panel className="p-6">
-        <div className="text-slate-400">В проекте пока нет команд</div>
+        <div className="text-app-2">В проекте пока нет команд</div>
       </Panel>
     );
   }
@@ -51,15 +51,15 @@ export default function ProjectTeamsSimple({ groups: initial }: { groups: Simple
               {g.members.map(m => (
                 <li
                   key={m.id}
-                  className="flex items-center justify-between rounded-xl bg-[#141c2f] ring-1 ring-white/10 px-4 py-3"
+                  className="flex items-center justify-between rounded-xl t-surface ring-1 ring-app px-4 py-3"
                 >
                   <div>
                     <div className="font-medium">{m.name}</div>
-                    <div className="text-slate-400 text-sm">{m.role}</div>
+                    <div className="text-app-2 text-sm">{m.role}</div>
                   </div>
                   <button
                     onClick={() => removeMember(g.id, m.id)}
-                    className="rounded-lg p-2 ring-1 ring-white/10 text-slate-300 hover:text-white hover:bg-[#ef4657]/25 hover:ring-[#ef4657]/40 transition"
+                    className="rounded-lg p-2 ring-1 ring-app text-app-2 hover:text-white hover:bg-[#ef4657]/25 hover:ring-[#ef4657]/40 transition"
                     title="Удалить"
                   >
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -74,7 +74,7 @@ export default function ProjectTeamsSimple({ groups: initial }: { groups: Simple
               ))}
             </ul>
           ) : (
-            <div className="rounded-xl bg-black/20 px-4 py-6 text-slate-400 ring-1 ring-white/10">
+            <div className="rounded-xl bg-app-subtle px-4 py-6 text-app-2 ring-1 ring-app">
               В группе пока нет сотрудников
             </div>
           )}

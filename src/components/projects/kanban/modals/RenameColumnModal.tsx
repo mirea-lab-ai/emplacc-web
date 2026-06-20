@@ -30,11 +30,11 @@ export default function RenameColumnModal({
             }
         >
             <label className="grid gap-2">
-                <span className="text-slate-200">Новое название</span>
+                <span className="text-app">Новое название</span>
                 <input
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app px-4 ring-1 ring-app text-app focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                 />
             </label>
         </Modal>

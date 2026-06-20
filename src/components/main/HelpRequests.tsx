@@ -67,7 +67,7 @@ export default function HelpRequests() {
         <div>
           <h2 className="text-lg font-semibold">Просьбы о помощи</h2>
           {has && (
-            <div className="text-sm text-slate-400 mt-1">
+            <div className="text-sm text-app-2 mt-1">
               {i + 1} из {list.length}
             </div>
           )}
@@ -94,16 +94,16 @@ export default function HelpRequests() {
 
       <div className="flex-1 min-h-0">
         {!has ? (
-          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 ring-1 ring-white/10 text-slate-400">
+          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover ring-1 ring-app text-app-2">
             Нет активных просьб о помощи
           </div>
         ) : (
-          <div className="h-full rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 p-3 text-sm overflow-auto custom-scroll relative">
-            <div className="text-slate-300">Просит:</div>
+          <div className="h-full rounded-xl backdrop-blur-sm bg-app-hover border border-app text-app hover:bg-app-hover ring-1 ring-app p-3 text-sm overflow-auto custom-scroll relative">
+            <div className="text-app-2">Просит:</div>
             <div className="font-semibold">{list[i].from}</div>
             {list[i].text && (
               <>
-                <div className="mt-2 text-slate-300">Описание:</div>
+                <div className="mt-2 text-app-2">Описание:</div>
                 <div className="font-medium">{list[i].text}</div>
               </>
             )}

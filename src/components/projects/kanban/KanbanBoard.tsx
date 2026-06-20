@@ -370,14 +370,14 @@ export default function KanbanBoard({
           <button
             type="button"
             onClick={() => setOnlyMine((v) => !v)}
-            className={`rounded-xl px-3 py-2 text-sm transition-colors ${onlyMine ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
+            className={`rounded-xl px-3 py-2 text-sm transition-colors ${onlyMine ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30' : 'bg-app-subtle text-app-2 hover:bg-app-hover'}`}
           >
             Мои задачи
           </button>
         )}
         {hasFilter && (
           <button type="button" onClick={() => { setBoardQuery(''); setPriorityFilter(''); setOnlyMine(false); }}
-            className="rounded-xl px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            className="rounded-xl px-3 py-2 text-sm text-app-2 hover:text-app hover:bg-app-subtle transition-colors">
             Сбросить
           </button>
         )}

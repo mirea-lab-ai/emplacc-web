@@ -15,6 +15,7 @@ import { SkeletonTaskDetail } from '@/components/ui/Skeleton';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
 import { ConveyorTaskPanel } from '@/features/conveyor/components';
+import { formatDateShort, formatDateTime } from '@/lib/date';
 
 type TaskFull = {
   id: string; name: string; description: string; priority: number; statusId: string;
@@ -36,8 +37,8 @@ function mapTaskFull(raw: any): TaskFull {
   };
 }
 
-const fmt     = (iso?: string) => iso ? new Date(iso).toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-const fmtFull = (iso?: string) => iso ? new Date(iso).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+const fmt     = (iso?: string) => iso ? formatDateShort(iso) : '—';
+const fmtFull = (iso?: string) => iso ? formatDateTime(iso) : '—';
 
 function isOverdue(iso?: string) { return iso ? new Date(iso) < new Date() : false; }
 function isDueSoon(iso?: string) {
@@ -229,18 +230,18 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
 
   const overdueDeadline = isOverdue(task.deadline);
   const soonDeadline    = isDueSoon(task.deadline);
-  const deadlineColor   = overdueDeadline ? 'text-red-400' : soonDeadline ? 'text-amber-400' : 'text-slate-200';
+  const deadlineColor   = overdueDeadline ? 'text-red-400' : soonDeadline ? 'text-amber-400' : 'text-app';
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
 
       {/* Breadcrumb + actions */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 text-sm text-slate-400 flex-wrap">
+        <div className="flex items-center gap-2 text-sm text-app-2 flex-wrap">
           <button onClick={() => router.back()} className="hover:text-emerald-300 transition-colors">← Назад</button>
           {project && (<><span>/</span><Link href={`/projects/${projectId}`} className="hover:text-emerald-300 transition-colors">{project.name}</Link></>)}
           <span>/</span>
-          <span className="text-slate-300 truncate max-w-[200px]">{task.name}</span>
+          <span className="text-app-2 truncate max-w-[200px]">{task.name}</span>
         </div>
         <div className="flex items-center gap-2">
           {/* Status badge in header */}
@@ -258,7 +259,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
           </span>
           {/* Copy link */}
           <button onClick={copyTaskLink} title="Скопировать ссылку"
-            className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors text-xs">
+            className="p-1.5 rounded-lg text-app-3 hover:text-app hover:bg-app-hover transition-colors text-xs">
             {copied ? '✓' : (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                 <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
@@ -284,7 +285,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                   className="text-sm px-3 py-1 rounded-lg bg-emerald-600 hover:brightness-110 disabled:opacity-50 text-black font-semibold shrink-0">
                   {savingTitle ? '…' : 'OK'}
                 </button>
-                <button onClick={() => {setEditTitle(false);setTitleDraft(task.name);}} className="text-sm px-3 py-1 rounded-lg bg-white/5 text-slate-400 hover:text-white shrink-0">✕</button>
+                <button onClick={() => {setEditTitle(false);setTitleDraft(task.name);}} className="text-sm px-3 py-1 rounded-lg bg-app-subtle text-app-2 hover:text-app shrink-0">✕</button>
               </div>
             ) : (
               <h1 className="text-2xl font-semibold cursor-pointer hover:text-emerald-300 transition-colors group flex items-start gap-2"
@@ -293,8 +294,8 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                 <span className="opacity-0 group-hover:opacity-40 text-base mt-1 shrink-0">✏️</span>
               </h1>
             )}
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-              <button onClick={copyTaskLink} className="font-mono hover:text-slate-300 transition-colors select-all">
+            <div className="mt-2 flex items-center gap-3 text-xs text-app-3 flex-wrap">
+              <button onClick={copyTaskLink} className="font-mono hover:text-app-2 transition-colors select-all">
                 #{task.id.slice(0,8)}
               </button>
               <span>·</span>
@@ -305,7 +306,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
           {/* Description */}
           <div className="t-surface rounded-2xl p-6 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Описание</h2>
+              <h2 className="text-sm font-semibold text-app-2 uppercase tracking-wider">Описание</h2>
               <button onClick={() => void handleImprove()} disabled={improving}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
                 {improving ? <span className="animate-pulse">AI…</span> : <>✨ AI улучшить</>}
@@ -325,7 +326,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
               withImages
             />
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-600">{descDirty ? 'Есть несохранённые изменения' : ''}</span>
+              <span className="text-xs text-app-3">{descDirty ? 'Есть несохранённые изменения' : ''}</span>
               <button onClick={() => void saveDesc()} disabled={savingDesc || !descDirty}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-lime-500 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-40 transition">
                 {savingDesc ? 'Сохранение…' : 'Сохранить описание'}
@@ -344,7 +345,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
             {statuses.length > 0 ? (
               <div className="space-y-2">
                 <select disabled={savingStatus} value={task.statusId} onChange={e => void handleStatusChange(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 ring-1 ring-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-emerald-500/50 disabled:opacity-50">
+                  className="w-full rounded-xl bg-app-subtle ring-1 ring-app px-3 py-2 text-sm focus:outline-none focus:ring-emerald-500/50 disabled:opacity-50">
                   {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
                 {/* Status pills */}
@@ -360,7 +361,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                   ))}
                 </div>
               </div>
-            ) : <span className="text-slate-400 text-sm">—</span>}
+            ) : <span className="text-app-2 text-sm">—</span>}
           </SidebarCard>
 
           {/* Priority */}
@@ -389,9 +390,9 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                   <span className="text-sm font-medium">{task.assignedTo.firstName} {task.assignedTo.lastName}</span>
                 </div>
                 <button onClick={() => void handleUnassign()} disabled={savingAssignee}
-                  className="text-xs text-slate-500 hover:text-red-400 transition-colors shrink-0" title="Снять">✕</button>
+                  className="text-xs text-app-3 hover:text-red-400 transition-colors shrink-0" title="Снять">✕</button>
               </div>
-            ) : <span className="text-slate-500 text-sm italic">Не назначен</span>}
+            ) : <span className="text-app-3 text-sm italic">Не назначен</span>}
 
             <button onClick={() => setShowUserPicker(v => !v)}
               className="mt-2 text-xs text-emerald-400 hover:text-emerald-300 hover:underline block">
@@ -399,21 +400,21 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
             </button>
 
             {showUserPicker && (
-              <div className="mt-2 rounded-xl overflow-hidden ring-1 ring-white/10 bg-black/30">
+              <div className="mt-2 rounded-xl overflow-hidden ring-1 ring-app t-surface-elevated">
                 <input value={userQuery} onChange={e => setUserQuery(e.target.value)} placeholder="Поиск…" autoFocus
-                  className="w-full bg-transparent px-3 py-2 text-sm border-b border-white/10 focus:outline-none"/>
+                  className="w-full bg-transparent px-3 py-2 text-sm border-b border-app focus:outline-none"/>
                 <div className="max-h-48 overflow-y-auto">
                   {filteredUsers.slice(0,20).map(u => (
                     <button key={u.id} onClick={() => void handleAssign(u)} disabled={savingAssignee}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 text-left disabled:opacity-50 transition-colors">
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-app-hover text-left disabled:opacity-50 transition-colors">
                       <Avatar name={`${u.firstName} ${u.lastName}`} url={u.avatarUrl} email={u.email} fallbackKey={u.id} size="xs"/>
                       <div>
                         <div>{u.firstName} {u.lastName}</div>
-                        <div className="text-xs text-slate-500">{u.email}</div>
+                        <div className="text-xs text-app-3">{u.email}</div>
                       </div>
                     </button>
                   ))}
-                  {filteredUsers.length === 0 && <div className="px-3 py-2 text-slate-500 text-sm">Не найдено</div>}
+                  {filteredUsers.length === 0 && <div className="px-3 py-2 text-app-3 text-sm">Не найдено</div>}
                 </div>
               </div>
             )}
@@ -446,8 +447,8 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
                   />
                 </div>
               }/>
-              <Row label="Создана"   value={<span className="text-slate-400">{fmtFull(task.createdAt)}</span>}/>
-              <Row label="Обновлена" value={<span className="text-slate-400">{fmtFull(task.updatedAt)}</span>}/>
+              <Row label="Создана"   value={<span className="text-app-2">{fmtFull(task.createdAt)}</span>}/>
+              <Row label="Обновлена" value={<span className="text-app-2">{fmtFull(task.updatedAt)}</span>}/>
             </div>
           </SidebarCard>
 
@@ -459,7 +460,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
 
           {/* Danger zone */}
           <div className="t-surface rounded-2xl ring-1 ring-red-500/15 p-4">
-            <p className="text-xs text-slate-500 mb-2">Опасная зона</p>
+            <p className="text-xs text-app-3 mb-2">Опасная зона</p>
             <button onClick={() => void handleDelete()} disabled={deleting}
               className="w-full rounded-xl bg-red-500/10 ring-1 ring-red-500/20 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {deleting ? (
@@ -480,7 +481,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
 function SidebarCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="t-surface rounded-2xl p-4">
-      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">{label}</div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-app-3 mb-3">{label}</div>
       {children}
     </div>
   );
@@ -489,8 +490,8 @@ function SidebarCard({ label, children }: { label: string; children: React.React
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-slate-500 shrink-0 text-xs">{label}</span>
-      <span className="text-slate-200 text-right flex-1 text-xs">{value}</span>
+      <span className="text-app-3 shrink-0 text-xs">{label}</span>
+      <span className="text-app text-right flex-1 text-xs">{value}</span>
     </div>
   );
 }

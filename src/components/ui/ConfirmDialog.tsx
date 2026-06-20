@@ -64,17 +64,16 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
              aria-label={pending.title ?? 'Подтверждение'}
              onClick={() => handle(false)}>
           <div
-            className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl"
-            style={{ background: 'rgba(15,25,18,0.98)', border: '1px solid rgba(255,255,255,0.1)' }}
+            className="t-surface-elevated w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl"
             onClick={e => e.stopPropagation()}>
             {pending.title && (
-              <h3 className="font-semibold text-white text-base">{pending.title}</h3>
+              <h3 className="font-semibold text-app text-base">{pending.title}</h3>
             )}
-            <p className="text-sm text-slate-300 leading-relaxed">{pending.message}</p>
+            <p className="text-sm text-app-2 leading-relaxed">{pending.message}</p>
             <div className="flex gap-2 justify-end pt-1">
               <button
                 onClick={() => handle(false)}
-                className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+                className="px-4 py-2 rounded-xl text-sm text-app-2 hover:text-app hover:bg-app-hover transition-colors">
                 {pending.cancelLabel ?? 'Отмена'}
               </button>
               <button

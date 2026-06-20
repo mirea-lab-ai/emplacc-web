@@ -53,23 +53,23 @@ export default function ReportDownload() {
 
       <div className="flex-1 min-h-0 space-y-3">
         <div>
-          <label className="mb-1 block text-sm text-slate-300">Дата начала</label>
+          <label className="mb-1 block text-sm text-app-2">Дата начала</label>
           <input
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className="w-full rounded-lg border border-app bg-app-subtle px-3 py-2 text-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             disabled={isDownloading || !hasCreds}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-slate-300">Дата окончания</label>
+          <label className="mb-1 block text-sm text-app-2">Дата окончания</label>
           <input
             type="date"
             value={endDate}
             onChange={(event) => setEndDate(event.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className="w-full rounded-lg border border-app bg-app-subtle px-3 py-2 text-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             disabled={isDownloading || !hasCreds}
           />
         </div>

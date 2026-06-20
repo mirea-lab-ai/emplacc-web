@@ -67,7 +67,7 @@ export default function Card({
   const priorityMeta = getTaskPriorityMeta(task.priority);
 
   const containerClasses = [
-    'group relative rounded-lg border border-white/6 p-3 t-accent-grad/20',
+    'group relative rounded-lg border border-app p-3 t-accent-grad/20',
     readOnly ? 'cursor-default' : 'cursor-pointer active:cursor-grabbing hover:brightness-110',
   ].join(' ');
 
@@ -84,7 +84,7 @@ export default function Card({
         <Link
           href={`/tasks/${task.id}`}
           onClick={(e) => e.stopPropagation()}
-          className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-indigo-800"
+          className="rounded-md p-1 ring-1 ring-app transition hover:bg-indigo-800"
           title="Открыть задачу"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -97,7 +97,7 @@ export default function Card({
           <>
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-emerald-800"
+              className="rounded-md p-1 ring-1 ring-app transition hover:bg-emerald-800"
               title="Редактировать задачу"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -108,7 +108,7 @@ export default function Card({
             <button
               onClick={(e) => { e.stopPropagation(); onRemove(); }}
               disabled={isDeleting}
-              className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md p-1 ring-1 ring-app transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
               title={isDeleting ? 'Удаление…' : 'Удалить задачу'}
             >
               {isDeleting ? (
@@ -130,7 +130,7 @@ export default function Card({
         {canMove && (
           <button
             onClick={(e) => { e.stopPropagation(); setMoveOpen((v) => !v); }}
-            className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-indigo-800"
+            className="rounded-md p-1 ring-1 ring-app transition hover:bg-indigo-800"
             title="Переместить в колонку"
             aria-label="Переместить в колонку"
           >
@@ -144,15 +144,15 @@ export default function Card({
 
       {canMove && moveOpen && (
         <div
-          className="absolute right-2 top-10 z-20 w-44 overflow-hidden rounded-xl bg-[#0c1a10] ring-1 ring-white/15 shadow-2xl"
+          className="t-surface-elevated absolute right-2 top-10 z-20 w-44 overflow-hidden rounded-xl ring-1 ring-app shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-slate-500">Переместить в</div>
+          <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-app-3">Переместить в</div>
           {moveTargets.map((col) => (
             <button
               key={col.id}
               onClick={(e) => { e.stopPropagation(); setMoveOpen(false); onMove?.(col.id); }}
-              className="block w-full truncate px-3 py-2 text-left text-sm text-white/85 hover:bg-white/8"
+              className="block w-full truncate px-3 py-2 text-left text-sm text-app hover:bg-app-hover"
             >
               {col.title}
             </button>
@@ -161,7 +161,7 @@ export default function Card({
       )}
 
       <div className="font-medium pr-20">{task.title}</div>
-      {task.due && <div className="mt-1 text-sm text-slate-400">Срок: {formatDate(task.due)}</div>}
+      {task.due && <div className="mt-1 text-sm text-app-2">Срок: {formatDate(task.due)}</div>}
       <div className="mt-2">
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${priorityMeta.badgeClass}`}>
           {priorityMeta.label}
@@ -187,20 +187,20 @@ export default function Card({
               );
             })}
             {remainingAssignees > 0 && (
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-xs text-white ring-1 ring-white/10">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-app-hover text-xs text-app ring-1 ring-app">
                 +{remainingAssignees}
               </span>
             )}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-sm text-white">{primaryLabel ?? 'Без исполнителя'}</div>
+            <div className="truncate text-sm text-app">{primaryLabel ?? 'Без исполнителя'}</div>
             {primaryAssignee?.email && (
-              <div className="truncate text-xs text-slate-400">{primaryAssignee.email}</div>
+              <div className="truncate text-xs text-app-2">{primaryAssignee.email}</div>
             )}
           </div>
         </div>
       ) : (
-        <div className="mt-3 text-xs text-slate-400">Исполнитель не назначен</div>
+        <div className="mt-3 text-xs text-app-2">Исполнитель не назначен</div>
       )}
     </div>
   );

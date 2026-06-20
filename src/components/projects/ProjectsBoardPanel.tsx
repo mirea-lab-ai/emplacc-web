@@ -358,7 +358,7 @@ export default function ProjectsBoardPanel({
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrevBoard}
-            className="rounded-lg p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-lg p-2 text-app transition-colors hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-30"
             disabled={boardsList.length <= 1}
             aria-label="Предыдущая доска"
           >
@@ -369,19 +369,19 @@ export default function ProjectsBoardPanel({
 
           <div className="flex-1 text-left">
             {isLoading ? (
-              <div className="text-slate-400">Загрузка досок…</div>
+              <div className="text-app-2">Загрузка досок…</div>
             ) : error ? (
               <div className="text-red-400">Не удалось загрузить доски</div>
             ) : !boardsList.length ? (
-              <div className="text-slate-400">Доски не найдены</div>
+              <div className="text-app-2">Доски не найдены</div>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold text-white">{currentBoard?.name ?? 'Без названия'}</h2>
+                  <h2 className="text-xl font-semibold text-app">{currentBoard?.name ?? 'Без названия'}</h2>
                   {!readOnly && columnsEditMode && currentBoard && (
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="p-1 text-slate-400 transition-colors hover:text-red-500"
+                      className="p-1 text-app-2 transition-colors hover:text-red-500"
                       title="Удалить доску"
                     >
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,10 +396,10 @@ export default function ProjectsBoardPanel({
                   )}
                 </div>
                 {currentBoard?.description && (
-                  <p className="text-sm text-slate-400">{currentBoard.description}</p>
+                  <p className="text-sm text-app-2">{currentBoard.description}</p>
                 )}
                 {boardStatus?.statuses && (
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-app-2">
                     {boardStatus.statuses.length}{' '}
                     {boardStatus.statuses.length === 1 ? 'колонка' : 'колонок'}
                   </p>
@@ -415,8 +415,8 @@ export default function ProjectsBoardPanel({
                 className={[
                   'rounded-xl px-4 py-2 text-sm font-semibold transition',
                   columnsEditMode
-                    ? 'bg-white/15 text-emerald-200 ring-1 ring-emerald-400'
-                    : 'bg-white/6 text-slate-100 hover:bg-white/10',
+                    ? 'bg-app-hover text-emerald-200 ring-1 ring-emerald-400'
+                    : 'bg-app-subtle text-app hover:bg-app-hover',
                 ].join(' ')}
               >
                 {columnsEditMode ? 'Редактирование включено' : 'Режим редактирования'}
@@ -435,7 +435,7 @@ export default function ProjectsBoardPanel({
 
           <button
             onClick={handleNextBoard}
-            className="rounded-lg p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-lg p-2 text-app transition-colors hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-30"
             disabled={boardsList.length <= 1}
             aria-label="Следующая доска"
           >

@@ -67,22 +67,22 @@ export default function FinalQuestions({
     }, [selected, onHelpersChange]);
 
     return (
-        <div className="rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 p-6 ring-1 ring-white/5">
+        <div className="rounded-2xl backdrop-blur-md bg-app-subtle border border-app p-6 ring-1 ring-app">
             <h2 className="text-3xl font-semibold mb-6">Завершающие вопросы</h2>
 
             <div className="grid gap-6">
                 <div>
-                    <label className="block text-slate-200 mb-2">Дата отчета</label>
+                    <label className="block text-app-2 mb-2">Дата отчета</label>
                     <input
                         type="date"
                         value={reportDate}
                         onChange={(e) => setReportDate(e.target.value)}
-                        className="w-full max-w-xs rounded-xl t-surface p-3 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                        className="w-full max-w-xs rounded-xl t-surface p-3 text-app ring-1 ring-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-slate-200 mb-2">Проблема</label>
+                    <label className="block text-app-2 mb-2">Проблема</label>
                     <ProblemSelector 
                         selectedProblems={selectedProblems}
                         onToggleProblem={onToggleProblem}
@@ -90,7 +90,7 @@ export default function FinalQuestions({
                 </div>
 
                 <div>
-                    <span className="block text-slate-200 mb-2">Нужна ли чья-то помощь?</span>
+                    <span className="block text-app-2 mb-2">Нужна ли чья-то помощь?</span>
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         {/* Да/Нет */}
@@ -101,7 +101,7 @@ export default function FinalQuestions({
                                     'rounded-xl px-5 py-2 ring-1 transition',
                                     needHelp === 'yes'
                                         ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/50'
-                                        : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
+                                        : 'bg-app-subtle text-app-2 ring-app hover:bg-app-hover',
                                 ].join(' ')}
                             >Да</button>
 
@@ -111,7 +111,7 @@ export default function FinalQuestions({
                                     'rounded-xl px-5 py-2 ring-1 transition',
                                     needHelp === 'no'
                                         ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/50'
-                                        : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
+                                        : 'bg-app-subtle text-app-2 ring-app hover:bg-app-hover',
                                 ].join(' ')}
                             >Нет</button>
                         </div>
@@ -122,7 +122,7 @@ export default function FinalQuestions({
                                 <button
                                     type="button"
                                     onClick={() => setOpen(true)}
-                                    className="shrink-0 rounded-lg px-3 py-2 bg-white/10 text-slate-100 ring-1 ring-white/15 hover:bg-white/15"
+                                    className="shrink-0 rounded-lg px-3 py-2 bg-app-hover text-app ring-1 ring-app hover:bg-app-hover"
                                     title="Добавить ещё"
                                 >
                                     + Добавить
@@ -135,14 +135,14 @@ export default function FinalQuestions({
                                         className={`shrink-0 rounded-lg px-3 py-2 ring-1 transition-colors ${
                                             selectedUserId === emp.id
                                                 ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/30'
-                                                : 'bg-white/10 text-slate-100 ring-white/15 hover:bg-white/15'
+                                                : 'bg-app-hover text-app ring-app hover:bg-app-hover'
                                         }`}
                                     >
                                         {emp.name}
                                     </button>
                                     <button
                                         onClick={() => remove(emp.id)}
-                                        className="text-slate-400 hover:text-red-400 transition-colors"
+                                        className="text-app-2 hover:text-red-400 transition-colors"
                                         title="Удалить"
                                     >
                                         ×
@@ -156,14 +156,14 @@ export default function FinalQuestions({
                 {/* Комментарий к запросу помощи */}
                 {selected.length > 0 && selectedUser && (
                     <div className="space-y-2">
-                        <label className="block text-slate-300 text-sm">
+                        <label className="block text-app-2 text-sm">
                             Комментарий к запросу помощи у {selectedUser.name}
                         </label>
                         <textarea
                             value={helpComments[selectedUser.id] || ''}
                             onChange={(e) => updateHelpComment(selectedUser.id, e.target.value)}
                             placeholder={`Опишите, с чем нужна помощь от ${selectedUser.name}...`}
-                            className="w-full min-h-[80px] rounded-xl t-surface text-slate-100 p-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+                            className="w-full min-h-[80px] rounded-xl t-surface text-app p-3 ring-1 ring-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
                         />
                     </div>
                 )}

@@ -44,11 +44,11 @@ function CallbackContent() {
 
   if (error) {
     return (
-      <div className="min-h-dvh grid place-items-center p-6 text-white">
+      <div className="min-h-dvh grid place-items-center p-6 text-app">
         <div className="max-w-md text-center space-y-4">
           <div className="text-4xl">⚠️</div>
           <h2 className="text-xl font-semibold text-red-300">Ошибка входа</h2>
-          <p className="text-sm text-slate-400 font-mono bg-white/5 rounded-lg px-4 py-3">{error}</p>
+          <p className="text-sm text-app-2 font-mono bg-app-subtle rounded-lg px-4 py-3">{error}</p>
           <a href="/login" className="btn-primary inline-flex mx-auto">← Вернуться к входу</a>
         </div>
       </div>
@@ -56,8 +56,8 @@ function CallbackContent() {
   }
 
   return (
-    <div className="min-h-dvh grid place-items-center p-6 text-white">
-      <div className="flex items-center gap-3 text-slate-300">
+    <div className="min-h-dvh grid place-items-center p-6 text-app">
+      <div className="flex items-center gap-3 text-app-2">
         <span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
         Завершаем вход…
       </div>
@@ -99,8 +99,8 @@ async function createSession(keycloakToken: string): Promise<Session> {
 export default function OAuthCallbackPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-dvh grid place-items-center p-6 text-white">
-        <div className="flex items-center gap-3 text-slate-300">
+      <div className="min-h-dvh grid place-items-center p-6 text-app">
+        <div className="flex items-center gap-3 text-app-2">
           <span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/>
           Загружаем…
         </div>

@@ -25,7 +25,7 @@ export default function TimerBar({
       <div className="flex items-center gap-6">
         <div className="text-[56px] leading-none font-semibold tabular-nums">{mm}:{pad(ss)}</div>
 
-        <div className="relative h-4 w-full rounded-full bg-[#1c2540]">
+        <div className="relative h-4 w-full rounded-full bg-app-subtle">
           <div
             className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400 via-blue-500 to-fuchsia-500 transition-[width]"
             style={{ width: `${progress}%` }}

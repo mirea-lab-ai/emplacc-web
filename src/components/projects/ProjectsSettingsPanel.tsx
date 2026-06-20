@@ -71,8 +71,8 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
     <div className="space-y-5 animate-fade-in">
 
       {/* General */}
-      <section className="t-surface rounded-2xl p-6 space-y-4 ring-1 ring-white/8">
-        <h2 className="font-semibold text-white text-base flex items-center gap-2">
+      <section className="t-surface rounded-2xl p-6 space-y-4 ring-1 ring-app">
+        <h2 className="font-semibold text-app text-base flex items-center gap-2">
           <span>📋</span> Основные настройки
         </h2>
 
@@ -91,7 +91,7 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
                   className={`text-xs px-3 py-2 rounded-xl font-medium ring-1 transition-all ${
                     status === o.value
                       ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/40'
-                      : 'bg-white/5 text-slate-400 ring-white/10 hover:bg-white/10 hover:text-white'
+                      : 'bg-app-subtle text-app-2 ring-app hover:bg-app-hover hover:text-app'
                   }`}>
                   {o.label}
                 </button>
@@ -109,10 +109,10 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
       </section>
 
       {/* GitLab */}
-      <section className="t-surface rounded-2xl p-6 space-y-4 ring-1 ring-white/8">
-        <h2 className="font-semibold text-white text-base flex items-center gap-2">
+      <section className="t-surface rounded-2xl p-6 space-y-4 ring-1 ring-app">
+        <h2 className="font-semibold text-app text-base flex items-center gap-2">
           <span>🦊</span> GitLab интеграция
-          <span className="text-xs font-normal text-slate-500">(опционально)</span>
+          <span className="text-xs font-normal text-app-3">(опционально)</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -130,7 +130,7 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
 
       {/* Save button */}
       <div className="flex items-center justify-between gap-4">
-        <span className="text-xs text-slate-600">
+        <span className="text-xs text-app-3">
           {dirty ? '● Есть несохранённые изменения' : ''}
         </span>
         <button onClick={handleSave} disabled={saving || !name.trim()}
@@ -144,7 +144,7 @@ export default function ProjectsSettingsPanel({ project, onProjectUpdate, onProj
         <h2 className="font-semibold text-red-400 text-base flex items-center gap-2">
           <span>⚠️</span> Опасная зона
         </h2>
-        <p className="text-xs text-slate-500">Удаление проекта удалит все связанные доски, статусы и настройки. Задачи останутся в системе.</p>
+        <p className="text-xs text-app-3">Удаление проекта удалит все связанные доски, статусы и настройки. Задачи останутся в системе.</p>
         <button onClick={handleDelete} disabled={deleting}
           className="rounded-xl bg-red-500/10 ring-1 ring-red-500/25 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50 flex items-center gap-2">
           {deleting

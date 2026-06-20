@@ -31,7 +31,7 @@ export default function ProjectsTeamsPanel({ projectId }: { projectId: string })
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="t-title text-white">Команды проекта</h2>
+          <h2 className="t-title text-app">Команды проекта</h2>
           {!isLoading && teams && (
             <p className="t-body mt-0.5">{teams.length} {teams.length === 1 ? 'команда' : teams.length < 5 ? 'команды' : 'команд'}</p>
           )}
@@ -44,7 +44,7 @@ export default function ProjectsTeamsPanel({ projectId }: { projectId: string })
       {isLoading && (
         <div className="space-y-3">
           {[1,2,3].map(i => (
-            <div key={i} className="t-surface rounded-2xl p-5 ring-1 ring-white/8 space-y-3">
+            <div key={i} className="t-surface rounded-2xl p-5 ring-1 ring-app space-y-3">
               <div className="skeleton h-5 w-40 rounded"/>
               <div className="flex gap-1.5">{Array.from({length:4}).map((_,j) => <div key={j} className="skeleton w-8 h-8 rounded-full"/>)}</div>
             </div>
@@ -55,9 +55,9 @@ export default function ProjectsTeamsPanel({ projectId }: { projectId: string })
       {error && <div className="t-surface rounded-2xl p-5 text-red-400 ring-1 ring-red-500/20">Ошибка загрузки команд</div>}
 
       {!isLoading && !error && (!teams || teams.length === 0) && (
-        <div className="t-surface rounded-2xl p-10 text-center ring-1 ring-white/8 space-y-2">
+        <div className="t-surface rounded-2xl p-10 text-center ring-1 ring-app space-y-2">
           <div className="text-4xl opacity-40">👥</div>
-          <div className="t-title text-white opacity-50">Нет команд</div>
+          <div className="t-title text-app opacity-50">Нет команд</div>
           <p className="t-body opacity-40">Добавьте команду чтобы назначить участников на задачи</p>
         </div>
       )}
@@ -67,21 +67,21 @@ export default function ProjectsTeamsPanel({ projectId }: { projectId: string })
           const memberCount = typeof team.members === 'number' ? team.members : 0;
           return (
             <div key={team.id}
-              className="t-surface rounded-2xl p-5 ring-1 ring-white/8 hover:ring-white/15 transition-all group">
+              className="t-surface rounded-2xl p-5 ring-1 ring-app hover:ring-app transition-all group">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <Link href={`/teams?team=${encodeURIComponent(team.id)}`}
-                    className="font-semibold text-white hover:text-emerald-300 transition-colors block truncate">
+                    className="font-semibold text-app hover:text-emerald-300 transition-colors block truncate">
                     {team.name}
                   </Link>
                   {team.description && (
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{team.description}</p>
+                    <p className="text-xs text-app-3 mt-0.5 line-clamp-2">{team.description}</p>
                   )}
                 </div>
                 <button
                   onClick={() => void handleRemove(team.id, team.name)}
                   disabled={removeTeam.isPending}
-                  className="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30 shrink-0"
+                  className="p-2 rounded-xl text-app-3 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30 shrink-0"
                   title="Убрать из проекта">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -91,7 +91,7 @@ export default function ProjectsTeamsPanel({ projectId }: { projectId: string })
 
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-app-3">
                     {memberCount} {memberCount === 1 ? 'участник' : memberCount < 5 ? 'участника' : 'участников'}
                   </span>
                 </div>

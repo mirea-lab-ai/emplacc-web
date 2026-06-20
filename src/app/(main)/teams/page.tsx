@@ -153,7 +153,7 @@ function TeamsPageContent() {
     <div className="flex h-full min-h-0 gap-5 overflow-hidden animate-fade-in">
       {/* Sidebar */}
       {isLoading ? (
-        <div className="w-56 shrink-0 t-surface rounded-2xl ring-1 ring-white/10 p-2 space-y-1">
+        <div className="w-56 shrink-0 t-surface rounded-2xl ring-1 ring-app p-2 space-y-1">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonSidebarItem key={i} />)}
         </div>
       ) : (
@@ -180,7 +180,7 @@ function TeamsPageContent() {
           <Panel className="grid place-items-center min-h-[300px]">
             <div className="text-center space-y-3">
               <div className="text-4xl">👥</div>
-              <div className="t-title text-white">Нет команд</div>
+              <div className="t-title text-app">Нет команд</div>
               <div className="t-body">Вы не состоите ни в одной команде</div>
               {canManage && (
                 <button onClick={() => setOpenCreate(true)} className="btn-primary mx-auto text-sm">
@@ -191,7 +191,7 @@ function TeamsPageContent() {
           </Panel>
         ) : !activeTeam ? (
               <Panel className="grid place-items-center min-h-[520px] t-surface">
-                <div className="text-slate-400">Выберите команду слева</div>
+                <div className="text-app-2">Выберите команду слева</div>
               </Panel>
             ) : (
               <TeamBoard

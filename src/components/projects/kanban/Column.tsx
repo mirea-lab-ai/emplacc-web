@@ -81,7 +81,7 @@ export default function Column({
         <div className="flex min-w-0 flex-1 items-center gap-2 font-semibold">
           {column.color && (
             <span
-              className="h-4 w-4 flex-shrink-0 rounded border border-white/20"
+              className="h-4 w-4 flex-shrink-0 rounded border border-app"
               style={{ backgroundColor: column.color }}
             />
           )}
@@ -92,7 +92,7 @@ export default function Column({
             <button
               type="button"
               onClick={onRename}
-              className="ml-2 flex-shrink-0 rounded-md p-1 ring-1 ring-white/10 transition hover:bg-emerald-800"
+              className="ml-2 flex-shrink-0 rounded-md p-1 ring-1 ring-app transition hover:bg-emerald-800"
               title="Переименовать колонку"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -109,7 +109,7 @@ export default function Column({
               type="button"
               onClick={onAddTask}
               disabled={isCreatingTask}
-              className="inline-flex items-center gap-2 rounded-md bg-white/6 px-3 py-2 text-sm transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-md bg-app-hover px-3 py-2 text-sm transition hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isCreatingTask ? (
                 <>
@@ -131,7 +131,7 @@ export default function Column({
               type="button"
               onClick={onRemove}
               disabled={isDeleting}
-              className="rounded-md p-1 ring-1 ring-white/10 transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md p-1 ring-1 ring-app transition hover:bg-[#ef4657]/25 hover:text-white hover:ring-[#ef4657]/40 disabled:cursor-not-allowed disabled:opacity-50"
               title={isDeleting ? 'Удаляем…' : 'Удалить колонку'}
             >
               {isDeleting ? (
@@ -153,7 +153,7 @@ export default function Column({
       </div>
 
       <Panel
-        className="relative flex flex-col text-white lg:h-full lg:min-h-0 lg:flex-1"
+        className="relative flex flex-col text-app lg:h-full lg:min-h-0 lg:flex-1"
         onDragOver={readOnly ? undefined : (event: DragEvent<HTMLDivElement>) => event.preventDefault()}
         onDrop={readOnly ? undefined : handleDrop}
       >
@@ -171,7 +171,7 @@ export default function Column({
               onMove={onMoveCard ? (toColId) => onMoveCard(task.id, column.id, toColId) : undefined}
             />
           ))}
-          {column.tasks.length === 0 && <div className="text-sm text-slate-400">Задач пока нет</div>}
+          {column.tasks.length === 0 && <div className="text-sm text-app-2">Задач пока нет</div>}
           {canAddTask && onQuickAdd && (
             <input
               value={quickTitle}
@@ -179,7 +179,7 @@ export default function Column({
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitQuickAdd(); } }}
               onBlur={submitQuickAdd}
               placeholder="+ Быстрая задача (Enter)"
-              className="w-full rounded-lg bg-white/[0.03] px-3 py-2 text-sm text-white placeholder-slate-500 ring-1 ring-white/8 focus:ring-emerald-500/40 focus:outline-none transition"
+              className="w-full rounded-lg bg-app-subtle px-3 py-2 text-sm text-app placeholder-slate-500 ring-1 ring-app focus:ring-emerald-500/40 focus:outline-none transition"
             />
           )}
         </div>

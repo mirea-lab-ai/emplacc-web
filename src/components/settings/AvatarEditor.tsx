@@ -90,7 +90,7 @@ export default function AvatarEditor({
         <div className="relative inline-grid place-items-center rounded-full p-[3px] bg-gradient-to-br from-emerald-500 via-lime-400 to-cyan-400">
           {avatarCore}
         </div>
-        <span className="mt-3 text-xs text-slate-400">Изменение аватара недоступно</span>
+        <span className="mt-3 text-xs text-app-2">Изменение аватара недоступно</span>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function AvatarEditor({
           className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
           onClick={(e) => e.target === e.currentTarget && setOpen(false)}
         >
-          <div className="w-full max-w-md rounded-2xl bg-[#111829] p-6 ring-1 ring-white/10">
+          <div className="w-full max-w-md rounded-2xl t-surface-elevated p-6 ring-1 ring-app">
             <h2 className="text-xl font-semibold mb-4">Смена аватара</h2>
 
             <div className="flex items-center gap-5">
@@ -189,7 +189,7 @@ export default function AvatarEditor({
 
             <div className="mt-6 flex justify-end gap-3">
               <button
-                className="rounded-lg px-4 py-2 text-slate-300 hover:text-white"
+                className="rounded-lg px-4 py-2 text-app-2 hover:text-app"
                 onClick={() => setOpen(false)}
               >
                 Отмена

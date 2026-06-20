@@ -10,7 +10,7 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
       <div className="space-y-5 max-w-sm">
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-red-500/10 ring-1 ring-red-500/20 text-3xl">⚠️</div>
         <div>
-          <h2 className="t-heading text-white mb-2">Ошибка в админке</h2>
+          <h2 className="t-heading text-app mb-2">Ошибка в админке</h2>
           <p className="t-body">Раздел не смог загрузиться. Попробуйте ещё раз.</p>
         </div>
         <div className="flex justify-center gap-2">

@@ -28,12 +28,12 @@ export default function TeamSidebar({
         <button
           onClick={onAddTeam}
           className={[
-            'group w-full rounded-2xl border-white/15 border border-dashed t-accent-grad/20',
+            'group w-full rounded-2xl border-app border border-dashed t-accent-grad/20',
             ' hover:brightness-110 p-4 text-left',
           ].join(' ')}
         >
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl ring-1 ring-white/10 group-hover:ring-emerald-400/40">
+            <span className="grid h-9 w-9 place-items-center rounded-xl ring-1 ring-app group-hover:ring-emerald-400/40">
               <span className="text-lg leading-none">＋</span>
             </span>
             <div>
@@ -58,7 +58,7 @@ export default function TeamSidebar({
                   onClick={() => onSelect(t.id)}
                   className={[
                     'relative w-full text-left rounded-2xl px-4 py-3 transition-colors',
-                    'ring-1 ring-white/10 t-surface',
+                    'ring-1 ring-app t-surface',
                     active ? 'ring-2 ring-emerald-500/40' : '',
                   ].join(' ')}
                 >
@@ -73,22 +73,22 @@ export default function TeamSidebar({
                   <div className="relative z-[1] pr-8 space-y-1">
                     <div className={[
                       'font-semibold truncate',
-                      active ? 'text-black' : 'text-white',
+                      active ? 'text-black' : 'text-app',
                     ].join(' ')}>
                       {t.name}
                     </div>
                     <div className={[
                       'text-xs flex items-center gap-2 uppercase tracking-wide',
-                      active ? 'text-slate-700' : 'text-slate-400',
+                      active ? 'text-slate-700' : 'text-app-2',
                     ].join(' ')}>
-                      <span className="rounded-full bg-white/10 px-2 py-0.5">
+                      <span className="rounded-full bg-app-hover px-2 py-0.5">
                         {membersCount} {membersCount === 1 ? 'участник' : 'участников'}
                       </span>
                     </div>
                     {t.description && (
                       <p className={[
                         'text-xs line-clamp-2',
-                        active ? 'text-slate-700' : 'text-slate-400',
+                        active ? 'text-slate-700' : 'text-app-2',
                       ].join(' ')}>
                         {t.description}
                       </p>
@@ -104,8 +104,8 @@ export default function TeamSidebar({
                   }}
                   className={[
                     'absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded transition-all opacity-0 group-hover:opacity-100',
-                    'text-slate-400 hover:text-red-400 hover:bg-red-400/10',
-                    active ? 'text-slate-600 hover:text-red-500' : ''
+                    'text-app-2 hover:text-red-400 hover:bg-red-400/10',
+                    active ? 'text-app-3 hover:text-red-500' : ''
                   ].join(' ')}
                   title="Удалить команду"
                 >

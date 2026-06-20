@@ -7,6 +7,7 @@ import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchUserProjects, type UIProject } from '@/features/projects/api';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import { useUserRole } from '@/features/roles/hooks';
+import { formatDateShort } from '@/lib/date';
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   active:  { label: 'Активен',    color: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30' },
@@ -71,7 +72,7 @@ function ProjectsListView() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="t-heading text-white">Проекты</h1>
+          <h1 className="t-heading text-app">Проекты</h1>
           <p className="t-body mt-1">{loading ? '…' : `${projects.length} ${projects.length === 1 ? 'проект' : projects.length < 5 ? 'проекта' : 'проектов'}`}</p>
         </div>
         {canManage && (
@@ -94,7 +95,7 @@ function ProjectsListView() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 opacity-50">
           <div className="text-5xl">📁</div>
-          <div className="t-title text-white">{search ? 'Ничего не найдено' : 'Проектов пока нет'}</div>
+          <div className="t-title text-app">{search ? 'Ничего не найдено' : 'Проектов пока нет'}</div>
           {!search && canManage && <p className="t-body">Создайте первый проект</p>}
         </div>
       ) : (
@@ -124,11 +125,11 @@ function ProjectCard({ project, onClick }: { project: UIProject; onClick: () => 
 
   return (
     <button type="button" onClick={onClick}
-      className="t-surface rounded-2xl p-5 ring-1 ring-white/8 hover:ring-white/20 text-left group transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 animate-fade-in-scale w-full">
+      className="t-surface rounded-2xl p-5 ring-1 ring-app hover:ring-app text-left group transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 animate-fade-in-scale w-full">
       <div className="flex items-start gap-3 mb-3">
         <ProjectIcon name={project.name} />
         <div className="flex-1 min-w-0 pt-0.5">
-          <div className="font-semibold text-white truncate group-hover:text-emerald-300 transition-colors">
+          <div className="font-semibold text-app truncate group-hover:text-emerald-300 transition-colors">
             {project.name ?? 'Без названия'}
           </div>
           <span className={`inline-flex items-center mt-1 text-[10px] px-2 py-0.5 rounded-full ring-1 font-medium ${meta.color}`}>
@@ -137,17 +138,17 @@ function ProjectCard({ project, onClick }: { project: UIProject; onClick: () => 
         </div>
       </div>
       {project.description ? (
-        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{project.description}</p>
+        <p className="text-xs text-app-3 line-clamp-2 leading-relaxed">{project.description}</p>
       ) : (
-        <p className="text-xs text-slate-600 italic">Без описания</p>
+        <p className="text-xs text-app-3 italic">Без описания</p>
       )}
-      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+      <div className="mt-3 pt-3 border-t border-app flex items-center justify-between">
         <span className="text-xs text-emerald-400/60 group-hover:text-emerald-300/80 transition-colors">
           Открыть →
         </span>
         {project.createdAt && (
-          <span className="text-[10px] text-slate-600">
-            {new Date(project.createdAt).toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'numeric' })}
+          <span className="text-[10px] text-app-3">
+            {formatDateShort(project.createdAt)}
           </span>
         )}
       </div>
@@ -157,7 +158,7 @@ function ProjectCard({ project, onClick }: { project: UIProject; onClick: () => 
 
 function ProjectCardSkeleton() {
   return (
-    <div className="t-surface rounded-2xl p-5 ring-1 ring-white/8 space-y-3">
+    <div className="t-surface rounded-2xl p-5 ring-1 ring-app space-y-3">
       <div className="flex items-start gap-3">
         <div className="skeleton w-12 h-12 rounded-xl"/>
         <div className="flex-1 space-y-2 pt-1">

@@ -21,7 +21,7 @@ export default function TextField({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-slate-200">{label}</span>
+      <span className="text-app-2">{label}</span>
       <input
         type={type}
         value={value}
@@ -31,8 +31,8 @@ export default function TextField({
         readOnly={readOnly}
         className={[
           'h-12 w-full rounded-xl px-4',
-          't-surface text-slate-100 placeholder:text-slate-500',
-          'ring-1 ring-white/10 focus:outline-none focus:ring-2',
+          't-surface text-app placeholder:text-app-3',
+          'ring-1 ring-app focus:outline-none focus:ring-2',
           'disabled:opacity-60 disabled:cursor-not-allowed',
           error
             ? 'focus:ring-rose-500/60 ring-rose-500/60'

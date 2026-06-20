@@ -38,7 +38,7 @@ function ExportCard({
       <div className="flex items-start gap-3">
         <span className="text-2xl shrink-0">{icon}</span>
         <div className="min-w-0">
-          <div className="font-semibold text-white">{title}</div>
+          <div className="font-semibold text-app">{title}</div>
           <div className="t-caption mt-0.5">{desc}</div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function AdminExportPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="t-heading text-white">Экспорт в Excel</h1>
+        <h1 className="t-heading text-app">Экспорт в Excel</h1>
         <p className="t-body mt-1">Выгрузка данных платформы в .xlsx</p>
       </div>
 

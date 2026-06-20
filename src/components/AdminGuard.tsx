@@ -53,7 +53,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         <div className="space-y-5 max-w-sm">
           <div className="mx-auto w-16 h-16 rounded-2xl bg-red-500/10 ring-1 ring-red-500/20 grid place-items-center text-3xl">🔒</div>
           <div>
-            <h2 className="t-heading text-white mb-2">Доступ запрещён</h2>
+            <h2 className="t-heading text-app mb-2">Доступ запрещён</h2>
             <p className="t-body">Раздел администратора доступен только для ролей <span className="badge badge-emerald">admin</span> и <span className="badge badge-lime">manager</span>.</p>
           </div>
           <button onClick={() => router.replace('/')} className="btn-primary mx-auto">

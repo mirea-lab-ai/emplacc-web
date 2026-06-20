@@ -160,11 +160,11 @@ export default function CommandPalette() {
       aria-modal="true"
       aria-label="Командная палитра"
     >
-      <div className="w-full max-w-xl t-surface rounded-2xl ring-1 ring-white/15 shadow-2xl overflow-hidden animate-fade-in-scale">
+      <div className="w-full max-w-xl t-surface rounded-2xl ring-1 ring-app shadow-2xl overflow-hidden animate-fade-in-scale">
 
         {/* Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-          <svg className="w-5 h-5 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-app">
+          <svg className="w-5 h-5 text-app-2 shrink-0" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd"/>
           </svg>
           <input
@@ -172,7 +172,7 @@ export default function CommandPalette() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Поиск задач, проектов, команд, форума…"
-            className="flex-1 bg-transparent text-white placeholder-slate-500 focus:outline-none text-base"
+            className="flex-1 bg-transparent text-app placeholder-slate-500 focus:outline-none text-base"
             role="combobox"
             aria-expanded={results.length > 0}
             aria-controls="cmdk-listbox"
@@ -184,17 +184,17 @@ export default function CommandPalette() {
             <div className="w-4 h-4 border-2 border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin-slow shrink-0" />
           )}
           <div className="hidden sm:flex items-center gap-1 shrink-0">
-            <kbd className="inline-flex items-center rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-500 font-mono">{shortcutLabel}</kbd>
-            <kbd className="inline-flex items-center rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-500 font-mono">Esc</kbd>
+            <kbd className="inline-flex items-center rounded border border-app px-1.5 py-0.5 text-xs text-app-3 font-mono">{shortcutLabel}</kbd>
+            <kbd className="inline-flex items-center rounded border border-app px-1.5 py-0.5 text-xs text-app-3 font-mono">Esc</kbd>
           </div>
         </div>
 
         {/* Results */}
         <div className="max-h-[60vh] overflow-y-auto py-2" role="listbox" id="cmdk-listbox" aria-label="Результаты поиска">
           {!query.trim() && (
-            <div className="px-4 py-6 text-sm text-slate-500 text-center space-y-1">
+            <div className="px-4 py-6 text-sm text-app-3 text-center space-y-1">
               <div>Начните вводить для поиска</div>
-              <div className="text-xs text-slate-600 flex justify-center gap-3 flex-wrap pt-1">
+              <div className="text-xs text-app-3 flex justify-center gap-3 flex-wrap pt-1">
                 {Object.entries(kindLabel).map(([k, l]) => (
                   <span key={k} className="flex items-center gap-1">
                     <span className={`inline-grid h-5 w-5 place-items-center rounded text-[10px] font-bold ${KIND_META[k as ResultKind].color}`}>
@@ -207,7 +207,7 @@ export default function CommandPalette() {
             </div>
           )}
           {query.trim() && !loading && results.length === 0 && (
-            <div className="px-4 py-6 text-sm text-slate-500 text-center">
+            <div className="px-4 py-6 text-sm text-app-3 text-center">
               Ничего не найдено по «{query}»
             </div>
           )}
@@ -216,7 +216,7 @@ export default function CommandPalette() {
             const flatStart = results.findIndex(r => r.id === group.items[0].id);
             return (
               <div key={group.kind}>
-                <div className="px-4 py-1.5 text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+                <div className="px-4 py-1.5 text-[11px] font-semibold text-app-3 uppercase tracking-wider">
                   {kindLabel[group.kind]}
                 </div>
                 {group.items.map((r, relIdx) => {
@@ -233,17 +233,17 @@ export default function CommandPalette() {
                       onMouseEnter={() => setCursor(i)}
                       className={[
                         'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
-                        i === cursor ? 'bg-emerald-500/10' : 'hover:bg-white/5',
+                        i === cursor ? 'bg-emerald-500/10' : 'hover:bg-app-hover',
                       ].join(' ')}
                     >
                       <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs font-bold ${meta.color}`}>
                         {meta.label}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white truncate">{r.title}</div>
-                        {r.subtitle && <div className="text-xs text-slate-500 truncate">{r.subtitle}</div>}
+                        <div className="text-sm font-medium text-app truncate">{r.title}</div>
+                        {r.subtitle && <div className="text-xs text-app-3 truncate">{r.subtitle}</div>}
                       </div>
-                      {i === cursor && <kbd className="text-xs text-slate-500 font-mono shrink-0">↵</kbd>}
+                      {i === cursor && <kbd className="text-xs text-app-3 font-mono shrink-0">↵</kbd>}
                     </button>
                   );
                 })}
@@ -253,7 +253,7 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-white/5 text-xs text-slate-600">
+        <div className="flex items-center gap-4 px-4 py-2 border-t border-app text-xs text-app-3">
           <span><kbd className="font-mono">↑↓</kbd> навигация</span>
           <span><kbd className="font-mono">↵</kbd> открыть</span>
           <span><kbd className="font-mono">Esc</kbd> закрыть</span>

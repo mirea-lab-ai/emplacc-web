@@ -126,18 +126,18 @@ export default function ColorPalette({ selectedColor, onColorSelect }: ColorPale
 
     return (
         <div className="space-y-4">
-            <div className="text-slate-200 text-sm font-medium">Выберите цвет</div>
+            <div className="text-app text-sm font-medium">Выберите цвет</div>
             
             {/* Основная палитра */}
             <div>
-                <div className="text-slate-300 text-xs mb-2">Настройка цвета</div>
+                <div className="text-app-2 text-xs mb-2">Настройка цвета</div>
                 <div className="flex gap-4">
                     {/* Квадрат насыщенности и яркости */}
                     <div className="relative">
                         <canvas
                             ref={squareRef}
                             onClick={handleSquareClick}
-                            className="cursor-crosshair rounded-lg border border-white/20"
+                            className="cursor-crosshair rounded-lg border border-app"
                             style={{ width: '200px', height: '200px' }}
                         />
                         {/* Индикатор выбранного цвета */}
@@ -154,7 +154,7 @@ export default function ColorPalette({ selectedColor, onColorSelect }: ColorPale
                     <div className="flex flex-col gap-4">
                         {/* Полоса оттенка */}
                         <div className="flex flex-col gap-2">
-                            <div className="text-slate-300 text-xs">Оттенок</div>
+                            <div className="text-app-2 text-xs">Оттенок</div>
                             <div className="relative">
                                 <input
                                     type="range"
@@ -177,12 +177,12 @@ export default function ColorPalette({ selectedColor, onColorSelect }: ColorPale
 
             {/* Превью выбранного цвета */}
             <div className="flex items-center gap-3">
-                <div className="text-slate-300 text-xs">Выбранный цвет:</div>
+                <div className="text-app-2 text-xs">Выбранный цвет:</div>
                 <div
-                    className="w-8 h-8 rounded-lg border border-white/20"
+                    className="w-8 h-8 rounded-lg border border-app"
                     style={{ backgroundColor: selectedColor }}
                 />
-                <div className="text-slate-400 text-xs font-mono">{selectedColor.toUpperCase()}</div>
+                <div className="text-app-2 text-xs font-mono">{selectedColor.toUpperCase()}</div>
             </div>
         </div>
     );

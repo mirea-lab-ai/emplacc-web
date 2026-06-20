@@ -102,7 +102,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
             {isAbsence ? '🌙' : '👋'}
           </div>
           <div>
-            <h2 className="t-heading text-white mb-2">
+            <h2 className="t-heading text-app mb-2">
               {isAbsence ? 'Долгое отсутствие' : 'Сессия завершена'}
             </h2>
             <p className="t-body">

@@ -49,8 +49,8 @@ function TaskCard({
       onClick={onToggle}
       className={[
         'relative overflow-hidden cursor-pointer select-none',
-        'rounded-2xl p-5 ring-1 ring-white/5',
-        'bg-[#141c2f] hover:bg-[#16213a] transition-colors',
+        'rounded-2xl p-5 ring-1 ring-app',
+        't-surface t-surface-hover transition-colors',
         open ? 'ring-2 ring-indigo-500/40' : '',
       ].join(' ')}
     >
@@ -65,8 +65,8 @@ function TaskCard({
       />
 
       <div className="relative z-[1]">
-        <div className="text-xl font-semibold">{task.title}</div>
-        <div className="text-slate-400 text-sm mt-0.5">
+        <div className="text-xl font-semibold text-app">{task.title}</div>
+        <div className="text-app-2 text-sm mt-0.5">
           {task.subtasks.length
             ? `Подзадач: ${task.subtasks.length}`
             : 'Подзадач нет'}
@@ -82,7 +82,7 @@ function TaskCard({
           onClick={(e) => e.stopPropagation()}
         >
           {task.subtasks.length === 0 ? (
-            <div className="rounded-lg bg-black/20 px-4 py-3 text-slate-400 ring-1 ring-white/10">
+            <div className="rounded-lg bg-app-subtle px-4 py-3 text-app-2 ring-1 ring-app">
               Нет подзадач
             </div>
           ) : (
@@ -90,7 +90,7 @@ function TaskCard({
               {task.subtasks.map((s) => (
                 <li
                   key={s.id}
-                  className="rounded-lg bg-black/20 px-4 py-2 text-slate-200 ring-1 ring-white/10"
+                  className="rounded-lg bg-app-subtle px-4 py-2 text-app ring-1 ring-app"
                 >
                   {s.title}
                 </li>

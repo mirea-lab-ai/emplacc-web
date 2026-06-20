@@ -50,12 +50,12 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
 
   return (
     <Modal open onClose={onClose}>
-      <div className="w-full max-w-md rounded-xl border border-white/20 bg-white/5 p-6 shadow-lg backdrop-blur-sm">
-        <h2 className="mb-4 text-xl font-semibold text-white">Новый проект</h2>
+      <div className="w-full max-w-md rounded-xl border border-app t-surface-elevated p-6 shadow-lg backdrop-blur-sm">
+        <h2 className="mb-4 text-xl font-semibold text-app">Новый проект</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="project-name" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="project-name" className="mb-1 block text-sm font-medium text-app-2">
               Название проекта <span className="text-red-400">*</span>
             </label>
             <input
@@ -63,30 +63,30 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+              className="w-full rounded-md border border-app bg-app-hover px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
               placeholder="Название проекта"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="project-description" className="mb-1 block text-sm font-medium text-slate-300">
-              Описание <span className="text-slate-500">(необязательно)</span>
+            <label htmlFor="project-description" className="mb-1 block text-sm font-medium text-app-2">
+              Описание <span className="text-app-3">(необязательно)</span>
             </label>
             <textarea
               id="project-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+              className="w-full rounded-md border border-app bg-app-hover px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
               placeholder="Описание проекта"
             />
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 space-y-3">
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">GitLab <span className="normal-case font-normal text-slate-600">(необязательно)</span></p>
+          <div className="rounded-lg border border-app bg-app-subtle p-4 space-y-3">
+            <p className="text-xs text-app-3 font-medium uppercase tracking-wider">GitLab <span className="normal-case font-normal text-app-3">(необязательно)</span></p>
             <div>
-              <label htmlFor="gitlab-url" className="mb-1 block text-sm font-medium text-slate-300">
+              <label htmlFor="gitlab-url" className="mb-1 block text-sm font-medium text-app-2">
                 GitLab URL
               </label>
               <input
@@ -94,12 +94,12 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
                 type="url"
                 value={gitlabUrl}
                 onChange={(e) => setGitlabUrl(e.target.value)}
-                className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+                className="w-full rounded-md border border-app bg-app-hover px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
                 placeholder="https://gitlab.example.com/group/project"
               />
             </div>
             <div>
-              <label htmlFor="gitlab-project-id" className="mb-1 block text-sm font-medium text-slate-300">
+              <label htmlFor="gitlab-project-id" className="mb-1 block text-sm font-medium text-app-2">
                 GitLab Project ID
               </label>
               <input
@@ -107,7 +107,7 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
                 type="number"
                 value={gitlabProjectId}
                 onChange={(e) => setGitlabProjectId(e.target.value)}
-                className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+                className="w-full rounded-md border border-app bg-app-hover px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
                 placeholder="123"
               />
             </div>
@@ -119,7 +119,7 @@ export default function CreateProjectModal({ onClose, onSuccess }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-4 py-2 text-slate-300 hover:bg-white/10 transition-colors"
+              className="rounded-md px-4 py-2 text-app-2 hover:bg-app-hover transition-colors"
               disabled={isPending}
             >
               Отмена

@@ -72,31 +72,31 @@ export default function EditTeamModal({ open, team, onClose }: Props) {
     <Modal open={open} onClose={onClose}>
       <form
         onSubmit={handleSubmit}
-        className="relative rounded-2xl border border-white/20 bg-black p-6 text-white shadow-xl"
+        className="relative rounded-2xl border-app t-surface-elevated p-6 text-app shadow-xl"
       >
         <h2 className="text-xl font-semibold">Редактирование команды</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-app-2">
           Обновите название и описание команды.
         </p>
 
         <div className="mt-5 grid gap-4">
           <label className="grid gap-2">
-            <span className="text-slate-200">Название команды</span>
+            <span className="text-app-2">Название команды</span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="h-11 rounded-xl bg-white/10 px-4 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
+              className="h-11 rounded-xl bg-app-hover px-4 text-app ring-app ring-1 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
               placeholder="Например, Product Team"
               disabled={isPending}
             />
           </label>
 
           <label className="grid gap-2">
-            <span className="text-slate-200">Описание</span>
+            <span className="text-app-2">Описание</span>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="min-h-[96px] rounded-xl bg-white/10 px-4 py-3 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 resize-none"
+              className="min-h-[96px] rounded-xl bg-app-hover px-4 py-3 text-app ring-app ring-1 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 resize-none"
               placeholder="Расскажите о задачах и целях команды"
               disabled={isPending}
             />
@@ -114,7 +114,7 @@ export default function EditTeamModal({ open, team, onClose }: Props) {
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="rounded-xl px-4 py-2 text-slate-300 hover:text-white disabled:opacity-50"
+            className="rounded-xl px-4 py-2 text-app-2 hover:text-app disabled:opacity-50"
           >
             Отмена
           </button>

@@ -148,21 +148,21 @@ export default function AddTaskModal({
                         </div>
                     )}
                     <label className="grid gap-2">
-                        <span className="text-slate-200">Введите название задачи</span>
+                        <span className="text-app-2">Введите название задачи</span>
                         <input
                             value={title}
                             onChange={(e) => {
                                 setTitle(e.target.value);
                                 clearSubmitError();
                             }}
-                            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-1 ring-app text-app focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             placeholder="Например, Сделать поиск"
                         />
                     </label>
                     
                     <div className="grid gap-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-slate-200">Введите описание задачи</span>
+                            <span className="text-app-2">Введите описание задачи</span>
                             <button
                                 type="button"
                                 disabled={improving || !desc.trim()}
@@ -185,29 +185,29 @@ export default function AddTaskModal({
                     </div>
                     
                     <div className="grid gap-2">
-                        <span className="text-slate-200">Укажите дедлайн задачи</span>
-                        <div className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 flex items-center">
+                        <span className="text-app-2">Укажите дедлайн задачи</span>
+                        <div className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-1 ring-app flex items-center">
                             <DatePicker
                                 value={deadline ? new Date(deadline).toISOString() : undefined}
                                 onChange={iso => { setDeadline(iso ? iso.split('T')[0] : ''); clearSubmitError(); }}
-                                className="text-slate-100 text-sm w-full justify-between"
+                                className="text-app text-sm w-full justify-between"
                                 placeholder="Не задан"
                             />
                         </div>
                     </div>
                     
                     <label className="grid gap-2">
-                        <span className="text-slate-200">Выберите приоритет задачи</span>
+                        <span className="text-app-2">Выберите приоритет задачи</span>
                         <select
                             value={priority}
                             onChange={(e) => {
                                 setPriority(Number(e.target.value) as TaskPriorityValue);
                                 clearSubmitError();
                             }}
-                            className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-1 ring-app text-app focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         >
                             {TASK_PRIORITY_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value} className="bg-slate-800 text-slate-100">
+                                <option key={option.value} value={option.value} className="t-surface-elevated text-app">
                                     {option.label}
                                 </option>
                             ))}
@@ -215,7 +215,7 @@ export default function AddTaskModal({
                     </label>
                     
                     <div className="grid gap-2">
-                        <span className="text-slate-200">Назначьте человека на задачу</span>
+                        <span className="text-app-2">Назначьте человека на задачу</span>
                         {assignedTo ? (
                             <div className="flex items-center gap-2">
                                 <SelectedChip
@@ -226,7 +226,7 @@ export default function AddTaskModal({
                         ) : (
                             <button
                                 onClick={() => setShowUserSelector(true)}
-                                className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-400 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-1 ring-app text-app-2 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
                                 Назначить сотрудника...
                             </button>
@@ -261,14 +261,14 @@ export default function AddTaskModal({
                             clearSubmitError();
                         }}
                         placeholder="Поиск по имени, email или роли..."
-                        className="w-full h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        className="w-full h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-1 ring-app text-app focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                     
                     <div className="max-h-64 overflow-y-auto space-y-2">
                         {isLoading ? (
-                            <div className="text-center text-slate-400 py-4">Загрузка...</div>
+                            <div className="text-center text-app-2 py-4">Загрузка...</div>
                         ) : results.length === 0 ? (
-                            <div className="text-center text-slate-400 py-4">
+                            <div className="text-center text-app-2 py-4">
                                 {query ? 'Никого не найдено' : 'Нет доступных сотрудников'}
                             </div>
                         ) : (
@@ -276,13 +276,13 @@ export default function AddTaskModal({
                                 <button
                                     key={user.id}
                                     onClick={() => handleUserSelect(user)}
-                                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-colors text-left"
+                                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-app-hover transition-colors text-left"
                                 >
                                     <Avatar name={user.name} url={user.avatarUrl} email={user.email} fallbackKey={user.id} size="sm" />
                                     <div>
-                                        <div className="text-slate-100 font-medium">{user.name}</div>
+                                        <div className="text-app font-medium">{user.name}</div>
                                         {user.role && (
-                                            <div className="text-slate-400 text-sm">{user.role}</div>
+                                            <div className="text-app-2 text-sm">{user.role}</div>
                                         )}
                                     </div>
                                 </button>

@@ -72,8 +72,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
 
   if (!hasCreds) return (
     <div className="flex flex-col gap-4">
-      <button onClick={() => router.push('/projects')} className="text-sm text-emerald-300 hover:text-white transition-colors self-start">← Проекты</button>
-      <div className="t-surface rounded-2xl p-6 text-slate-400">Авторизуйтесь для просмотра.</div>
+      <button onClick={() => router.push('/projects')} className="text-sm text-emerald-300 hover:text-app transition-colors self-start">← Проекты</button>
+      <div className="t-surface rounded-2xl p-6 text-app-2">Авторизуйтесь для просмотра.</div>
     </div>
   );
 
@@ -83,7 +83,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
     <div className="flex h-full min-h-0 flex-col gap-4">
       {/* Back button */}
       <button onClick={() => router.push('/projects')}
-        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-emerald-300 transition-colors self-start shrink-0">
+        className="flex items-center gap-1.5 text-sm text-app-2 hover:text-emerald-300 transition-colors self-start shrink-0">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
         Проекты
       </button>
@@ -96,7 +96,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           <div className="flex-1 t-surface rounded-2xl"/>
         </div>
       ) : !project ? (
-        <div className="t-surface rounded-2xl p-8 text-center text-slate-400">Проект не найден</div>
+        <div className="t-surface rounded-2xl p-8 text-center text-app-2">Проект не найден</div>
       ) : (
         <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-4 overflow-hidden">
 
@@ -104,30 +104,30 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3 overflow-y-auto">
 
             {/* Project info card */}
-            <div className="t-surface rounded-2xl p-5 space-y-3 ring-1 ring-white/8">
+            <div className="t-surface rounded-2xl p-5 space-y-3 ring-1 ring-app">
               <ProjectIcon name={project.name} />
               <div>
-                <h1 className="font-semibold text-white text-lg leading-tight break-words">{project.name}</h1>
+                <h1 className="font-semibold text-app text-lg leading-tight break-words">{project.name}</h1>
                 {statusMeta && (
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <div className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`}/>
-                    <span className="text-xs text-slate-400">{statusMeta.label}</span>
+                    <span className="text-xs text-app-2">{statusMeta.label}</span>
                   </div>
                 )}
               </div>
               {project.description && (
-                <p className="text-xs text-slate-500 leading-relaxed line-clamp-4">{project.description}</p>
+                <p className="text-xs text-app-3 leading-relaxed line-clamp-4">{project.description}</p>
               )}
             </div>
 
             {/* Nav */}
-            <div className="t-surface rounded-2xl p-2 ring-1 ring-white/8 space-y-1">
+            <div className="t-surface rounded-2xl p-2 ring-1 ring-app space-y-1">
               {NAV_ITEMS.filter(n => !isGuest || n.key === 'board').map(n => (
                 <button key={n.key} onClick={() => setSection(n.key)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     section === n.key
-                      ? 'bg-gradient-to-r from-emerald-500/20 to-lime-500/10 text-white ring-1 ring-emerald-500/30'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-lime-500/10 text-app ring-1 ring-emerald-500/30'
+                      : 'text-app-2 hover:text-app hover:bg-app-hover'
                   }`}>
                   <span className="text-base">{n.icon}</span>
                   {n.label}

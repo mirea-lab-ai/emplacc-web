@@ -60,7 +60,7 @@ function statusBadgeClass(status?: string) {
   if (['passed', 'succeeded', 'completed', 'confirmed', 'accepted'].includes(normalized)) return 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/25';
   if (['failed', 'rejected', 'revoked', 'canceled', 'blocked'].includes(normalized)) return 'bg-red-500/10 text-red-300 ring-red-500/25';
   if (['running', 'queued', 'requested', 'needs_human', 'approval_required'].includes(normalized)) return 'bg-amber-500/10 text-amber-300 ring-amber-500/25';
-  return 'bg-white/5 text-slate-300 ring-white/10';
+  return 'bg-app-subtle text-app-2 ring-app';
 }
 
 function Badge({ children, status }: { children: React.ReactNode; status?: string }) {
@@ -69,9 +69,9 @@ function Badge({ children, status }: { children: React.ReactNode; status?: strin
 
 function Section({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl bg-white/[0.03] p-3 ring-1 ring-white/10">
+    <section className="rounded-xl bg-app-subtle p-3 ring-1 ring-app">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-app-2">{title}</h3>
         {typeof count === 'number' && <Badge>{count}</Badge>}
       </div>
       {children}
@@ -80,7 +80,7 @@ function Section({ title, count, children }: { title: string; count?: number; ch
 }
 
 function EmptyText({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-slate-500">{children}</p>;
+  return <p className="text-sm text-app-3">{children}</p>;
 }
 
 export function ErrorText({ error }: { error: ConveyorApiError | Error }) {
@@ -101,7 +101,7 @@ function SafeMetadata({ value }: { value: unknown }) {
         {open ? copy.taskPanel.hideMetadata : copy.taskPanel.showMetadata}
       </button>
       {open && (
-        <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-black/25 p-2 text-[11px] text-slate-300 ring-1 ring-white/10">
+        <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-app-subtle p-2 text-[11px] text-app-2 ring-1 ring-app">
           {JSON.stringify(redactSecretLikeValue(value), null, 2)}
         </pre>
       )}
@@ -111,12 +111,12 @@ function SafeMetadata({ value }: { value: unknown }) {
 
 function ListItem({ title, meta, status, children }: { title: React.ReactNode; meta?: React.ReactNode; status?: string; children?: React.ReactNode }) {
   return (
-    <li className="rounded-lg bg-black/15 p-2 ring-1 ring-white/5">
+    <li className="rounded-lg t-surface-elevated p-2 ring-1 ring-app">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 text-sm text-slate-100">{title}</div>
+        <div className="min-w-0 text-sm text-app">{title}</div>
         {status && <Badge status={status}>{stateLabel(status)}</Badge>}
       </div>
-      {meta && <div className="mt-1 text-xs text-slate-500">{meta}</div>}
+      {meta && <div className="mt-1 text-xs text-app-3">{meta}</div>}
       {children}
     </li>
   );
@@ -253,7 +253,7 @@ export function ConveyorWorkOrderSection({ taskId, approvalRequired }: { taskId:
   return (
     <Section title={copy.workOrders.title} count={workOrder ? 1 : 0}>
       <div className="space-y-3">
-        <p className="text-sm text-slate-300">{copy.workOrders.subtitle}</p>
+        <p className="text-sm text-app-2">{copy.workOrders.subtitle}</p>
         {currentStatus && <Badge status={currentStatus}>{stateLabel(currentStatus)}</Badge>}
         <div className="flex flex-wrap gap-2" aria-label={copy.workOrders.stateLegend}>
           {WORK_ORDER_STATES.map((status) => <Badge key={status} status={status}>{stateLabel(status)}</Badge>)}
@@ -261,37 +261,37 @@ export function ConveyorWorkOrderSection({ taskId, approvalRequired }: { taskId:
         {approvalRequired && <p className="text-xs text-amber-300">{copy.workOrders.approvalRequired}</p>}
         {!workOrder && <EmptyText>{copy.workOrders.empty}</EmptyText>}
         {workOrder && (
-          <div className="rounded-lg bg-black/15 p-3 ring-1 ring-white/5">
+          <div className="rounded-lg t-surface-elevated p-3 ring-1 ring-app">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="text-sm font-medium text-slate-100">{workOrder.goal ?? workOrder.id}</div>
-                <div className="mt-1 text-xs text-slate-500">{copy.common.updatedAt}: {formatDate(workOrder.updated_at ?? workOrder.created_at)}</div>
+                <div className="text-sm font-medium text-app">{workOrder.goal ?? workOrder.id}</div>
+                <div className="mt-1 text-xs text-app-3">{copy.common.updatedAt}: {formatDate(workOrder.updated_at ?? workOrder.created_at)}</div>
               </div>
               <Badge status={workOrder.status}>{stateLabel(workOrder.status)}</Badge>
             </div>
-            {workOrder.reason && <p className="mt-2 text-xs text-slate-400">{copy.common.reason}: {workOrder.reason}</p>}
+            {workOrder.reason && <p className="mt-2 text-xs text-app-2">{copy.common.reason}: {workOrder.reason}</p>}
             <SafeMetadata value={workOrder.requester_context} />
             <SafeMetadata value={workOrder.provider_context} />
           </div>
         )}
         <div className="grid gap-2 md:grid-cols-3">
-          <input value={providerBoardId} onChange={(event) => setProviderBoardId(event.target.value)} disabled={Boolean(busyAction)} placeholder={copy.workOrders.providerBoardPlaceholder} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50" />
-          <input value={providerStatusId} onChange={(event) => setProviderStatusId(event.target.value)} disabled={Boolean(busyAction)} placeholder={copy.workOrders.providerStatusPlaceholder} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50" />
-          <input value={goal} onChange={(event) => setGoal(event.target.value)} disabled={Boolean(busyAction)} placeholder={copy.workOrders.goalPlaceholder} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50" />
+          <input value={providerBoardId} onChange={(event) => setProviderBoardId(event.target.value)} disabled={Boolean(busyAction)} placeholder={copy.workOrders.providerBoardPlaceholder} className="rounded-lg border border-app bg-app-subtle px-3 py-2 text-sm text-app placeholder:text-app-3 disabled:opacity-50" />
+          <input value={providerStatusId} onChange={(event) => setProviderStatusId(event.target.value)} disabled={Boolean(busyAction)} placeholder={copy.workOrders.providerStatusPlaceholder} className="rounded-lg border border-app bg-app-subtle px-3 py-2 text-sm text-app placeholder:text-app-3 disabled:opacity-50" />
+          <input value={goal} onChange={(event) => setGoal(event.target.value)} disabled={Boolean(busyAction)} placeholder={copy.workOrders.goalPlaceholder} className="rounded-lg border border-app bg-app-subtle px-3 py-2 text-sm text-app placeholder:text-app-3 disabled:opacity-50" />
         </div>
-        {!canCreate && !workOrder && <p className="text-xs text-slate-500">{copy.workOrders.createDisabled}</p>}
+        {!canCreate && !workOrder && <p className="text-xs text-app-3">{copy.workOrders.createDisabled}</p>}
         <div className="grid gap-2 md:grid-cols-2">
-          <input value={targetName} onChange={(event) => setTargetName(event.target.value)} disabled={!hasWorkOrder || Boolean(busyAction)} placeholder={copy.workOrders.targetNamePlaceholder} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50" />
-          <input value={resultEvidenceId} onChange={(event) => setResultEvidenceId(event.target.value)} disabled={!hasWorkOrder || Boolean(busyAction)} placeholder={copy.workOrders.resultEvidencePlaceholder} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50" />
+          <input value={targetName} onChange={(event) => setTargetName(event.target.value)} disabled={!hasWorkOrder || Boolean(busyAction)} placeholder={copy.workOrders.targetNamePlaceholder} className="rounded-lg border border-app bg-app-subtle px-3 py-2 text-sm text-app placeholder:text-app-3 disabled:opacity-50" />
+          <input value={resultEvidenceId} onChange={(event) => setResultEvidenceId(event.target.value)} disabled={!hasWorkOrder || Boolean(busyAction)} placeholder={copy.workOrders.resultEvidencePlaceholder} className="rounded-lg border border-app bg-app-subtle px-3 py-2 text-sm text-app placeholder:text-app-3 disabled:opacity-50" />
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => void handleCreate()} disabled={!canCreate} className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/20 disabled:opacity-50">
             {busyAction === 'create' ? copy.workOrders.creating : copy.workOrders.create}
           </button>
-          <button type="button" onClick={() => void handleAccept()} disabled={!canAccept} className="rounded-lg bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 ring-1 ring-white/10 disabled:opacity-50">
+          <button type="button" onClick={() => void handleAccept()} disabled={!canAccept} className="rounded-lg bg-app-hover px-3 py-1.5 text-xs font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
             {copy.workOrders.accept}
           </button>
-          <button type="button" onClick={() => void handleComplete()} disabled={!canComplete} className="rounded-lg bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 ring-1 ring-white/10 disabled:opacity-50">
+          <button type="button" onClick={() => void handleComplete()} disabled={!canComplete} className="rounded-lg bg-app-hover px-3 py-1.5 text-xs font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
             {copy.workOrders.complete}
           </button>
           <button type="button" onClick={() => void handleReject()} disabled={!canResolve} className="rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-200 ring-1 ring-red-500/20 disabled:opacity-50">
@@ -304,8 +304,8 @@ export function ConveyorWorkOrderSection({ taskId, approvalRequired }: { taskId:
             {copy.workOrders.fail}
           </button>
         </div>
-        {!canAccept && hasWorkOrder && <p className="text-xs text-slate-500">{copy.workOrders.acceptDisabled}</p>}
-        {!canComplete && hasWorkOrder && <p className="text-xs text-slate-500">{copy.workOrders.completeDisabled}</p>}
+        {!canAccept && hasWorkOrder && <p className="text-xs text-app-3">{copy.workOrders.acceptDisabled}</p>}
+        {!canComplete && hasWorkOrder && <p className="text-xs text-app-3">{copy.workOrders.completeDisabled}</p>}
       </div>
     </Section>
   );
@@ -316,7 +316,7 @@ function actionKey(prefix: string, id: string) {
 }
 
 function fieldClass(extra = '') {
-  return `rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50 ${extra}`.trim();
+  return `rounded-lg border border-app bg-app-subtle px-3 py-2 text-sm text-app placeholder:text-app-3 disabled:opacity-50 ${extra}`.trim();
 }
 
 function CriterionStateControls({ taskId, criterion, onMutated }: { taskId: string; criterion: ConveyorCriterion; onMutated: () => void }) {
@@ -369,18 +369,18 @@ export function AddCriterionForm({ taskId, onMutated }: { taskId: string; onMuta
     }
   }
   return (
-    <div className="mt-3 space-y-2 rounded-lg bg-black/15 p-2 ring-1 ring-white/5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{copy.criteriaForm.title}</p>
+    <div className="mt-3 space-y-2 rounded-lg t-surface-elevated p-2 ring-1 ring-app">
+      <p className="text-xs font-semibold uppercase tracking-wider text-app-2">{copy.criteriaForm.title}</p>
       <input value={title} onChange={(event) => setTitle(event.target.value)} disabled={busy} placeholder={copy.criteriaForm.titlePlaceholder} className={fieldClass('w-full')} />
       <div className="grid gap-2 md:grid-cols-2">
         <input value={acId} onChange={(event) => setAcId(event.target.value)} disabled={busy} placeholder={copy.criteriaForm.acIdPlaceholder} className={fieldClass()} />
         <input value={specIds} onChange={(event) => setSpecIds(event.target.value)} disabled={busy} placeholder={copy.criteriaForm.specIdsPlaceholder} className={fieldClass()} />
       </div>
-      <label className="flex items-center gap-2 text-xs text-slate-300">
+      <label className="flex items-center gap-2 text-xs text-app-2">
         <input type="checkbox" checked={required} onChange={(event) => setRequired(event.target.checked)} disabled={busy} />
         {copy.criteriaForm.required}
       </label>
-      {!canAdd && <p className="text-xs text-slate-500">{copy.criteriaForm.disabled}</p>}
+      {!canAdd && <p className="text-xs text-app-3">{copy.criteriaForm.disabled}</p>}
       <button type="button" onClick={() => void handleAdd()} disabled={!canAdd} className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/20 disabled:opacity-50">
         {busy ? copy.criteriaForm.adding : copy.criteriaForm.add}
       </button>
@@ -438,8 +438,8 @@ export function AttachEvidenceForm({ taskId, criteria, onMutated }: { taskId: st
     }
   }
   return (
-    <div className="mt-3 space-y-2 rounded-lg bg-black/15 p-2 ring-1 ring-white/5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{copy.evidenceForm.title}</p>
+    <div className="mt-3 space-y-2 rounded-lg t-surface-elevated p-2 ring-1 ring-app">
+      <p className="text-xs font-semibold uppercase tracking-wider text-app-2">{copy.evidenceForm.title}</p>
       <div className="grid gap-2 md:grid-cols-2">
         <input value={type} onChange={(event) => setType(event.target.value)} disabled={busy} placeholder={copy.evidenceForm.typePlaceholder} className={fieldClass()} />
         <select value={verdict} onChange={(event) => setVerdict(event.target.value)} disabled={busy} className={fieldClass()}>
@@ -455,7 +455,7 @@ export function AttachEvidenceForm({ taskId, criteria, onMutated }: { taskId: st
           {criteria.map((criterion) => <option key={criterion.id} value={criterion.id}>{criterion.title ?? criterion.id}</option>)}
         </select>
       </div>
-      {!canAttach && <p className="text-xs text-slate-500">{copy.evidenceForm.disabled}</p>}
+      {!canAttach && <p className="text-xs text-app-3">{copy.evidenceForm.disabled}</p>}
       <button type="button" onClick={() => void handleAttach()} disabled={!canAttach} className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/20 disabled:opacity-50">
         {busy ? copy.evidenceForm.attaching : copy.evidenceForm.attach}
       </button>
@@ -519,8 +519,8 @@ export function CloseGateControls({ taskId, snapshot, onMutated }: { taskId: str
   }
 
   return (
-    <div className="mt-3 space-y-2 rounded-lg bg-black/15 p-2 ring-1 ring-white/5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{copy.closeGate.title}</p>
+    <div className="mt-3 space-y-2 rounded-lg t-surface-elevated p-2 ring-1 ring-app">
+      <p className="text-xs font-semibold uppercase tracking-wider text-app-2">{copy.closeGate.title}</p>
       {hasContradicts && <p className="rounded-lg bg-red-500/10 px-2 py-1 text-xs text-red-200 ring-1 ring-red-500/20">{copy.closeGate.contradictsWarning}</p>}
       {lastErrorCode === 'approval_required' && <p className="text-xs text-amber-300">{copy.closeGate.approvalRequired}</p>}
       {lastErrorCode === 'validation_error' && <p className="text-xs text-amber-300">{copy.closeGate.validationError}</p>}
@@ -528,7 +528,7 @@ export function CloseGateControls({ taskId, snapshot, onMutated }: { taskId: str
         <input value={toStatusId} onChange={(event) => setToStatusId(event.target.value)} disabled={Boolean(busy)} placeholder={copy.closeGate.toStatusPlaceholder} className={fieldClass()} />
         <input value={riskLevel} onChange={(event) => setRiskLevel(event.target.value)} disabled={Boolean(busy)} placeholder={copy.closeGate.riskPlaceholder} className={fieldClass()} />
       </div>
-      {!canClose && <p className="text-xs text-slate-500">{copy.closeGate.disabled}</p>}
+      {!canClose && <p className="text-xs text-app-3">{copy.closeGate.disabled}</p>}
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => void runClose()} disabled={!canClose} className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/20 disabled:opacity-50">
           {busy === 'close' ? copy.closeGate.closing : copy.closeGate.close}
@@ -537,11 +537,11 @@ export function CloseGateControls({ taskId, snapshot, onMutated }: { taskId: str
           {busy === 'approval' ? copy.closeGate.requestingApproval : copy.closeGate.requestApproval}
         </button>
       </div>
-      <div className="space-y-2 border-t border-white/5 pt-2">
-        <p className="text-xs text-slate-400">{copy.closeGate.waiverTitle}</p>
+      <div className="space-y-2 border-t border-app pt-2">
+        <p className="text-xs text-app-2">{copy.closeGate.waiverTitle}</p>
         <input value={waiverReason} onChange={(event) => setWaiverReason(event.target.value)} disabled={Boolean(busy)} placeholder={copy.closeGate.waiverReasonPlaceholder} className={fieldClass('w-full')} />
-        {!canWaive && <p className="text-xs text-slate-500">{copy.closeGate.waiverDisabled}</p>}
-        <button type="button" onClick={() => void handleCreateWaiverAndRetry()} disabled={!canWaive} className="rounded-lg bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 ring-1 ring-white/10 disabled:opacity-50">
+        {!canWaive && <p className="text-xs text-app-3">{copy.closeGate.waiverDisabled}</p>}
+        <button type="button" onClick={() => void handleCreateWaiverAndRetry()} disabled={!canWaive} className="rounded-lg bg-app-hover px-3 py-1.5 text-xs font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
           {busy === 'waiver' ? copy.closeGate.creatingWaiver : copy.closeGate.createWaiver}
         </button>
       </div>
@@ -583,9 +583,9 @@ function AgentRunRunControls({ taskId, run, onMutated }: { taskId: string; run: 
   }
   return (
     <div className="mt-2">
-      <div className="text-[11px] text-slate-500">{copy.agentRunControls.lastHeartbeat}: {formatDate(heartbeatOf(run))}</div>
+      <div className="text-[11px] text-app-3">{copy.agentRunControls.lastHeartbeat}: {formatDate(heartbeatOf(run))}</div>
       <div className="mt-1 flex flex-wrap gap-2">
-        <button type="button" onClick={() => void heartbeat()} disabled={Boolean(busy)} className="rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-200 ring-1 ring-white/10 disabled:opacity-50">{copy.agentRunControls.heartbeat}</button>
+        <button type="button" onClick={() => void heartbeat()} disabled={Boolean(busy)} className="rounded-lg bg-app-hover px-2.5 py-1 text-[11px] font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">{copy.agentRunControls.heartbeat}</button>
         <button type="button" onClick={() => void setStatusValue('running')} disabled={Boolean(busy)} className="rounded-lg bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-200 ring-1 ring-amber-500/20 disabled:opacity-50">{copy.agentRunControls.markRunning}</button>
         <button type="button" onClick={() => void setStatusValue('succeeded')} disabled={Boolean(busy)} className="rounded-lg bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-500/20 disabled:opacity-50">{copy.agentRunControls.markSucceeded}</button>
         <button type="button" onClick={() => void setStatusValue('failed')} disabled={Boolean(busy)} className="rounded-lg bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-200 ring-1 ring-red-500/20 disabled:opacity-50">{copy.agentRunControls.markFailed}</button>
@@ -618,14 +618,14 @@ export function AgentRunRegisterForm({ taskId, onMutated }: { taskId: string; on
     }
   }
   return (
-    <div className="mt-3 space-y-2 rounded-lg bg-black/15 p-2 ring-1 ring-white/5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{copy.agentRunControls.title}</p>
+    <div className="mt-3 space-y-2 rounded-lg t-surface-elevated p-2 ring-1 ring-app">
+      <p className="text-xs font-semibold uppercase tracking-wider text-app-2">{copy.agentRunControls.title}</p>
       <div className="grid gap-2 md:grid-cols-2">
         <input value={source} onChange={(event) => setSource(event.target.value)} disabled={busy} placeholder={copy.agentRunControls.sourcePlaceholder} className={fieldClass()} />
         <input value={harness} onChange={(event) => setHarness(event.target.value)} disabled={busy} placeholder={copy.agentRunControls.harnessPlaceholder} className={fieldClass()} />
       </div>
       <input value={summary} onChange={(event) => setSummary(event.target.value)} disabled={busy} placeholder={copy.agentRunControls.summaryPlaceholder} className={fieldClass('w-full')} />
-      {!canRegister && <p className="text-xs text-slate-500">{copy.agentRunControls.registerDisabled}</p>}
+      {!canRegister && <p className="text-xs text-app-3">{copy.agentRunControls.registerDisabled}</p>}
       <button type="button" onClick={() => void handleRegister()} disabled={!canRegister} className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/20 disabled:opacity-50">
         {busy ? copy.agentRunControls.registering : copy.agentRunControls.register}
       </button>
@@ -660,8 +660,8 @@ export function ConveyorTaskPanel({ taskId }: { taskId: string }) {
     <Panel className="space-y-4 p-5">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-white">{copy.taskPanel.title}</h2>
-          <p className="mt-1 text-sm text-slate-400">{copy.taskPanel.subtitle}</p>
+          <h2 className="text-lg font-semibold text-app">{copy.taskPanel.title}</h2>
+          <p className="mt-1 text-sm text-app-2">{copy.taskPanel.subtitle}</p>
         </div>
         <button type="button" onClick={() => void load()} className="rounded-lg px-3 py-1.5 text-xs text-emerald-300 ring-1 ring-emerald-500/20 hover:bg-emerald-500/10">
           {copy.taskPanel.retry}
@@ -675,7 +675,7 @@ export function ConveyorTaskPanel({ taskId }: { taskId: string }) {
           <Section title={copy.taskPanel.closeState}>
             <div className="flex items-start gap-2 text-sm">
               <Badge status={closeState === 'ready' ? 'passed' : closeState}>{stateLabel(closeState === 'ready' ? 'passed' : closeState)}</Badge>
-              <p className="text-slate-300">
+              <p className="text-app-2">
                 {closeState === 'ready' ? copy.taskPanel.readyToClose : closeState === 'approval_required' ? copy.taskPanel.approvalRequired : copy.taskPanel.blockedClose}
               </p>
             </div>
@@ -812,33 +812,33 @@ export function ConveyorGeneratedReportPanel({ projects, projectsLoading }: { pr
     <Panel className="t-surface flex flex-col gap-4 p-5">
       <header>
         <h2 className="text-lg font-semibold">{copy.reports.title}</h2>
-        <p className="mt-1 text-sm text-slate-300">{copy.reports.subtitle}</p>
+        <p className="mt-1 text-sm text-app-2">{copy.reports.subtitle}</p>
       </header>
       <div className="grid gap-3 md:grid-cols-2">
-        <select value={projectId} disabled={projectsLoading || busy || !projects?.length} onChange={(event) => setProjectId(event.target.value)} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white disabled:opacity-50">
+        <select value={projectId} disabled={projectsLoading || busy || !projects?.length} onChange={(event) => setProjectId(event.target.value)} className="rounded-xl border border-app bg-app-subtle px-4 py-3 text-sm text-app disabled:opacity-50">
           <option value="">{projectsLoading ? copy.reports.loading : copy.reports.projectPlaceholder}</option>
           {(projects ?? []).map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select>
-        <label className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-slate-200">
+        <label className="flex items-center gap-2 rounded-xl border border-app bg-app-subtle px-4 py-3 text-sm text-app-2">
           <input type="checkbox" checked={includeLlm} onChange={(event) => setIncludeLlm(event.target.checked)} />
           {copy.reports.includeLlm}
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="text-xs text-app-2">
           {copy.reports.periodStart}
-          <input type="date" value={periodStart} onChange={(event) => setPeriodStart(event.target.value)} className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white" />
+          <input type="date" value={periodStart} onChange={(event) => setPeriodStart(event.target.value)} className="mt-1 w-full rounded-xl border border-app bg-app-subtle px-4 py-3 text-sm text-app" />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="text-xs text-app-2">
           {copy.reports.periodEnd}
-          <input type="date" value={periodEnd} onChange={(event) => setPeriodEnd(event.target.value)} className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white" />
+          <input type="date" value={periodEnd} onChange={(event) => setPeriodEnd(event.target.value)} className="mt-1 w-full rounded-xl border border-app bg-app-subtle px-4 py-3 text-sm text-app" />
         </label>
       </div>
       {!projectsLoading && !projects?.length && <EmptyText>{copy.reports.emptyProjects}</EmptyText>}
-      {!canCreate && <p className="text-xs text-slate-500">{copy.reports.disabledReason}</p>}
+      {!canCreate && <p className="text-xs text-app-3">{copy.reports.disabledReason}</p>}
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => void handleCreate()} disabled={!canCreate} className="rounded-xl bg-gradient-to-br from-emerald-500 to-lime-400 px-4 py-2.5 text-sm font-semibold text-black disabled:opacity-50">
           {busy ? copy.reports.creating : copy.reports.create}
         </button>
-        <button type="button" onClick={() => void handleMarkdown()} disabled={!report?.id || busy} className="rounded-xl bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 ring-1 ring-white/10 disabled:opacity-50">
+        <button type="button" onClick={() => void handleMarkdown()} disabled={!report?.id || busy} className="rounded-xl bg-app-hover px-4 py-2.5 text-sm font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
           {copy.reports.exportMarkdown}
         </button>
       </div>
@@ -927,8 +927,8 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
     <Panel className="space-y-3 p-4">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-white">{copy.forumDigest.title}</h2>
-          <p className="mt-1 text-xs text-slate-400">{copy.forumDigest.subtitle}</p>
+          <h2 className="text-sm font-semibold text-app">{copy.forumDigest.title}</h2>
+          <p className="mt-1 text-xs text-app-2">{copy.forumDigest.subtitle}</p>
         </div>
         <button type="button" onClick={() => void load()} disabled={!sourceId || state.loading} className="rounded-lg px-2.5 py-1 text-xs text-emerald-300 ring-1 ring-emerald-500/20 disabled:opacity-50">
           {copy.forumDigest.refresh}
@@ -940,15 +940,15 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
       {!state.loading && sourceId && !latest && <EmptyText>{copy.forumDigest.empty}</EmptyText>}
       {latest && (
         <div className="space-y-2">
-          <p className="text-sm text-slate-200">{latest.summary || copy.forumDigest.empty}</p>
+          <p className="text-sm text-app-2">{latest.summary || copy.forumDigest.empty}</p>
           <div className="space-y-2">
             {candidates.map((candidate) => {
               const canConfirm = Boolean(candidate.status_id);
               return (
-                <div key={candidate.id} className="rounded-lg bg-black/15 p-2 ring-1 ring-white/5">
+                <div key={candidate.id} className="rounded-lg t-surface-elevated p-2 ring-1 ring-app">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="text-sm text-slate-100">{candidate.title ?? candidate.summary ?? candidate.id}</div>
+                      <div className="text-sm text-app">{candidate.title ?? candidate.summary ?? candidate.id}</div>
                       {!canConfirm && <div className="mt-1 text-xs text-amber-300">{copy.forumDigest.confirmDisabled}</div>}
                     </div>
                     {candidate.status && <Badge status={candidate.status}>{candidate.status}</Badge>}
@@ -967,7 +967,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
           </div>
         </div>
       )}
-      <button type="button" onClick={() => void handleCreate()} disabled={!sourceId || busy} className="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 ring-1 ring-white/10 disabled:opacity-50">
+      <button type="button" onClick={() => void handleCreate()} disabled={!sourceId || busy} className="rounded-xl bg-app-hover px-4 py-2 text-sm font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
         {busy ? copy.forumDigest.creating : copy.forumDigest.create}
       </button>
     </Panel>

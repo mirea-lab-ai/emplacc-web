@@ -180,8 +180,8 @@ export default function ReportProjectPicker({
     return (
       <section className="flex flex-col justify-start">
         <h2 className="text-3xl font-semibold tracking-tight mb-2">{title}</h2>
-        {description && <p className="text-slate-300 mb-4">{description}</p>}
-        <div className="text-slate-400">Загрузка проектов…</div>
+        {description && <p className="text-app-2 mb-4">{description}</p>}
+        <div className="text-app-2">Загрузка проектов…</div>
       </section>
     );
   }
@@ -190,8 +190,8 @@ export default function ReportProjectPicker({
     return (
       <section className="flex flex-col justify-start">
         <h2 className="text-3xl font-semibold tracking-tight mb-2">{title}</h2>
-        {description && <p className="text-slate-300 mb-4">{description}</p>}
-        <div className="text-slate-400">Нет доступных проектов</div>
+        {description && <p className="text-app-2 mb-4">{description}</p>}
+        <div className="text-app-2">Нет доступных проектов</div>
       </section>
     );
   }
@@ -200,17 +200,17 @@ export default function ReportProjectPicker({
     <>
       <section className="flex flex-col justify-start">
         <h2 className="text-3xl font-semibold tracking-tight mb-2">{title}</h2>
-        {description && <p className="text-slate-300 mb-4">{description}</p>}
+        {description && <p className="text-app-2 mb-4">{description}</p>}
 
         <div className="mb-5">
-          <label className="flex flex-col gap-2 text-sm text-slate-300">
-            <span className="font-medium text-slate-200">Поиск по задачам</span>
+          <label className="flex flex-col gap-2 text-sm text-app-2">
+            <span className="font-medium text-app">Поиск по задачам</span>
             <div className="relative">
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Введите название задачи, проекта или исполнителя"
-                className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                className="w-full rounded-xl border border-app bg-black/30 px-4 py-2 text-sm text-app placeholder:text-app-3 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
                 type="search"
               />
               {searchTerm && (
@@ -228,9 +228,9 @@ export default function ReportProjectPicker({
 
         <div className="space-y-3">
           {isLoadingTasks && !hasTasks ? (
-            <div className="text-slate-400 text-sm">Загрузка задач…</div>
+            <div className="text-app-2 text-sm">Загрузка задач…</div>
           ) : filteredTasks.length === 0 ? (
-            <div className="text-slate-400 text-sm">
+            <div className="text-app-2 text-sm">
               {normalizedQuery ? 'Нет задач, подходящих под условия поиска' : 'Нет задач для выбора'}
             </div>
           ) : (
@@ -274,10 +274,10 @@ export default function ReportProjectPicker({
                       onKeyDown={handleKeyDown}
                       aria-pressed={isPicked}
                       className={[
-                        'relative overflow-hidden rounded-2xl ring-1 ring-white/10 px-4 py-3 backdrop-blur-sm border border-white/20 transition-colors cursor-pointer select-none',
+                        'relative overflow-hidden rounded-2xl ring-1 ring-app px-4 py-3 backdrop-blur-sm border border-app transition-colors cursor-pointer select-none',
                         isPicked
                           ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-slate-900 ring-emerald-500/60 border-emerald-200/80 shadow-lg shadow-emerald-500/20'
-                          : 'bg-white/10 text-white hover:bg-white/20',
+                          : 'bg-app-hover text-app hover:bg-app-hover',
                       ].join(' ')}
                     >
                       <div className="relative z-[1] flex items-start justify-between gap-3">
@@ -287,12 +287,12 @@ export default function ReportProjectPicker({
                             {info.projectName}
                           </div>
                           {dueLabel && (
-                            <div className={isPicked ? 'mt-1 text-sm text-slate-800' : 'mt-1 text-sm text-slate-300'}>
+                            <div className={isPicked ? 'mt-1 text-sm text-slate-800' : 'mt-1 text-sm text-app-2'}>
                               Срок: {dueLabel}
                             </div>
                           )}
                           {assigneeNames.length > 0 && (
-                            <div className={isPicked ? 'mt-1 text-xs text-slate-800/80' : 'mt-1 text-xs text-slate-300'}>
+                            <div className={isPicked ? 'mt-1 text-xs text-slate-800/80' : 'mt-1 text-xs text-app-2'}>
                               Исполнители: {assigneeNames.join(', ')}
                             </div>
                           )}

@@ -51,11 +51,11 @@ export default function AddStatusModal({
         >
             <div className="max-h-[60vh] overflow-y-auto custom-scroll space-y-6">
                 <label className="grid gap-2">
-                    <span className="text-slate-200">Название</span>
+                    <span className="text-app-2">Название</span>
                     <input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                        className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-1 ring-app text-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                         placeholder="Например, Review"
                     />
                 </label>
@@ -63,8 +63,8 @@ export default function AddStatusModal({
                 <ColorPalette selectedColor={selectedColor} onColorSelect={setSelectedColor} />
 
                 <div>
-                    <div className="text-slate-200 mb-2">Выберите место (между столбцами)</div>
-                    <div className="rounded-2xl backdrop-blur-sm bg-white/10 border border-white/20 text-white ring-1 ring-white/10 p-3 max-h-[30vh] overflow-auto custom-scroll">
+                    <div className="text-app-2 mb-2">Выберите место (между столбцами)</div>
+                    <div className="rounded-2xl backdrop-blur-sm bg-app-hover border border-app text-app ring-1 ring-app p-3 max-h-[30vh] overflow-auto custom-scroll">
                         {columns.map((c, i) => (
                             <div key={c.id}>
                                 <RowTitle title={c.title} color={c.color} />
@@ -85,10 +85,10 @@ export default function AddStatusModal({
 
 function RowTitle({ title, color }: { title: string; color?: string }) {
     return (
-        <div className="px-3 py-2 text-slate-300 flex items-center gap-2">
+        <div className="px-3 py-2 text-app-2 flex items-center gap-2">
             {color && (
-                <div 
-                    className="w-4 h-4 rounded border border-white/20"
+                <div
+                    className="w-4 h-4 rounded border border-app"
                     style={{ backgroundColor: color }}
                 />
             )}

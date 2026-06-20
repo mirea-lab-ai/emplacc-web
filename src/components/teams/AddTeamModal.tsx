@@ -112,29 +112,29 @@ export default function AddTeamModal({
       className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-2xl rounded-2xl bg-black">
+      <div className="w-full max-w-2xl rounded-2xl t-surface-elevated">
         <div className="t-accent-grad/20 p-6 rounded-2xl">
           <h2 className="text-xl font-semibold mb-4">Создать команду</h2>
 
           <div className="grid gap-4 mb-4">
             <label className="grid gap-2">
-              <span className="text-slate-200">Название команды <span className="text-red-400">*</span></span>
+              <span className="text-app-2">Название команды <span className="text-red-400">*</span></span>
               <input
                 ref={inputRef}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-12 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                className="h-12 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 ring-app text-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                 placeholder="Например, Emplacc"
                 required
               />
             </label>
 
             <label className="grid gap-2">
-              <span className="text-slate-200">Описание (необязательно)</span>
+              <span className="text-app-2">Описание (необязательно)</span>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="h-20 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 px-4 py-3 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
+                className="h-20 rounded-xl backdrop-blur-sm bg-app-hover border border-app hover:bg-app-hover px-4 py-3 ring-app text-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
                 placeholder="Краткое описание команды"
               />
             </label>
@@ -142,7 +142,7 @@ export default function AddTeamModal({
             {/* Выбранные участники */}
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-slate-200">Участники команды</span>
+                <span className="text-app-2">Участники команды</span>
                 <button
                   type="button"
                   onClick={() => setShowUserSelector(true)}
@@ -151,9 +151,9 @@ export default function AddTeamModal({
                   + Добавить участников
                 </button>
               </div>
-              <div className="min-h-[60px] rounded-xl bg-white/5 border border-white/10 p-3">
+              <div className="min-h-[60px] rounded-xl bg-app-subtle border border-app p-3">
                 {selectedMembers.length === 0 ? (
-                  <div className="text-slate-400 text-sm">Пока никого не добавлено</div>
+                  <div className="text-app-2 text-sm">Пока никого не добавлено</div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {selectedMembers.map(member => (
@@ -179,7 +179,7 @@ export default function AddTeamModal({
             <button
               onClick={onClose}
               disabled={isPending}
-              className="rounded-lg px-4 py-2 text-slate-300 hover:text-white disabled:opacity-50"
+              className="rounded-lg px-4 py-2 text-app-2 hover:text-app disabled:opacity-50"
             >
               Отмена
             </button>
@@ -204,8 +204,8 @@ export default function AddTeamModal({
       {/* Модалка выбора пользователей */}
       {showUserSelector && (
         <Modal open={showUserSelector} onClose={() => setShowUserSelector(false)}>
-          <div className="w-full max-w-2xl rounded-2xl bg-black border border-white/20 p-6">
-            <h3 className="text-2xl font-semibold text-slate-100 mb-4">Выберите участников команды</h3>
+          <div className="w-full max-w-2xl rounded-2xl t-surface-elevated border border-app p-6">
+            <h3 className="text-2xl font-semibold text-app mb-4">Выберите участников команды</h3>
 
             <div className="relative mb-4">
               <input
@@ -213,12 +213,12 @@ export default function AddTeamModal({
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Поиск по имени, email, роли…"
-                className="w-full rounded-xl t-surface text-slate-100 placeholder:text-slate-400 px-4 py-3 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
+                className="w-full rounded-xl t-surface text-app placeholder:text-app-2 px-4 py-3 ring-app focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
               />
               {query && (
                 <button
                   onClick={() => setQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-app-2 hover:text-app"
                   aria-label="Очистить"
                 >
                   ×
@@ -229,11 +229,11 @@ export default function AddTeamModal({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Выбранные */}
               <div className="md:col-span-1">
-                <div className="rounded-xl bg-white/5 ring-1 ring-white/10 p-3">
-                  <div className="text-sm text-slate-300 mb-2">Выбранные</div>
+                <div className="rounded-xl bg-app-subtle ring-app p-3">
+                  <div className="text-sm text-app-2 mb-2">Выбранные</div>
                   <div className="flex flex-col gap-2 max-h-56 overflow-auto">
                     {selectedMembers.length === 0
-                      ? <div className="text-slate-400 text-sm">Пока никого…</div>
+                      ? <div className="text-app-2 text-sm">Пока никого…</div>
                       : selectedMembers.map(emp => (
                           <SelectedChip key={emp.id} emp={emp} onRemove={() => removeMember(emp.id)} />
                         ))}
@@ -243,25 +243,25 @@ export default function AddTeamModal({
 
               {/* Результаты */}
               <div className="md:col-span-2">
-                <div className="rounded-xl bg-white/5 ring-1 ring-white/10 p-3">
-                  <div className="text-sm text-slate-300 mb-2">Результаты</div>
+                <div className="rounded-xl bg-app-subtle ring-app p-3">
+                  <div className="text-sm text-app-2 mb-2">Результаты</div>
                   <div className="flex flex-col gap-2 max-h-56 overflow-auto">
                     {usersLoading
-                      ? <div className="text-slate-400 text-sm">Загрузка пользователей...</div>
+                      ? <div className="text-app-2 text-sm">Загрузка пользователей...</div>
                       : results.length === 0
-                      ? <div className="text-slate-400 text-sm">Ничего не найдено…</div>
+                      ? <div className="text-app-2 text-sm">Ничего не найдено…</div>
                       : results.map(emp => (
                           <button
                             key={emp.id}
                             onClick={() => addMember(emp)}
-                            className="flex items-center gap-3 rounded-lg t-surface px-3 py-2 ring-1 ring-white/10 text-left"
+                            className="flex items-center gap-3 rounded-lg t-surface px-3 py-2 ring-app text-left"
                           >
                             <Avatar name={emp.name} url={emp.avatarUrl} email={emp.email} fallbackKey={emp.id} />
                             <div className="min-w-0">
-                              <div className="text-slate-100 text-sm truncate">{emp.name}</div>
-                              <div className="text-slate-400 text-xs truncate">{emp.email || emp.role || 'Сотрудник'}</div>
+                              <div className="text-app text-sm truncate">{emp.name}</div>
+                              <div className="text-app-2 text-xs truncate">{emp.email || emp.role || 'Сотрудник'}</div>
                             </div>
-                            <span className="ml-auto text-white text-xs">Добавить</span>
+                            <span className="ml-auto text-app-2 text-xs">Добавить</span>
                           </button>
                         ))}
                   </div>
@@ -272,7 +272,7 @@ export default function AddTeamModal({
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setShowUserSelector(false)}
-                className="rounded-xl px-4 py-2 bg-white/10 text-slate-100 ring-1 ring-white/10 hover:bg-white/15"
+                className="rounded-xl px-4 py-2 bg-app-hover text-app ring-app hover:bg-app-hover"
               >
                 Подтвердить
               </button>

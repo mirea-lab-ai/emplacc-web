@@ -5,17 +5,10 @@ import { useTeamProjects } from '@/features/teams/hooks';
 import { useState } from 'react';
 import AddProjectModal from './AddProjectModal';
 import Link from 'next/link';
+import { formatDate } from '@/lib/date';
 
 type Props = {
   teamId: string;
-};
-
-const formatDate = (value?: string) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 };
 
 export default function TeamProjects({ teamId }: Props) {
@@ -36,7 +29,7 @@ export default function TeamProjects({ teamId }: Props) {
       
       {isLoading ? (
         <div className="flex items-center justify-center h-32">
-          <div className="text-slate-400">Загрузка проектов...</div>
+          <div className="text-app-2">Загрузка проектов...</div>
         </div>
       ) : error ? (
         <div className="flex items-center justify-center h-32">
@@ -44,7 +37,7 @@ export default function TeamProjects({ teamId }: Props) {
         </div>
       ) : !projects || projects.length === 0 ? (
         <div className="flex items-center justify-center h-32">
-          <div className="text-slate-400">У команды пока нет проектов</div>
+          <div className="text-app-2">У команды пока нет проектов</div>
         </div>
       ) : (
         <div className="space-y-3">
@@ -56,10 +49,10 @@ export default function TeamProjects({ teamId }: Props) {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="block rounded-xl bg-white/5 border border-white/10 p-4 transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+                className="block rounded-xl bg-app-subtle border border-app p-4 transition-colors hover:bg-app-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
               >
-                <div className="font-semibold text-white mb-2">{project.name ?? 'Без названия'}</div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                <div className="font-semibold text-app mb-2">{project.name ?? 'Без названия'}</div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-app-3">
                   {created && <span>Создан: {created}</span>}
                   {updated && <span>Обновлён: {updated}</span>}
                 </div>

@@ -222,7 +222,7 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
           <h2 className="text-lg font-semibold">План из вашего прошлого отчета</h2>
         </div>
         <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div className="text-slate-400">Загрузка планов...</div>
+          <div className="text-app-2">Загрузка планов...</div>
         </div>
       </Panel>
     );
@@ -256,7 +256,7 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
               {items.map((p) => (
                 <li
                   key={p.id}
-                  className="rounded-xl px-4 py-2  backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10"
+                  className="rounded-xl px-4 py-2  backdrop-blur-sm bg-app-hover border border-app text-app hover:bg-app-hover ring-1 ring-app"
                 >
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="font-medium">{p.task}</div>
@@ -267,13 +267,13 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
                     )}
                   </div>
                   {p.text && (
-                    <div className="text-slate-400 text-sm mt-0.5">{p.text}</div>
+                    <div className="text-app-2 text-sm mt-0.5">{p.text}</div>
                   )}
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="grid h-full place-items-center rounded-xl bg-[#141c2f] ring-1 ring-white/10 text-slate-400">
+            <div className="grid h-full place-items-center rounded-xl t-surface-elevated ring-1 ring-app text-app-2">
               Вы не составили план в прошлом отчете
             </div>
           )}
@@ -311,7 +311,7 @@ export default function TodayPlan({ items }: { items: PlanItem[] }) {
             </ul>
           </>
         ) : (
-          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 ring-1 ring-white/10 text-slate-400">
+          <div className="grid h-full place-items-center rounded-xl backdrop-blur-sm bg-app-hover border border-app ring-1 ring-app text-app-2">
             {allTasksClosed
               ? 'Все задачи из плана уже завершены — отлично! Составьте новый план в свежем отчете.'
               : reportsData

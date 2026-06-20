@@ -20,14 +20,14 @@ export default function NotesForm({
                                     isImproving = false,
                                   }: NotesFormProps) {
   return (
-    <div className="rounded-2xl t-surface bg-white/10 border border-white/20 text-white p-6 ring-1 ring-white/5">
+    <div className="rounded-2xl t-surface bg-app-hover border border-app text-app p-6 ring-1 ring-app">
       <h2 className="text-3xl font-semibold mb-2">{title}</h2>
-      <p className="text-slate-300 mb-4">{taskLabel}</p>
+      <p className="text-app-2 mb-4">{taskLabel}</p>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full min-h-[220px] rounded-xl t-surface text-slate-100 p-4 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+        className="w-full min-h-[220px] rounded-xl t-surface text-app p-4 ring-1 ring-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
       />
       {onImproveClick && (
         <div className="mt-4 flex items-center justify-end">

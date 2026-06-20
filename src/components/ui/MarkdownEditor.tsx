@@ -114,28 +114,28 @@ export default function MarkdownEditor({
 
   return (
     <div
-      className={`rounded-xl ring-1 overflow-hidden transition-all ${dragOver ? 'ring-emerald-500/60 bg-emerald-500/5' : 'ring-white/10'}`}
+      className={`rounded-xl ring-1 overflow-hidden transition-all ${dragOver ? 'ring-emerald-500/60 bg-emerald-500/5' : 'ring-app'}`}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
     >
       {/* Tab bar + toolbar */}
-      <div className="flex items-center gap-1 bg-white/[0.03] border-b border-white/10 px-2 py-1.5 flex-wrap">
+      <div className="flex items-center gap-1 bg-app-subtle border-b border-app px-2 py-1.5 flex-wrap">
         <button onClick={() => setTab('write')}
-          className={`px-3 py-1 text-sm rounded-lg transition-colors ${tab === 'write' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}>
+          className={`px-3 py-1 text-sm rounded-lg transition-colors ${tab === 'write' ? 'bg-app-hover text-app' : 'text-app-2 hover:text-app'}`}>
           Редактор
         </button>
         <button onClick={() => setTab('preview')}
-          className={`px-3 py-1 text-sm rounded-lg transition-colors ${tab === 'preview' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}>
+          className={`px-3 py-1 text-sm rounded-lg transition-colors ${tab === 'preview' ? 'bg-app-hover text-app' : 'text-app-2 hover:text-app'}`}>
           Предпросмотр
         </button>
 
         {tab === 'write' && (
-          <div className="flex items-center gap-0.5 ml-2 border-l border-white/10 pl-2 flex-wrap">
+          <div className="flex items-center gap-0.5 ml-2 border-l border-app pl-2 flex-wrap">
             {TOOLBAR.map(t => (
               <button key={t.icon} type="button" title={t.title} aria-label={t.title} disabled={disabled}
                 onClick={() => insertAtCursor(t.wrap[0], t.wrap[1])}
-                className="px-1.5 py-1 text-xs text-slate-400 hover:text-white hover:bg-white/5 rounded transition-colors disabled:opacity-40 font-mono">
+                className="px-1.5 py-1 text-xs text-app-2 hover:text-app hover:bg-app-subtle rounded transition-colors disabled:opacity-40 font-mono">
                 {t.icon}
               </button>
             ))}
@@ -148,14 +148,14 @@ export default function MarkdownEditor({
                   className="hidden"
                   onChange={onFileInput}
                 />
-                <div className="w-px h-4 bg-white/10 mx-1" />
+                <div className="w-px h-4 bg-app-hover mx-1" />
                 <button
                   type="button"
                   title="Загрузить изображение"
                   aria-label="Загрузить изображение"
                   disabled={disabled || uploading}
                   onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
-                  className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
+                  className="px-1.5 py-1 text-xs text-app-2 hover:text-emerald-300 hover:bg-app-subtle rounded transition-colors disabled:opacity-40">
                   🖼
                 </button>
                 <button
@@ -164,7 +164,7 @@ export default function MarkdownEditor({
                   aria-label="Загрузить видео"
                   disabled={disabled || uploading}
                   onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
-                  className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
+                  className="px-1.5 py-1 text-xs text-app-2 hover:text-emerald-300 hover:bg-app-subtle rounded transition-colors disabled:opacity-40">
                   🎬
                 </button>
                 <button
@@ -173,7 +173,7 @@ export default function MarkdownEditor({
                   aria-label="Прикрепить файл"
                   disabled={disabled || uploading}
                   onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = ''; fileInputRef.current.click(); } }}
-                  className="px-1.5 py-1 text-xs text-slate-400 hover:text-emerald-300 hover:bg-white/5 rounded transition-colors disabled:opacity-40">
+                  className="px-1.5 py-1 text-xs text-app-2 hover:text-emerald-300 hover:bg-app-subtle rounded transition-colors disabled:opacity-40">
                   📎
                 </button>
               </>
@@ -191,8 +191,8 @@ export default function MarkdownEditor({
           .slice(0, 8);
         if (!filtered.length) return null;
         return (
-          <div className="mx-3 mb-1 rounded-xl border border-white/10 overflow-hidden"
-               style={{ background: 'rgba(10,22,14,0.97)', backdropFilter: 'blur(12px)' }}>
+          <div className="mx-3 mb-1 rounded-xl border border-app overflow-hidden t-surface-elevated"
+               style={{ backdropFilter: 'blur(12px)' }}>
             {filtered.map(item => {
               const icon = { user: '👤', task: '✅', project: '📁', team: '👥' }[item.type];
               const badge = { user: 'text-blue-300', task: 'text-emerald-300', project: 'text-purple-300', team: 'text-orange-300' }[item.type];
@@ -208,9 +208,9 @@ export default function MarkdownEditor({
                     setMentionOpen(false);
                     setTimeout(() => textareaRef.current?.focus(), 0);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors text-left">
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-app-subtle transition-colors text-left">
                   <span className={`text-xs ${badge}`}>{icon} {item.type}</span>
-                  <span className="text-white">{item.label}</span>
+                  <span className="text-app">{item.label}</span>
                 </button>
               );
             })}
@@ -244,7 +244,7 @@ export default function MarkdownEditor({
           placeholder={dragOver ? 'Отпустите файл для загрузки…' : placeholder}
           rows={rows}
           disabled={disabled}
-          className="w-full bg-transparent px-4 py-3 text-slate-200 resize-y focus:outline-none text-sm leading-relaxed font-mono placeholder-slate-600"
+          className="w-full bg-transparent px-4 py-3 text-app resize-y focus:outline-none text-sm leading-relaxed font-mono placeholder-slate-600"
           onPaste={(e) => {
             const file = e.clipboardData.files[0];
             if (file) { e.preventDefault(); void handleUpload(file); }
@@ -255,14 +255,14 @@ export default function MarkdownEditor({
           {value.trim() ? (
             <MarkdownView content={value} />
           ) : (
-            <p className="text-slate-600 italic">Нет содержимого</p>
+            <p className="text-app-3 italic">Нет содержимого</p>
           )}
         </div>
       )}
 
       {/* Hint */}
       {withImages && tab === 'write' && (
-        <div className="px-4 py-1.5 text-xs text-slate-600 border-t border-white/5 flex items-center gap-2 flex-wrap">
+        <div className="px-4 py-1.5 text-xs text-app-3 border-t border-app flex items-center gap-2 flex-wrap">
           <span>Markdown</span>
           <span>·</span>
           <span>Drag&Drop фото / видео / файлов</span>
@@ -419,11 +419,11 @@ export function MarkdownView({ content }: { content: string }) {
         code: ({ children, className }) => {
           const isBlock = className?.includes('language-');
           return isBlock
-            ? <code className={`${className} block bg-white/5 rounded-lg px-3 py-2 text-xs overflow-x-auto`}>{children}</code>
-            : <code className="bg-white/10 rounded px-1 py-0.5 text-xs font-mono text-emerald-300">{children}</code>;
+            ? <code className={`${className} block bg-app-subtle rounded-lg px-3 py-2 text-xs overflow-x-auto`}>{children}</code>
+            : <code className="bg-app-hover rounded px-1 py-0.5 text-xs font-mono text-emerald-300">{children}</code>;
         },
         blockquote: ({ children }) => (
-          <blockquote className="border-l-2 border-emerald-500/50 pl-3 text-slate-400 italic">{children}</blockquote>
+          <blockquote className="border-l-2 border-emerald-500/50 pl-3 text-app-2 italic">{children}</blockquote>
         ),
       }}
     >

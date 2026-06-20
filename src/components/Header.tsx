@@ -146,8 +146,8 @@ export default function Header({ items }: Props) {
             <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd"/>
             </svg>
-            <span className="text-white/50">Поиск</span>
-            <kbd className="rounded border border-white/8 px-1 py-0.5 text-[10px] font-mono text-white/30">⌘K</kbd>
+            <span className="text-app-2">Поиск</span>
+            <kbd className="rounded border border-app px-1 py-0.5 text-[10px] font-mono text-app-3">⌘K</kbd>
           </button>
           <CommandPalette />
 
@@ -164,7 +164,7 @@ export default function Header({ items }: Props) {
                     'px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-150',
                     active
                       ? 'bg-emerald-500/12 text-emerald-300 ring-1 ring-emerald-500/20'
-                      : 'text-white/55 hover:text-white/90 hover:bg-white/5',
+                      : 'text-app-2 hover:text-app hover:bg-app-hover',
                   ].join(' ')}
                 >
                   {label}
@@ -178,34 +178,34 @@ export default function Header({ items }: Props) {
               <button
                 type="button"
                 onClick={() => setProfileOpen(p => !p)}
-                className="flex items-center gap-2 rounded-xl bg-white/5 px-2 py-1.5 ring-1 ring-white/8 transition-all hover:bg-white/9 hover:ring-white/14 focus:outline-none"
+                className="flex items-center gap-2 rounded-xl bg-app-subtle px-2 py-1.5 ring-1 ring-app transition-all hover:bg-app-hover hover:ring-app focus:outline-none"
               >
                 <div className="rounded-full p-[1.5px] bg-gradient-to-br from-emerald-400/70 to-lime-400/70">
                   <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} url={user.avatarUrl} size="sm" />
                 </div>
-                <span className="hidden text-sm font-medium text-white/80 md:inline pr-0.5">
+                <span className="hidden text-sm font-medium text-app-2 md:inline pr-0.5">
                   {formatUserLabel(user)}
                 </span>
-                <svg className={`h-3.5 w-3.5 text-white/30 transition-transform ${profileOpen ? 'rotate-180' : ''}`}
+                <svg className={`h-3.5 w-3.5 text-app-3 transition-transform ${profileOpen ? 'rotate-180' : ''}`}
                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/>
                 </svg>
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl shadow-2xl animate-fade-in-scale ring-1 ring-white/10 backdrop-blur-xl" style={{background:'rgba(10,22,14,0.92)'}}>
-                  <div className="px-4 py-3 border-b border-white/6">
-                    <div className="text-sm font-semibold text-white">{user.firstName} {user.lastName}</div>
+                <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl shadow-2xl animate-fade-in-scale ring-1 ring-app backdrop-blur-xl t-surface-elevated">
+                  <div className="px-4 py-3 border-b border-app">
+                    <div className="text-sm font-semibold text-app">{user.firstName} {user.lastName}</div>
                     <div className="t-caption truncate">{user.email}</div>
                   </div>
                   <div className="p-1.5">
                     <button type="button" onClick={toggleTheme}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/75 transition hover:bg-white/7 hover:text-white">
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-app-2 transition hover:bg-app-hover hover:text-app">
                       <span className="text-base leading-none">{theme === 'light' ? '🌙' : '☀️'}</span>
                       {theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
                     </button>
                     <Link href="/settings" onClick={() => setProfileOpen(false)}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/75 transition hover:bg-white/7 hover:text-white">
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-app-2 transition hover:bg-app-hover hover:text-app">
                       <svg className="h-4 w-4 opacity-60" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -221,7 +221,7 @@ export default function Header({ items }: Props) {
                         Админка
                       </Link>
                     )}
-                    <div className="my-1 h-px bg-white/5" />
+                    <div className="my-1 h-px bg-app-hover" />
                     <button type="button" onClick={() => { setProfileOpen(false); void onLogout(); }}
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-red-300/80 transition hover:bg-red-500/8 hover:text-red-300">
                       <svg className="h-4 w-4 opacity-70" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -239,7 +239,7 @@ export default function Header({ items }: Props) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-200 ring-1 ring-white/10 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-app-subtle text-app-2 ring-1 ring-app transition hover:bg-app-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 lg:hidden"
             aria-expanded={mobileMenuOpen}
             aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
           >
@@ -259,12 +259,12 @@ export default function Header({ items }: Props) {
       {mobileMenuOpen && (
         <div className="mt-3 flex flex-col gap-2 rounded-2xl t-surface-elevated p-3 shadow-2xl animate-fade-in-scale lg:hidden">
           {hasCreds && user && (
-            <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5">
+            <div className="flex items-center gap-3 rounded-xl bg-app-subtle px-3 py-2.5">
               <div className="rounded-full p-[1.5px] bg-gradient-to-br from-emerald-400/70 to-lime-400/70 shrink-0">
                 <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} url={user.avatarUrl} size="md" />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white">{formatUserLabel(user)}</p>
+                <p className="truncate text-sm font-semibold text-app">{formatUserLabel(user)}</p>
                 <p className="truncate t-caption">{user.email}</p>
               </div>
             </div>
@@ -278,7 +278,7 @@ export default function Header({ items }: Props) {
                   'rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                   active
                     ? 'bg-emerald-500/12 text-emerald-300 ring-1 ring-emerald-500/20'
-                    : 'text-white/65 hover:bg-white/5 hover:text-white',
+                    : 'text-app-2 hover:bg-app-hover hover:text-app',
                 ].join(' ')}>
                 {label}
               </Link>

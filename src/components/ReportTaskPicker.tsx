@@ -48,7 +48,7 @@ export default function ReportTaskPicker({
   return (
     <section className="flex flex-col justify-start">
       <h2 className="text-3xl font-semibold tracking-tight mb-2">{title}</h2>
-      {description && <p className="text-slate-300 mb-4">{description}</p>}
+      {description && <p className="text-app-2 mb-4">{description}</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tasks.map((t) => {
@@ -59,8 +59,8 @@ export default function ReportTaskPicker({
               onClick={() => toggleOpen(t.id)}
               className={[
                 'relative overflow-hidden cursor-pointer select-none',
-                'rounded-2xl p-5 ring-1 ring-white/5',
-                't-surface bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors',
+                'rounded-2xl p-5 ring-1 ring-app',
+                't-surface bg-app-hover border border-app text-app hover:bg-app-hover transition-colors',
                 open ? 'ring-2 ring-emerald-500/40' : '',
               ].join(' ')}
             >
@@ -75,7 +75,7 @@ export default function ReportTaskPicker({
               />
               <div className="relative z-[1]">
                 <div className="text-xl font-semibold">{t.title}</div>
-                <div className="text-slate-300 mt-1">{t.subtitle}</div>
+                <div className="text-app-2 mt-1">{t.subtitle}</div>
 
                 <div
                   data-open={open}
@@ -101,7 +101,7 @@ export default function ReportTaskPicker({
                             'rounded-lg px-4 py-2 transition-colors cursor-pointer select-none',
                             isPicked
                               ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black border border-cyan-400'
-                              : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
+                              : 'bg-app-subtle text-app-2 ring-app hover:bg-app-hover',
                           ].join(' ')}
                         >
                           {s.title}

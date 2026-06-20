@@ -35,7 +35,7 @@ export default function AdminLayout({
     <Providers>
       <AuthGate>
         <AdminGuard>
-          <div className="flex h-full min-h-0 w-full flex-col gap-6 px-4 py-6 text-white sm:px-6 lg:px-10 overflow-hidden">
+          <div className="flex h-full min-h-0 w-full flex-col gap-6 px-4 py-6 text-app sm:px-6 lg:px-10 overflow-hidden">
             <Header items={admin_nav}/>
             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">{children}</div>
           </div>

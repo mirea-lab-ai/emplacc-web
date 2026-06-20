@@ -33,7 +33,7 @@ export default function ProjectsBoardList({
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold">Доски проекта</h3>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-app-2">
             {boards?.length ? `${boards.length} шт.` : ''}
           </span>
         </div>
@@ -48,11 +48,11 @@ export default function ProjectsBoardList({
       </div>
 
       {isLoading ? (
-        <div className="text-slate-400 text-sm">Загрузка досок…</div>
+        <div className="text-app-2 text-sm">Загрузка досок…</div>
       ) : error ? (
         <div className="text-red-400 text-sm">Не удалось загрузить доски</div>
       ) : !boards || boards.length === 0 ? (
-        <div className="text-slate-400 text-sm">Для проекта ещё нет досок</div>
+        <div className="text-app-2 text-sm">Для проекта ещё нет досок</div>
       ) : (
         <ul className="space-y-2">
           {boards.map((board) => {
@@ -62,10 +62,10 @@ export default function ProjectsBoardList({
                 <button
                   onClick={() => onSelect(board.id)}
                   className={[
-                    'w-full rounded-xl px-4 py-2 text-left transition-colors ring-1 ring-white/10',
+                    'w-full rounded-xl px-4 py-2 text-left transition-colors ring-1 ring-app',
                     active
                       ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black font-semibold'
-                      : 't-surface hover:bg-white/10 text-slate-200',
+                      : 't-surface hover:bg-app-hover text-app-2',
                   ].join(' ')}
                 >
                   <div className="flex items-center justify-between gap-3">

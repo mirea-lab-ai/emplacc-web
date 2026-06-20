@@ -196,7 +196,7 @@ function ForumContent() {
       <aside className={`${activeProblemId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 shrink-0 flex-col gap-3 overflow-hidden min-h-0`}>
         {/* Header */}
         <div className="flex items-center justify-between gap-2">
-          <h1 className="t-heading text-white">Форум</h1>
+          <h1 className="t-heading text-app">Форум</h1>
           {canWrite && (
             <button
               onClick={() => setShowCreate(true)}
@@ -239,12 +239,12 @@ function ForumContent() {
                         'w-full text-left rounded-xl px-3 py-2.5 transition-all duration-150 pr-16',
                         active
                           ? 'bg-gradient-to-r from-emerald-600/80 to-lime-500/80 text-white shadow-lg shadow-emerald-900/20'
-                          : 't-surface-hover hover:ring-1 hover:ring-white/10 text-slate-300 hover:text-white',
+                          : 't-surface-hover hover:ring-1 hover:ring-app text-app-2 hover:text-app',
                       ].join(' ')}
                     >
                       <div className="font-medium text-sm truncate">{problem.name}</div>
                       {problem.description && (
-                        <div className={`text-xs mt-0.5 truncate ${active ? 'text-white/70' : 'text-slate-500'}`}>
+                        <div className={`text-xs mt-0.5 truncate ${active ? 'text-white/70' : 'text-app-3'}`}>
                           {problem.description}
                         </div>
                       )}
@@ -255,7 +255,7 @@ function ForumContent() {
                       {canWrite && (
                         <button
                           onClick={e => { e.stopPropagation(); setEditProblem(problem); }}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-app-2 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
                           title="Редактировать"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ function ForumContent() {
                         <button
                           onClick={e => { e.stopPropagation(); setDeleteModal({ open: true, problemId: problem.id, problemName: problem.name }); }}
                           disabled={isDeleting}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                          className="p-1.5 rounded-lg text-app-2 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
                           title="Удалить"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -294,13 +294,13 @@ function ForumContent() {
                 <div className="t-surface rounded-2xl px-5 py-3 flex items-center gap-3">
                   <button
                     onClick={() => setActiveProblemId('')}
-                    className="lg:hidden shrink-0 rounded-lg p-1.5 text-slate-300 hover:bg-white/8 hover:text-white transition-colors"
+                    className="lg:hidden shrink-0 rounded-lg p-1.5 text-app-2 hover:bg-app-hover hover:text-app transition-colors"
                     aria-label="Назад к списку"
                   >
                     ←
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-white truncate">{activeProblem.name}</div>
+                    <div className="font-semibold text-app truncate">{activeProblem.name}</div>
                     {activeProblem.description && (
                       <div className="t-caption truncate mt-0.5">{activeProblem.description}</div>
                     )}
@@ -337,7 +337,7 @@ function ForumContent() {
           <Panel className="h-full grid place-items-center">
             <div className="text-center space-y-3">
               <div className="text-4xl">💬</div>
-              <div className="t-title text-white">Выберите проблему</div>
+              <div className="t-title text-app">Выберите проблему</div>
               <div className="t-body">Выберите тему из списка слева чтобы начать обсуждение</div>
             </div>
           </Panel>

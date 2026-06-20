@@ -34,13 +34,13 @@ export default function DeleteProjectModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="p-6 bg-slate-900 rounded-xl border border-slate-700">
-        <h2 className="text-2xl font-semibold text-white mb-4">
+      <div className="p-6 t-surface-elevated rounded-xl border border-app">
+        <h2 className="text-2xl font-semibold text-app mb-4">
           Закрыть проект
         </h2>
-        
-        <p className="text-slate-300 mb-6">
-          Вы уверены, что хотите закрыть проект <strong className="text-white">"{projectName}"</strong>?
+
+        <p className="text-app-2 mb-6">
+          Вы уверены, что хотите закрыть проект <strong className="text-app">"{projectName}"</strong>?
           <br />
           <span className="text-red-400 text-sm mt-2 block">
             Это действие нельзя отменить. Все данные проекта будут удалены.
@@ -51,7 +51,7 @@ export default function DeleteProjectModal({
           <button
             onClick={onClose}
             disabled={isDeleting || isLoading}
-            className="px-4 py-2 rounded-lg bg-slate-600 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-secondary px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Отмена
           </button>

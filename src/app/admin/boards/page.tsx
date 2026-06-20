@@ -94,7 +94,7 @@ export default function AdminBoardsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="t-heading text-white">Доски и статусы</h1>
+        <h1 className="t-heading text-app">Доски и статусы</h1>
         <p className="t-body mt-1">Управление досками проектов и их колонками-статусами</p>
       </div>
 
@@ -110,7 +110,7 @@ export default function AdminBoardsPage() {
                 const id = String(p.id);
                 return (
                   <button key={id} onClick={() => { setProjectId(id); setBoardId(null); }}
-                    className={`w-full text-left rounded-xl px-3 py-2 text-sm transition-colors ${projectId === id ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30 text-white' : 'text-white/80 hover:bg-white/5'}`}>
+                    className={`w-full text-left rounded-xl px-3 py-2 text-sm transition-colors ${projectId === id ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30 text-white' : 'text-app-2 hover:bg-app-hover'}`}>
                     {projName(p)}
                   </button>
                 );
@@ -135,10 +135,10 @@ export default function AdminBoardsPage() {
                 {boardsLoading ? <div className="t-body px-1 py-2">Загрузка…</div>
                   : boards.length === 0 ? <div className="t-caption px-1 py-2">Нет досок</div>
                   : boards.map(b => (
-                    <div key={b.id} className={`flex items-center gap-1 rounded-xl pl-3 pr-1 py-1.5 transition-colors ${boardId === b.id ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30' : 'hover:bg-white/5'}`}>
-                      <button onClick={() => setBoardId(b.id)} className="flex-1 min-w-0 text-left text-sm text-white/90 truncate">{b.name}</button>
+                    <div key={b.id} className={`flex items-center gap-1 rounded-xl pl-3 pr-1 py-1.5 transition-colors ${boardId === b.id ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30' : 'hover:bg-app-hover'}`}>
+                      <button onClick={() => setBoardId(b.id)} className="flex-1 min-w-0 text-left text-sm text-app truncate">{b.name}</button>
                       <button onClick={() => handleDeleteBoard(b.id, b.name)} aria-label="Удалить доску"
-                        className="shrink-0 text-slate-500 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-2 py-0.5 transition-colors">✕</button>
+                        className="shrink-0 text-app-3 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-2 py-0.5 transition-colors">✕</button>
                     </div>
                   ))}
               </div>
@@ -164,7 +164,7 @@ export default function AdminBoardsPage() {
                   <div className="flex items-center gap-1.5">
                     {STATUS_COLORS.map(c => (
                       <button key={c} onClick={() => setNewStatusColor(c)} aria-label={`Цвет ${c}`}
-                        className={`h-5 w-5 rounded-full transition-transform ${newStatusColor === c ? 'ring-2 ring-white scale-110' : 'ring-1 ring-white/20'}`}
+                        className={`h-5 w-5 rounded-full transition-transform ${newStatusColor === c ? 'ring-2 ring-white scale-110' : 'ring-1 ring-app'}`}
                         style={{ background: c }} />
                     ))}
                   </div>
@@ -178,15 +178,15 @@ export default function AdminBoardsPage() {
                 {statusLoading ? <div className="t-body px-1 py-2">Загрузка…</div>
                   : statuses.length === 0 ? <div className="t-caption px-1 py-2">Нет статусов</div>
                   : statuses.map(s => (
-                    <div key={s.id} className="flex items-center gap-2 rounded-xl pl-3 pr-1 py-1.5 hover:bg-white/5 transition-colors">
+                    <div key={s.id} className="flex items-center gap-2 rounded-xl pl-3 pr-1 py-1.5 hover:bg-app-hover transition-colors">
                       <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: s.color || '#64748b' }} />
-                      <span className="flex-1 min-w-0 text-sm text-white/90 truncate">{s.name}</span>
-                      {s.isOpen === false && <span className="shrink-0 rounded-md bg-white/8 text-slate-400 text-[10px] px-1.5 py-0.5">closed</span>}
+                      <span className="flex-1 min-w-0 text-sm text-app truncate">{s.name}</span>
+                      {s.isOpen === false && <span className="shrink-0 rounded-md bg-app-hover text-app-2 text-[10px] px-1.5 py-0.5">closed</span>}
                       {typeof s.tasks?.length === 'number' && s.tasks.length > 0 && (
                         <span className="shrink-0 t-caption">{s.tasks.length}</span>
                       )}
                       <button onClick={() => handleDeleteStatus(s.id, s.name)} aria-label="Удалить статус"
-                        className="shrink-0 text-slate-500 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-2 py-0.5 transition-colors">✕</button>
+                        className="shrink-0 text-app-3 hover:text-red-300 hover:bg-red-500/10 rounded-lg px-2 py-0.5 transition-colors">✕</button>
                     </div>
                   ))}
               </div>

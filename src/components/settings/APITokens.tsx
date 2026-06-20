@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { fetchTokens, createToken, revokeToken, type TokenInfo, type CreatedToken } from '@/features/tokens/api';
 import { useToast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { formatDate } from '@/lib/date';
 
 const MCP_URL = 'https://emplacc.g-309.ru/mcp';
 
@@ -62,7 +63,7 @@ function MCPGuide({ token }: { token: string }) {
   return (
     <div className="t-surface rounded-2xl p-5 space-y-4">
       <div>
-        <h4 className="font-semibold text-white">Подключение MCP к агентам</h4>
+        <h4 className="font-semibold text-app">Подключение MCP к агентам</h4>
         <p className="t-caption mt-0.5">Добавьте конфиг в нужный файл и перезапустите агента</p>
       </div>
 
@@ -72,8 +73,8 @@ function MCPGuide({ token }: { token: string }) {
           <button key={a.id} onClick={() => setActiveAgent(a.id)}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors
               ${activeAgent === a.id
-                ? 'bg-white/10 text-white ring-1 ring-white/20'
-                : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}>
+                ? 'bg-app-hover text-app ring-1 ring-app'
+                : 'text-app-2 hover:text-app-2 hover:bg-app-subtle'}`}>
             <span>{a.icon}</span>{a.label}
           </button>
         ))}
@@ -109,7 +110,7 @@ const EXPIRY_OPTIONS = [
 
 function fmtDate(iso?: string) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return formatDate(iso);
 }
 
 export default function APITokens() {
@@ -167,7 +168,7 @@ export default function APITokens() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="t-title text-white">API-токены</h3>
+          <h3 className="t-title text-app">API-токены</h3>
           <p className="t-body mt-0.5">Используйте для MCP-сервера и других интеграций</p>
         </div>
         <button onClick={() => setShowCreate(v => !v)} className="btn-primary text-sm py-2 px-4">
@@ -178,7 +179,7 @@ export default function APITokens() {
       {/* Create form */}
       {showCreate && (
         <div className="t-surface-elevated rounded-2xl p-5 space-y-4 animate-fade-in">
-          <h4 className="font-semibold text-white">Новый токен</h4>
+          <h4 className="font-semibold text-app">Новый токен</h4>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className="t-label mb-1.5 block">Название</label>
@@ -210,7 +211,7 @@ export default function APITokens() {
           <div className="flex items-start gap-2">
             <span className="text-emerald-400 text-xl">✓</span>
             <div>
-              <div className="font-semibold text-white">Токен создан — сохраните его сейчас</div>
+              <div className="font-semibold text-app">Токен создан — сохраните его сейчас</div>
               <div className="t-body mt-0.5">После закрытия токен больше не будет показан.</div>
             </div>
           </div>
@@ -232,7 +233,7 @@ export default function APITokens() {
       {loading ? (
         <div className="t-body py-4">Загрузка…</div>
       ) : tokens.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 px-6 py-8 text-center">
+        <div className="rounded-2xl border border-dashed border-app px-6 py-8 text-center">
           <div className="text-3xl mb-2">🔑</div>
           <div className="t-body">Нет активных токенов</div>
         </div>
@@ -241,7 +242,7 @@ export default function APITokens() {
           {tokens.map(t => (
             <div key={t.id} className="stat-card flex items-center gap-4">
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-white truncate">{t.name}</div>
+                <div className="font-medium text-app truncate">{t.name}</div>
                 <div className="t-caption mt-0.5">
                   Создан {fmtDate(t.created_at)}
                   {t.last_used_at && ` · Последнее использование ${fmtDate(t.last_used_at)}`}

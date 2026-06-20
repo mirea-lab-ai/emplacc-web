@@ -15,6 +15,7 @@ import {
   denyApprovalRequest,
   type ConveyorApprovalRequest,
 } from '@/features/conveyor/api';
+import { formatDateTime } from '@/lib/date';
 
 function newKey() {
   try { return crypto.randomUUID(); } catch { return `k-${Date.now()}-${Math.round(Math.random() * 1e6)}`; }
@@ -22,8 +23,7 @@ function newKey() {
 
 function fmt(iso?: string) {
   if (!iso) return '';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return formatDateTime(iso);
 }
 
 const STATE_COLORS: Record<string, string> = {
@@ -49,8 +49,8 @@ function Section({ title, count, children }: { title: string; count: number; chi
   return (
     <div className="t-surface rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="t-title text-white">{title}</h3>
-        <span className="rounded-full bg-white/8 text-slate-400 text-xs px-2 py-0.5">{count}</span>
+        <h3 className="t-title text-app">{title}</h3>
+        <span className="rounded-full bg-app-hover text-app-2 text-xs px-2 py-0.5">{count}</span>
       </div>
       {count === 0 ? <div className="t-caption">Нет данных</div> : children}
     </div>
@@ -110,10 +110,10 @@ function Inspector({ taskId }: { taskId: string }) {
           {approvalList.map(a => {
             const isPending = (a.status ?? '').toLowerCase() === 'pending';
             return (
-              <div key={a.id} className="flex items-center gap-3 rounded-xl bg-white/[0.03] ring-1 ring-white/8 px-3 py-2">
+              <div key={a.id} className="flex items-center gap-3 rounded-xl bg-app-subtle ring-1 ring-app px-3 py-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white truncate">{a.action ?? 'approval'}</span>
+                    <span className="text-sm text-app truncate">{a.action ?? 'approval'}</span>
                     <Badge value={a.status} />
                     {a.risk_level && <span className="t-caption">риск: {a.risk_level}</span>}
                   </div>
@@ -138,8 +138,8 @@ function Inspector({ taskId }: { taskId: string }) {
         <Section title="Критерии приёмки" count={data?.criteria.length ?? 0}>
           <div className="space-y-1.5">
             {data?.criteria.map(c => (
-              <div key={c.id} className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 bg-white/[0.02]">
-                <span className="text-sm text-white/90 truncate">{c.title ?? c.id}{c.required ? ' *' : ''}</span>
+              <div key={c.id} className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 bg-app-subtle">
+                <span className="text-sm text-app truncate">{c.title ?? c.id}{c.required ? ' *' : ''}</span>
                 <Badge value={c.state} />
               </div>
             ))}
@@ -150,8 +150,8 @@ function Inspector({ taskId }: { taskId: string }) {
         <Section title="Evidence" count={data?.evidence.length ?? 0}>
           <div className="space-y-1.5">
             {data?.evidence.map(ev => (
-              <div key={ev.id} className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 bg-white/[0.02]">
-                <span className="text-sm text-white/90 truncate">{ev.title || ev.type || ev.id}</span>
+              <div key={ev.id} className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 bg-app-subtle">
+                <span className="text-sm text-app truncate">{ev.title || ev.type || ev.id}</span>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Badge value={ev.verdict} />
                   {ev.revoked_at && <Badge value="revoked" />}
@@ -165,9 +165,9 @@ function Inspector({ taskId }: { taskId: string }) {
         <Section title="Запуски агентов" count={data?.agentRuns.length ?? 0}>
           <div className="space-y-1.5">
             {data?.agentRuns.map(r => (
-              <div key={r.id} className="rounded-lg px-2.5 py-1.5 bg-white/[0.02]">
+              <div key={r.id} className="rounded-lg px-2.5 py-1.5 bg-app-subtle">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-white/90 truncate">{r.harness || r.source || r.id}</span>
+                  <span className="text-sm text-app truncate">{r.harness || r.source || r.id}</span>
                   <Badge value={r.status} />
                 </div>
                 {r.summary && <div className="t-caption truncate">{r.summary}</div>}
@@ -180,9 +180,9 @@ function Inspector({ taskId }: { taskId: string }) {
         <Section title="Лог событий" count={data?.events.length ?? 0}>
           <div className="space-y-1 max-h-72 overflow-y-auto custom-scroll">
             {data?.events.map(e => (
-              <div key={e.id} className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 bg-white/[0.02]">
-                <span className="text-[11px] text-slate-500 shrink-0 w-24">{fmt(e.created_at)}</span>
-                <span className="text-sm text-white/80 truncate">{e.event_type || e.type || '—'}{e.summary ? ` · ${e.summary}` : ''}</span>
+              <div key={e.id} className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 bg-app-subtle">
+                <span className="text-[11px] text-app-3 shrink-0 w-24">{fmt(e.created_at)}</span>
+                <span className="text-sm text-app-2 truncate">{e.event_type || e.type || '—'}{e.summary ? ` · ${e.summary}` : ''}</span>
               </div>
             ))}
           </div>
@@ -230,8 +230,8 @@ function PendingApprovalsQueue({ onInspect }: { onInspect: (workItemId: string) 
   return (
     <div className="t-surface rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <h2 className="t-title text-white">Очередь одобрений</h2>
-        <span className={`rounded-full text-xs px-2 py-0.5 ${items.length ? 'bg-amber-500/15 text-amber-300' : 'bg-white/8 text-slate-400'}`}>
+        <h2 className="t-title text-app">Очередь одобрений</h2>
+        <span className={`rounded-full text-xs px-2 py-0.5 ${items.length ? 'bg-amber-500/15 text-amber-300' : 'bg-app-hover text-app-2'}`}>
           {queue.isLoading ? '…' : items.length}
         </span>
         <button onClick={refetch} className="ml-auto t-caption hover:text-emerald-300">Обновить</button>
@@ -248,7 +248,7 @@ function PendingApprovalsQueue({ onInspect }: { onInspect: (workItemId: string) 
             <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-500/[0.06] ring-1 ring-amber-500/15 px-3 py-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-white truncate">{a.action ?? 'approval'}</span>
+                  <span className="text-sm text-app truncate">{a.action ?? 'approval'}</span>
                   {a.risk_level && <span className="t-caption">риск: {a.risk_level}</span>}
                 </div>
                 {a.reason && <div className="t-caption truncate">{a.reason}</div>}
@@ -256,7 +256,7 @@ function PendingApprovalsQueue({ onInspect }: { onInspect: (workItemId: string) 
               <div className="flex shrink-0 gap-1">
                 {a.work_item_id && (
                   <button onClick={() => onInspect(a.work_item_id!)}
-                    className="rounded-lg px-3 py-1.5 text-xs text-slate-300 bg-white/5 hover:bg-white/10 transition-colors">Инспектировать</button>
+                    className="rounded-lg px-3 py-1.5 text-xs text-app-2 bg-app-subtle hover:bg-app-hover transition-colors">Инспектировать</button>
                 )}
                 <button onClick={() => grant.mutate(a.id)} disabled={grant.isPending}
                   className="rounded-lg px-3 py-1.5 text-xs text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 disabled:opacity-50 transition-colors">Одобрить</button>
@@ -291,7 +291,7 @@ export default function AdminConveyorPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="t-heading text-white">Конвейер</h1>
+        <h1 className="t-heading text-app">Конвейер</h1>
         <p className="t-body mt-1">Инспекция приёмочного конвейера задачи: одобрения, критерии, evidence, agent-runs, лог</p>
       </div>
 
@@ -309,8 +309,8 @@ export default function AdminConveyorPage() {
             <div className="space-y-1">
               {filtered.map(t => (
                 <button key={t.id} onClick={() => setSelected(t.id)}
-                  className={`w-full text-left rounded-xl px-3 py-2 transition-colors ${selected === t.id ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30' : 'hover:bg-white/5'}`}>
-                  <div className="text-sm text-white truncate">{t.title || 'Без названия'}</div>
+                  className={`w-full text-left rounded-xl px-3 py-2 transition-colors ${selected === t.id ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30' : 'hover:bg-app-hover'}`}>
+                  <div className="text-sm text-app truncate">{t.title || 'Без названия'}</div>
                   {t.projectName && <div className="t-caption truncate">{t.projectName}</div>}
                 </button>
               ))}
@@ -323,13 +323,13 @@ export default function AdminConveyorPage() {
           {selected ? (
             <div className="space-y-3">
               <div className="t-surface rounded-2xl px-4 py-3">
-                <div className="font-semibold text-white truncate">{selectedTask?.title}</div>
+                <div className="font-semibold text-app truncate">{selectedTask?.title}</div>
                 <div className="t-caption">ID: {selected}</div>
               </div>
               <Inspector taskId={selected} />
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center">
+            <div className="rounded-2xl border border-dashed border-app px-6 py-16 text-center">
               <div className="text-3xl mb-2">🛠</div>
               <div className="t-body">Выберите задачу, чтобы посмотреть её конвейер</div>
             </div>

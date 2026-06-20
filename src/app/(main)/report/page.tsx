@@ -62,26 +62,26 @@ const MARKDOWN_REMARK_PLUGINS = [remarkGfm];
 
 const markdownComponents: Components = {
   p: ({ children }) => (
-    <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-100 last:mb-0 first:mt-0">
+    <p className="whitespace-pre-wrap text-sm leading-relaxed text-app last:mb-0 first:mt-0">
       {children}
     </p>
   ),
   ul: ({ children }) => (
-    <ul className="ml-4 list-disc space-y-1 text-sm leading-relaxed text-slate-100">{children}</ul>
+    <ul className="ml-4 list-disc space-y-1 text-sm leading-relaxed text-app">{children}</ul>
   ),
   ol: ({ children }) => (
-    <ol className="ml-4 list-decimal space-y-1 text-sm leading-relaxed text-slate-100">{children}</ol>
+    <ol className="ml-4 list-decimal space-y-1 text-sm leading-relaxed text-app">{children}</ol>
   ),
   li: ({ children }) => (
-    <li className="whitespace-pre-wrap text-sm leading-relaxed text-slate-100">{children}</li>
+    <li className="whitespace-pre-wrap text-sm leading-relaxed text-app">{children}</li>
   ),
-  strong: ({ children }) => <strong className="font-semibold text-slate-50">{children}</strong>,
-  em: ({ children }) => <em className="italic text-slate-200">{children}</em>,
+  strong: ({ children }) => <strong className="font-semibold text-app">{children}</strong>,
+  em: ({ children }) => <em className="italic text-app-2">{children}</em>,
   code: ({ children }) => (
     <code className="rounded bg-black/40 px-1 py-0.5 text-xs text-emerald-200">{children}</code>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="border-l-2 border-emerald-400/70 pl-3 italic text-slate-200">
+    <blockquote className="border-l-2 border-emerald-400/70 pl-3 italic text-app-2">
       {children}
     </blockquote>
   ),
@@ -425,7 +425,7 @@ export default function ReportsPage() {
     .join(' ');
 
   return (
-    <main className="overflow-y-auto h-full text-white">
+    <main className="overflow-y-auto h-full text-app">
       {showWizard ? (
         <ReportWizardView
           onClose={handleWizardClose}
@@ -439,7 +439,7 @@ export default function ReportsPage() {
           <Panel className={headerPanelClasses}>
             <div>
               <h1 className="text-2xl font-semibold">Отчёты команды</h1>
-              <p className="text-sm text-slate-300">Просматривайте ежедневные отчёты сотрудников и переходите к деталям одним кликом.</p>
+              <p className="text-sm text-app-2">Просматривайте ежедневные отчёты сотрудников и переходите к деталям одним кликом.</p>
             </div>
             {!isGuest && (
               <button
@@ -454,11 +454,11 @@ export default function ReportsPage() {
 
           {!hasCreds ? (
             <Panel className="p-6">
-              <div className="text-slate-300">Чтобы просматривать отчёты, войдите в систему.</div>
+              <div className="text-app-2">Чтобы просматривать отчёты, войдите в систему.</div>
             </Panel>
           ) : isLoading ? (
             <Panel className="p-6">
-              <div className="text-slate-300">Загрузка отчётов…</div>
+              <div className="text-app-2">Загрузка отчётов…</div>
             </Panel>
           ) : error ? (
             <Panel className="p-6">
@@ -466,14 +466,14 @@ export default function ReportsPage() {
             </Panel>
           ) : groups.length === 0 ? (
             <Panel className="p-6">
-              <div className="text-slate-300">Отчётов пока нет.</div>
+              <div className="text-app-2">Отчётов пока нет.</div>
             </Panel>
           ) : (
             groups.map((group) => (
               <Panel key={group.key} className="space-y-4 p-6">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-xl font-semibold">{group.label}</h2>
-                  <span className="text-sm text-slate-400">Отчётов: {group.reports.length}</span>
+                  <span className="text-sm text-app-2">Отчётов: {group.reports.length}</span>
                 </div>
                 <div className="grid gap-3">
                   {group.reports.map((report) => (
@@ -481,7 +481,7 @@ export default function ReportsPage() {
                       key={report.id}
                       type="button"
                       onClick={() => setSelectedReport(report)}
-                      className="flex w-full flex-col gap-2 rounded-2xl bg-white/5 p-4 text-left ring-1 ring-white/10 transition hover:bg-white/10"
+                      className="flex w-full flex-col gap-2 rounded-2xl bg-app-subtle p-4 text-left ring-1 ring-app transition hover:bg-app-hover"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar
@@ -492,10 +492,10 @@ export default function ReportsPage() {
                           size="sm"
                         />
                         <div className="min-w-0">
-                          <div className="truncate text-base font-semibold text-white">{report.user.name}</div>
+                          <div className="truncate text-base font-semibold text-app">{report.user.name}</div>
                         </div>
                       </div>
-                      <div className="text-sm text-slate-200">
+                      <div className="text-sm text-app-2">
                         <span className="mr-4">Выполнено: <span className="font-semibold">{report.completedWork.length}</span></span>
                         <span className="mr-4">План: <span className="font-semibold">{report.tomorrowPlans.length}</span></span>
                         <span className="mr-4">Помощь: <span className="font-semibold">{report.helpRequests.length}</span></span>
@@ -514,16 +514,16 @@ export default function ReportsPage() {
                 type="button"
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={page <= 1}
-                className="rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-app px-4 py-2 text-sm text-app transition hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Предыдущая страница
               </button>
-              <div className="text-sm text-slate-300">Страница {page} из {totalPages}</div>
+              <div className="text-sm text-app-2">Страница {page} из {totalPages}</div>
               <button
                 type="button"
                 onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={page >= totalPages}
-                className="rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-app px-4 py-2 text-sm text-app transition hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Следующая страница
               </button>
@@ -1133,8 +1133,8 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
     const aiWriting = typingState?.key === key;
     const generating = improvingKey === key;
     const cardClass = [
-      'rounded-2xl bg-white/5 transition-shadow ring-1',
-      error ? 'border border-rose-500/60 ring-rose-500/40 hover:ring-rose-400/40' : 'border border-white/10 ring-transparent hover:ring-emerald-500/30',
+      'rounded-2xl bg-app-subtle transition-shadow ring-1',
+      error ? 'border border-rose-500/60 ring-rose-500/40 hover:ring-rose-400/40' : 'border border-app ring-transparent hover:ring-emerald-500/30',
     ].join(' ');
 
     return (
@@ -1145,9 +1145,9 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
           className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
           aria-expanded={expanded}
         >
-          <span className="font-semibold text-base text-white truncate">{details.title}</span>
+          <span className="font-semibold text-base text-app truncate">{details.title}</span>
           <svg
-            className={`h-5 w-5 text-slate-300 transition-transform ${expanded ? 'rotate-180' : ''}`}
+            className={`h-5 w-5 text-app-2 transition-transform ${expanded ? 'rotate-180' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -1157,25 +1157,25 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
         </button>
 
         {expanded && (
-          <div className="border-t border-white/10 px-4 py-4 space-y-4">
+          <div className="border-t border-app px-4 py-4 space-y-4">
             {details.loading && (
-              <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs text-slate-300">
+              <div className="rounded-xl border border-app bg-app-hover px-3 py-2 text-xs text-app-2">
                 Загрузка информации о задаче…
               </div>
             )}
 
-            <div className="grid gap-3 text-sm text-slate-300 md:grid-cols-2">
+            <div className="grid gap-3 text-sm text-app-2 md:grid-cols-2">
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500">Проект</span>
-                <span className="mt-1 text-slate-200">{details.projectName}</span>
+                <span className="text-xs uppercase tracking-wide text-app-3">Проект</span>
+                <span className="mt-1 text-app-2">{details.projectName}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500">Доска</span>
-                <span className="mt-1 text-slate-200">{details.boardName}</span>
+                <span className="text-xs uppercase tracking-wide text-app-3">Доска</span>
+                <span className="mt-1 text-app-2">{details.boardName}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500">Статус</span>
-                <span className="mt-1 inline-flex items-center gap-2 text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-app-3">Статус</span>
+                <span className="mt-1 inline-flex items-center gap-2 text-app-2">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: details.statusColor ?? '#34d399' }}
@@ -1184,50 +1184,50 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500">Срочность</span>
+                <span className="text-xs uppercase tracking-wide text-app-3">Срочность</span>
                 <span className={`mt-1 inline-flex w-max items-center rounded-lg px-2 py-0.5 text-xs font-semibold ring-1 ${priorityMeta.badgeClass}`}>
                   {priorityMeta.label}
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500">Исполнитель</span>
-                <span className="mt-1 text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-app-3">Исполнитель</span>
+                <span className="mt-1 text-app-2">
                   {assigneeLabel}
-                  {assigneeEmail ? <span className="ml-2 text-xs text-slate-400">{assigneeEmail}</span> : null}
+                  {assigneeEmail ? <span className="ml-2 text-xs text-app-3">{assigneeEmail}</span> : null}
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500">Создатель</span>
-                <span className="mt-1 text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-app-3">Создатель</span>
+                <span className="mt-1 text-app-2">
                   {details.creatorName ?? 'Не указан'}
-                  {details.creatorEmail ? <span className="ml-2 text-xs text-slate-400">{details.creatorEmail}</span> : null}
+                  {details.creatorEmail ? <span className="ml-2 text-xs text-app-3">{details.creatorEmail}</span> : null}
                 </span>
               </div>
             </div>
 
-            <div className="text-sm text-slate-300">
-              <span className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Описание задачи</span>
-              <p className="whitespace-pre-wrap text-slate-200">
+            <div className="text-sm text-app-2">
+              <span className="block text-xs uppercase tracking-wide text-app-3 mb-1">Описание задачи</span>
+              <p className="whitespace-pre-wrap text-app-2">
                 {details.description?.trim() ? details.description : 'Описание отсутствует'}
               </p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs uppercase tracking-wide text-slate-500">
+              <label className="block text-xs uppercase tracking-wide text-app-3">
                 {mode === 'done' ? 'Комментарий к выполненной работе*' : 'Комментарий к плану'}
               </label>
               <textarea
                 value={note}
                 onChange={(event) => handleNoteChange(mode, key, event.target.value)}
                 placeholder={mode === 'done' ? 'Опишите, что было сделано сегодня…' : 'Что планируете сделать в следующий рабочий день…'}
-                className="w-full min-h-[96px] rounded-xl bg-black/20 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y"
+                className="w-full min-h-[96px] rounded-xl bg-app-subtle px-4 py-3 text-sm text-app ring-1 ring-app focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y"
               />
               {error ? (
                 <div className="text-xs text-rose-300">{error}</div>
               ) : null}
               <div className="flex justify-end">
                 <span
-                  className={`text-xs ${note.length >= MAX_TASK_NOTE_LENGTH ? 'text-rose-300' : 'text-slate-400'}`}
+                  className={`text-xs ${note.length >= MAX_TASK_NOTE_LENGTH ? 'text-rose-300' : 'text-app-3'}`}
                 >
                   {note.length}/{MAX_TASK_NOTE_LENGTH}
                 </span>
@@ -1262,7 +1262,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
                   <button
                     type="button"
                     onClick={() => handleRemoveTask(mode, key)}
-                    className="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 hover:border-rose-400/40 hover:text-rose-200"
+                    className="rounded-lg border border-app px-3 py-2 text-sm text-app-2 hover:border-rose-400/40 hover:text-rose-200"
                   >
                     Удалить
                   </button>
@@ -1285,20 +1285,20 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
 
   if (!hasCreds) {
     return (
-      <div className="mx-auto max-w-4xl p-6 text-slate-300">
+      <div className="mx-auto max-w-4xl p-6 text-app-2">
         Для создания отчёта необходимо авторизоваться.
       </div>
     );
   }
 
   return (
-    <div className="overflow-y-auto h-full text-white">
+    <div className="overflow-y-auto h-full text-app">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10"
+            className="rounded-xl border border-app px-4 py-2 text-sm text-app transition hover:bg-app-hover"
           >
             Назад к списку отчётов
           </button>
@@ -1322,7 +1322,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold">Сделано сегодня</h2>
-              <p className="text-sm text-slate-300">Выберите задачи и опишите, что было выполнено.</p>
+              <p className="text-sm text-app-2">Выберите задачи и опишите, что было выполнено.</p>
             </div>
             <button
               type="button"
@@ -1334,7 +1334,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
           </div>
 
           {doneTaskKeys.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
+            <div className="rounded-xl border border-dashed border-app bg-app-subtle px-4 py-6 text-sm text-app-3">
               Пока ничего не добавлено. Нажмите «Добавить задачи», чтобы начать.
             </div>
           ) : (
@@ -1348,7 +1348,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold">План на завтра</h2>
-              <p className="text-sm text-slate-300">Укажите задачи, на которых сосредоточитесь в следующий рабочий день.</p>
+              <p className="text-sm text-app-2">Укажите задачи, на которых сосредоточитесь в следующий рабочий день.</p>
             </div>
             <button
               type="button"
@@ -1360,7 +1360,7 @@ function ReportWizardView({ onClose, onCreated }: ReportWizardViewProps) {
           </div>
 
           {planTaskKeys.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
+            <div className="rounded-xl border border-dashed border-app bg-app-subtle px-4 py-6 text-sm text-app-3">
               Запланируйте задачи, чтобы держать команду в курсе ваших планов.
             </div>
           ) : (
@@ -1456,7 +1456,7 @@ function TaskPickerModal({ mode, open, initialSelected, onClose, onSubmit, onTas
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="max-h-[80vh] overflow-hidden rounded-2xl border border-white/15 bg-[#03150f] p-6 text-white shadow-2xl">
+      <div className="max-h-[80vh] overflow-hidden rounded-2xl border border-app p-6 text-app shadow-2xl t-surface-elevated">
         <div className="max-h-[64vh] overflow-y-auto pr-2 custom-scroll">
           <ReportProjectPicker
             selected={selected}
@@ -1472,7 +1472,7 @@ function TaskPickerModal({ mode, open, initialSelected, onClose, onSubmit, onTas
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-white/20 px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
+            className="rounded-lg border border-app px-4 py-2 text-sm text-app-2 hover:bg-app-hover"
           >
             Отмена
           </button>
@@ -1582,7 +1582,7 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
   const renderTaskMeta = (taskId?: string) => {
     if (!taskId) {
       return (
-        <div className="mt-2 text-xs text-slate-400">
+        <div className="mt-2 text-xs text-app-3">
           Задача не указана
         </div>
       );
@@ -1590,7 +1590,7 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
     const info = taskInfo[taskId];
     if (!info) {
       return (
-        <div className="mt-2 text-xs text-slate-400">
+        <div className="mt-2 text-xs text-app-3">
           Загрузка информации о задаче: {taskId}
         </div>
       );
@@ -1606,11 +1606,11 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
   return (
     <Modal open onClose={onClose}>
       <div className="w-full max-w-3xl">
-        <div className="max-h-[85vh] space-y-6 overflow-y-auto rounded-2xl bg-emerald-950/95 p-6 text-white">
+        <div className="max-h-[85vh] space-y-6 overflow-y-auto rounded-2xl p-6 text-app t-surface-elevated">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-xl font-semibold">{report.user.name}</div>
-              <div className="text-sm text-slate-300">
+              <div className="text-sm text-app-2">
                 {report.reportDate ? formatReportDate(report.reportDate) : formatDateTime(report.createdAt)}
               </div>
             </div>
@@ -1655,7 +1655,7 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
                 {report.helpRequests.map((item, index) => (
                   <li key={item.id ?? item.helperId ?? index} className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
                     <MarkdownBlock content={safeMarkdown(item.description)} />
-                    <div className="mt-2 text-xs text-slate-300">Статус: {item.status || 'pending'}</div>
+                    <div className="mt-2 text-xs text-app-2">Статус: {item.status || 'pending'}</div>
                   </li>
                 ))}
               </ul>
@@ -1667,7 +1667,7 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
               <ul className="space-y-3">
                 {report.problems.map((item, index) => (
                   <li key={item.id ?? index} className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
-                    <div className="text-sm font-semibold text-slate-100">{item.name || 'Без названия'}</div>
+                    <div className="text-sm font-semibold text-app">{item.name || 'Без названия'}</div>
                     <div className="mt-2">
                       <MarkdownBlock content={item.description.length > 0 ? item.description.join('\n') : '_Описание отсутствует_'} />
                     </div>
@@ -1681,7 +1681,7 @@ function ReportDetailsModal({ report, onClose }: ReportDetailsModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10"
+              className="rounded-lg border border-app px-4 py-2 text-sm text-app transition hover:bg-app-hover"
             >
               Закрыть
             </button>
@@ -1697,7 +1697,7 @@ function ReportDetailSection({ title, emptyLabel, children }: { title: string; e
   return (
     <section className="space-y-2">
       <h3 className="text-lg font-semibold">{title}</h3>
-      {hasContent ? children : <div className="text-sm text-slate-300">{emptyLabel}</div>}
+      {hasContent ? children : <div className="text-sm text-app-2">{emptyLabel}</div>}
     </section>
   );
 }

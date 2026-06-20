@@ -57,8 +57,7 @@ function TaskCard({
       onClick={onToggle}
       className={[
         'relative overflow-hidden cursor-pointer select-none',
-        'rounded-2xl p-5 ring-1 ring-white/5',
-        'bg-[#141c2f] hover:bg-[#16213a] transition-colors',
+        'rounded-2xl p-5 ring-1 ring-app t-surface t-surface-hover transition-colors',
         open ? 'ring-2 ring-indigo-500/40' : '',
       ].join(' ')}
     >
@@ -74,7 +73,7 @@ function TaskCard({
 
       <div className="relative z-[1]">
         <div className="text-xl font-semibold">{task.title}</div>
-        <div className="text-slate-300 mt-1">{task.subtitle}</div>
+        <div className="text-app-2 mt-1">{task.subtitle}</div>
 
         <div
           data-open={open}
@@ -99,7 +98,7 @@ function TaskCard({
                     'rounded-lg px-4 py-2 ring-1 transition-colors cursor-pointer select-none',
                     isSelected
                       ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/50'
-                      : 'bg-black/20 text-slate-200 ring-white/10 hover:bg-black/30',
+                      : 'bg-app-subtle text-app ring-app hover:bg-app-hover',
                   ].join(' ')}
                 >
                   {s.title}

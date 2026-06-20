@@ -12,12 +12,12 @@ export default function SelectedChip({ emp, onRemove }:{ emp: Employee; onRemove
     };
 
     return (
-        <div className="group flex items-center gap-2 shrink-0 rounded-full bg-white/10 px-2 py-1 ring-1 ring-white/15">
+        <div className="group flex items-center gap-2 shrink-0 rounded-full bg-app-hover px-2 py-1 ring-1 ring-app">
             <Avatar name={emp.name} url={emp.avatarUrl} email={emp.email} fallbackKey={emp.id} size="sm" />
-            <span className="text-slate-100 text-sm">{emp.name}</span>
+            <span className="text-app text-sm">{emp.name}</span>
             <button
                 onClick={handleRemove}
-                className="ml-1 opacity-100 transition text-slate-300 hover:text-red-300 relative z-10 p-1 rounded hover:bg-red-500/20"
+                className="ml-1 opacity-100 transition text-app-2 hover:text-red-300 relative z-10 p-1 rounded hover:bg-red-500/20"
                 title="Убрать" 
                 aria-label="Убрать"
                 type="button"

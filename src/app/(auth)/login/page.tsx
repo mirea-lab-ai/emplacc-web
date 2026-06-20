@@ -30,11 +30,11 @@ export default function LoginPage() {
         {/* Main content — vertically centred */}
         <div className="relative z-10 flex-1 flex flex-col justify-center space-y-10 max-w-xl">
           <div>
-            <h1 className="t-display text-white mb-5 leading-[1.08]">
+            <h1 className="t-display text-app mb-5 leading-[1.08]">
               Всё рабочее —<br />
               <span className="t-accent-text">в одном месте</span>
             </h1>
-            <p className="text-white/50 text-lg leading-relaxed max-w-md">
+            <p className="text-app-2 text-lg leading-relaxed max-w-md">
               Управляйте командами, проектами и отчётами без хаоса в мессенджерах.
             </p>
           </div>
@@ -43,7 +43,7 @@ export default function LoginPage() {
             {FEATURES.map(f => (
               <div key={f.title} className="stat-card">
                 <div className="text-xl mb-2">{f.icon}</div>
-                <div className="font-semibold text-white/90 text-sm">{f.title}</div>
+                <div className="font-semibold text-app text-sm">{f.title}</div>
                 <div className="t-caption mt-0.5">{f.desc}</div>
               </div>
             ))}
@@ -59,7 +59,7 @@ export default function LoginPage() {
       {/* ── Right panel — Login ── */}
       <div className="flex-1 h-full flex items-center justify-center p-6 lg:p-12 relative">
         {/* Subtle separator */}
-        <div className="hidden lg:block absolute left-0 top-8 bottom-8 w-px bg-white/6" />
+        <div className="hidden lg:block absolute left-0 top-8 bottom-8 w-px bg-app-hover" />
 
         <div className="w-full max-w-[340px] space-y-7">
           {/* Mobile logo */}
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
           <div className="t-surface-elevated rounded-2xl p-8 space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-white">Добро пожаловать</h2>
+              <h2 className="text-xl font-semibold text-app">Добро пожаловать</h2>
               <p className="t-body mt-1">Войдите через корпоративный аккаунт</p>
             </div>
             <div className="t-divider" />

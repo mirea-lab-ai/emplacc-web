@@ -256,17 +256,16 @@ export default function ChatWindow({
   })[t];
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden"
-         style={{ background: 'rgba(5,14,8,0.95)' }}
+    <div className="t-surface flex h-full w-full flex-col overflow-hidden"
          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
          onDragLeave={() => setDragOver(false)}
          onDrop={onDrop}>
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/6 shrink-0"
-           style={{ background: 'rgba(10,22,14,0.92)', backdropFilter: 'blur(12px)' }}>
+      <div className="t-surface-elevated flex items-center gap-3 px-4 py-3 border-b border-app shrink-0"
+           style={{ backdropFilter: 'blur(12px)' }}>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-white truncate">{taskTitle}</div>
+          <div className="font-semibold text-app truncate">{taskTitle}</div>
           <div className="text-xs text-emerald-400/70 mt-0.5">
             {isLoading ? 'загрузка…' : `${messages.length} ${plural(messages.length, 'сообщение', 'сообщения', 'сообщений')}`}
           </div>
@@ -288,7 +287,7 @@ export default function ChatWindow({
         {!isLoading && !error && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3 opacity-50">
             <div className="text-4xl">💬</div>
-            <div className="text-sm text-slate-400">Начните обсуждение!</div>
+            <div className="text-sm text-app-2">Начните обсуждение!</div>
           </div>
         )}
         {grouped.map(m => (
@@ -318,19 +317,18 @@ export default function ChatWindow({
 
       {/* File/image previews */}
       {previews.length > 0 && (
-        <div className="flex gap-2 px-4 py-2 border-t border-white/6 overflow-x-auto shrink-0"
-             style={{ background: 'rgba(10,22,14,0.9)' }}>
+        <div className="t-surface-elevated flex gap-2 px-4 py-2 border-t border-app overflow-x-auto shrink-0">
           {previews.map((p, i) => (
             <div key={i} className="relative shrink-0 group">
               {p.type === 'image' ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.url} alt="" className="h-16 w-16 object-cover rounded-xl ring-1 ring-white/10"/>
+                <img src={p.url} alt="" className="h-16 w-16 object-cover rounded-xl ring-1 ring-app"/>
               ) : p.type === 'video' ? (
-                <div className="h-16 w-24 rounded-xl ring-1 ring-white/10 bg-black/40 grid place-items-center text-2xl">🎬</div>
+                <div className="h-16 w-24 rounded-xl ring-1 ring-app bg-black/40 grid place-items-center text-2xl">🎬</div>
               ) : (
-                <div className="h-16 w-24 rounded-xl ring-1 ring-white/10 bg-white/5 flex flex-col items-center justify-center gap-1 px-2">
+                <div className="h-16 w-24 rounded-xl ring-1 ring-app bg-app-subtle flex flex-col items-center justify-center gap-1 px-2">
                   <span className="text-xl">{fileIcon(p.file.type)}</span>
-                  <span className="text-[10px] text-slate-400 truncate max-w-full">{p.file.name}</span>
+                  <span className="text-[10px] text-app-2 truncate max-w-full">{p.file.name}</span>
                 </div>
               )}
               <button onClick={() => removePreview(i)}
@@ -342,65 +340,63 @@ export default function ChatWindow({
 
       {/* Reply banner */}
       {replyTo && (
-        <div className="flex items-center gap-2 px-4 py-2 border-t border-white/6 shrink-0" style={{ background: 'rgba(10,22,14,0.9)' }}>
+        <div className="t-surface-elevated flex items-center gap-2 px-4 py-2 border-t border-app shrink-0">
           <div className="w-0.5 h-8 rounded-full bg-emerald-400/60 shrink-0"/>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-emerald-300 font-medium">{replyTo.authorName}</div>
-            <div className="text-xs text-slate-400 truncate">{replyTo.text}</div>
+            <div className="text-xs text-app-2 truncate">{replyTo.text}</div>
           </div>
-          <button onClick={() => setReplyTo(null)} className="text-slate-500 hover:text-white shrink-0">✕</button>
+          <button onClick={() => setReplyTo(null)} className="text-app-3 hover:text-app shrink-0">✕</button>
         </div>
       )}
 
       {/* Mention autocomplete */}
       {mentionOpen && filteredMentions.length > 0 && (
-        <div className="mx-4 mb-1 rounded-xl border border-white/10 overflow-hidden shrink-0"
-             style={{ background: 'rgba(10,22,14,0.97)', backdropFilter: 'blur(12px)' }}>
+        <div className="t-surface-elevated mx-4 mb-1 rounded-xl border border-app overflow-hidden shrink-0"
+             style={{ backdropFilter: 'blur(12px)' }}>
           {filteredMentions.map(item => (
             <button key={item.id} onClick={() => insertMention(item)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors text-left">
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-app-hover transition-colors text-left">
               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${mentionTypeBadge(item.type)}`}>
                 {mentionTypeIcon(item.type)} {item.type}
               </span>
-              <span className="text-white">{item.label}</span>
+              <span className="text-app">{item.label}</span>
             </button>
           ))}
         </div>
       )}
       {mentionOpen && filteredMentions.length === 0 && mentionQuery && (
-        <div className="mx-4 mb-1 px-3 py-2 rounded-xl border border-white/10 text-xs text-slate-500 shrink-0"
-             style={{ background: 'rgba(10,22,14,0.97)' }}>
+        <div className="t-surface-elevated mx-4 mb-1 px-3 py-2 rounded-xl border border-app text-xs text-app-3 shrink-0">
           Ничего не найдено по «{mentionQuery}»
         </div>
       )}
 
       {/* Composer */}
-      <div className="px-4 py-3 border-t border-white/6 shrink-0 flex items-end gap-2"
-           style={{ background: 'rgba(10,22,14,0.92)', backdropFilter: 'blur(12px)' }}>
+      <div className="t-surface-elevated px-4 py-3 border-t border-app shrink-0 flex items-end gap-2"
+           style={{ backdropFilter: 'blur(12px)' }}>
         <input ref={fileInputRef} type="file"
                multiple className="hidden"
                onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }}/>
 
         <button onClick={() => fileInputRef.current?.click()} title="Прикрепить"
-          className="text-slate-500 hover:text-emerald-400 transition-colors pb-1 shrink-0">
+          className="text-app-3 hover:text-emerald-400 transition-colors pb-1 shrink-0">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
           </svg>
         </button>
 
-        <div className="flex-1 flex items-end gap-2 rounded-2xl ring-1 ring-white/8 px-3 py-2"
-             style={{ background: 'rgba(255,255,255,0.05)' }}>
+        <div className="bg-app-subtle flex-1 flex items-end gap-2 rounded-2xl ring-1 ring-app px-3 py-2">
           <textarea ref={textareaRef} rows={1} value={draft}
             onChange={handleDraftChange} onKeyDown={onKey} onPaste={onPaste}
             placeholder="Сообщение… (@человек, #задача, #проект, #команда)"
-            className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 resize-none focus:outline-none text-sm leading-relaxed min-h-[24px] max-h-40"
+            className="flex-1 bg-transparent text-app placeholder:text-app-3 resize-none focus:outline-none text-sm leading-relaxed min-h-[24px] max-h-40"
             style={{ height: '24px' }}/>
         </div>
 
         <button onClick={() => void send()} disabled={!hasContent || isSending || uploading}
-          className="h-10 w-10 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 disabled:scale-90 press"
-          style={{ background: hasContent ? 'linear-gradient(135deg,#10b981,#84cc16)' : 'rgba(255,255,255,0.08)' }}>
-          <svg className={`w-4 h-4 transition-transform ${hasContent ? '-rotate-45 text-black' : 'text-slate-500'}`}
+          className={`h-10 w-10 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 disabled:scale-90 press ${hasContent ? '' : 'bg-app-hover'}`}
+          style={{ background: hasContent ? 'linear-gradient(135deg,#10b981,#84cc16)' : undefined }}>
+          <svg className={`w-4 h-4 transition-transform ${hasContent ? '-rotate-45 text-black' : 'text-app-3'}`}
                fill="currentColor" viewBox="0 0 20 20">
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
           </svg>
@@ -493,30 +489,30 @@ function Bubble({
 
         {/* Reply preview */}
         {(msg.replyTo || msg.replyToId) && (
-          <div className={`flex items-start gap-1.5 mb-1 px-3 py-1.5 rounded-xl text-xs opacity-70 ${isSelf ? 'self-end' : 'self-start'}`}
-               style={{ background: 'rgba(255,255,255,0.05)', maxWidth: '100%' }}>
+          <div className={`bg-app-subtle flex items-start gap-1.5 mb-1 px-3 py-1.5 rounded-xl text-xs opacity-70 ${isSelf ? 'self-end' : 'self-start'}`}
+               style={{ maxWidth: '100%' }}>
             <div className="w-0.5 rounded-full bg-emerald-400/50 shrink-0 self-stretch min-h-[16px]"/>
             <div className="min-w-0">
               {msg.replyTo?.text ? (
                 <>
                   <span className="font-medium text-emerald-300">{msg.replyTo.authorName}</span>
-                  <p className="truncate text-slate-400">{msg.replyTo.text}</p>
+                  <p className="truncate text-app-2">{msg.replyTo.text}</p>
                 </>
               ) : (
-                <p className="italic text-slate-500">🗑 сообщение удалено</p>
+                <p className="italic text-app-3">🗑 сообщение удалено</p>
               )}
             </div>
           </div>
         )}
 
-        <div className="relative px-3 py-2 text-sm"
+        <div className={`relative px-3 py-2 text-sm ${isSelf ? '' : 't-surface-elevated border border-app'}`}
              style={{
                borderRadius: br,
                background: isSelf
                  ? 'linear-gradient(135deg, rgba(16,185,129,0.55), rgba(132,204,22,0.45))'
-                 : 'rgba(255,255,255,0.08)',
+                 : undefined,
                backdropFilter: 'blur(8px)',
-               border: '1px solid rgba(255,255,255,0.06)',
+               ...(isSelf ? { border: '1px solid rgba(255,255,255,0.06)' } : {}),
              }}>
           {isLastInGroup && <Tail isSelf={isSelf}/>}
 
@@ -536,7 +532,7 @@ function Bubble({
               </div>
             </div>
           ) : (
-            <div className="prose prose-invert prose-sm max-w-none text-white/90">
+            <div className={`prose prose-invert prose-sm max-w-none ${isSelf ? 'text-white/90' : 'text-app'}`}>
               <MarkdownView content={renderMentions(msg.text)}/>
             </div>
           )}
@@ -561,7 +557,7 @@ function ActionBtn({ children, title, onClick, danger = false }: {
 }) {
   return (
     <button title={title} onClick={e => { e.stopPropagation(); onClick(); }}
-      className={`p-1.5 rounded-lg transition-colors ${danger ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-500 hover:text-white hover:bg-white/10'}`}>
+      className={`p-1.5 rounded-lg transition-colors ${danger ? 'text-app-3 hover:text-red-400 hover:bg-red-500/10' : 'text-app-3 hover:text-app hover:bg-app-hover'}`}>
       {children}
     </button>
   );
@@ -574,7 +570,7 @@ function Tail({ isSelf }: { isSelf: boolean }) {
          style={{ [isSelf ? 'right' : 'left']: '-7px' }}>
       {isSelf
         ? <path d="M8 0 Q8 10 0 13 Q4 8 5 0 Z" fill="rgba(16,185,129,0.45)"/>
-        : <path d="M0 0 Q0 10 8 13 Q4 8 3 0 Z" fill="rgba(255,255,255,0.08)"/>}
+        : <path d="M0 0 Q0 10 8 13 Q4 8 3 0 Z" fill="var(--surface-elevated)"/>}
     </svg>
   );
 }

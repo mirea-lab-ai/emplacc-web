@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { formatDate } from '@/lib/date';
 
 type Props = {
   value?: string;        // ISO date string or empty
@@ -18,7 +19,7 @@ function formatDisplay(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return formatDate(iso);
 }
 
 function isoToDate(iso?: string): Date | null {
@@ -128,7 +129,7 @@ export default function DatePicker({ value, onChange, disabled, className, place
         type="button"
         disabled={disabled}
         onClick={() => setOpen(v => !v)}
-        className={`flex items-center gap-1.5 text-xs transition-colors disabled:opacity-50 ${className ?? ''} ${!display ? 'text-slate-500 italic' : ''}`}
+        className={`flex items-center gap-1.5 text-xs transition-colors disabled:opacity-50 ${className ?? ''} ${!display ? 'text-app-3 italic' : ''}`}
       >
         {display || placeholder}
         <svg className="w-3 h-3 opacity-50 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -140,18 +141,18 @@ export default function DatePicker({ value, onChange, disabled, className, place
       {open && typeof document !== 'undefined' && createPortal(
         <div
           ref={dropdownRef}
-          className="rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
-          style={{ ...dropdownStyle, background: 'rgba(10,18,12,0.97)', backdropFilter: 'blur(16px)' }}
+          className="t-surface-elevated rounded-2xl shadow-2xl border border-app overflow-hidden"
+          style={{ ...dropdownStyle, backdropFilter: 'blur(16px)' }}
         >
           {/* Header: month navigation */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
-            <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-app">
+            <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-app-hover transition-colors text-app-2 hover:text-app">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <span className="text-sm font-semibold text-white">
+            <span className="text-sm font-semibold text-app">
               {MONTHS_RU[viewMonth]} {viewYear}
             </span>
-            <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white">
+            <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-app-hover transition-colors text-app-2 hover:text-app">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </button>
           </div>
@@ -159,7 +160,7 @@ export default function DatePicker({ value, onChange, disabled, className, place
           {/* Day headers */}
           <div className="grid grid-cols-7 px-3 pt-2">
             {DAYS_RU.map(d => (
-              <div key={d} className="text-center text-[10px] font-semibold text-slate-500 py-1">{d}</div>
+              <div key={d} className="text-center text-[10px] font-semibold text-app-3 py-1">{d}</div>
             ))}
           </div>
 
@@ -175,8 +176,8 @@ export default function DatePicker({ value, onChange, disabled, className, place
                     'text-xs h-8 w-8 mx-auto flex items-center justify-center rounded-lg transition-all font-medium',
                     isSel     ? 'bg-emerald-500 text-black font-bold scale-105 shadow-lg shadow-emerald-500/30' :
                     isToday   ? 'ring-1 ring-emerald-500/60 text-emerald-300 hover:bg-emerald-500/20' :
-                    isCurrent ? 'text-slate-200 hover:bg-white/10' :
-                                'text-slate-600 hover:bg-white/5',
+                    isCurrent ? 'text-app hover:bg-app-hover' :
+                                'text-app-3 hover:bg-app-subtle',
                   ].join(' ')}>
                   {cell.date.getDate()}
                 </button>
@@ -185,9 +186,9 @@ export default function DatePicker({ value, onChange, disabled, className, place
           </div>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/8">
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-app">
             <button type="button" onClick={() => { onChange(undefined); setOpen(false); }}
-              className="text-xs text-slate-500 hover:text-red-400 transition-colors">
+              className="text-xs text-app-3 hover:text-red-400 transition-colors">
               Очистить
             </button>
             <button type="button" onClick={() => selectDay(today)}

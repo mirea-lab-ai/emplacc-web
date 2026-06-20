@@ -19,7 +19,7 @@ export function ButtonGhost({
                                 children, onClick,
                             }: { children: React.ReactNode; onClick: () => void }) {
     return (
-        <button onClick={onClick} className="rounded-lg px-4 py-2 text-slate-300 hover:text-white">
+        <button onClick={onClick} className="rounded-lg px-4 py-2 text-app-2 hover:text-app">
             {children}
         </button>
     );

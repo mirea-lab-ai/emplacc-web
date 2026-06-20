@@ -43,7 +43,7 @@ function NavButton({
       className={[
         'w-full text-left rounded-xl px-4 py-2 transition-colors',
         disabled ? 'opacity-50 cursor-not-allowed' : '',
-        active ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black font-semibold' : 'font-semibold text-slate-300 hover:text-white',
+        active ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black font-semibold' : 'font-semibold text-app-2 hover:text-app',
       ].join(' ')}
     >
       {label}

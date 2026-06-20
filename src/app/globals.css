@@ -17,6 +17,7 @@
   --surface-border-hover: rgba(255,255,255,0.14);
   --surface-grad-2: rgba(255,255,255,0.015);
   --hover-bg:       rgba(255,255,255,0.06);
+  --bg-subtle:      rgba(255,255,255,0.04);
   --input-bg:       rgba(255,255,255,0.05);
   --input-bg-focus: rgba(255,255,255,0.07);
   --input-border:   rgba(255,255,255,0.10);
@@ -61,6 +62,7 @@
   --surface-border-hover: rgba(16,40,30,0.22);
   --surface-grad-2: rgba(255,255,255,0.55);
   --hover-bg:       rgba(16,40,30,0.06);
+  --bg-subtle:      rgba(16,40,30,0.04);
   --input-bg:       #ffffff;
   --input-bg-focus: #ffffff;
   --input-border:   rgba(16,40,30,0.18);
@@ -155,6 +157,15 @@ body {
 .t-body     { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
 .t-caption  { font-size: 0.75rem;  color: var(--text-muted);     letter-spacing: 0.03em; }
 .t-label    { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+
+/* ── Theme-aware utilities (заменяют инлайновые text-white / bg-white/* для поддержки светлой темы) ── */
+.text-app   { color: var(--text-primary); }
+.text-app-2 { color: var(--text-secondary); }
+.text-app-3 { color: var(--text-muted); }
+.bg-app-subtle { background-color: var(--bg-subtle); }
+.bg-app-hover  { background-color: var(--hover-bg); }
+.border-app { border-color: var(--surface-border); }
+.ring-app   { --tw-ring-color: var(--surface-border); }
 
 /* ── Buttons ── */
 .btn-primary {

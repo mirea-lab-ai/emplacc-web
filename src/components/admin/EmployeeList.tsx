@@ -73,8 +73,8 @@ function EmployeeCard({
       onClick={onToggle}
       className={[
         'relative overflow-hidden cursor-pointer select-none',
-        'rounded-2xl p-5 ring-1 ring-white/5',
-        'bg-[#141c2f] hover:bg-[#16213a] transition-colors',
+        'rounded-2xl p-5 ring-1 ring-app',
+        't-surface t-surface-hover transition-colors',
         open ? 'ring-2 ring-indigo-500/40' : '',
       ].join(' ')}
     >
@@ -95,7 +95,7 @@ function EmployeeCard({
           </div>
           <div>
             <div className="text-xl font-semibold">{employee.name}</div>
-            <div className="text-slate-300 mt-0.5">{employee.role}</div>
+            <div className="text-app-2 mt-0.5">{employee.role}</div>
           </div>
         </div>
 
@@ -110,7 +110,7 @@ function EmployeeCard({
           onClick={(e) => e.stopPropagation()} // клики внутри не сворачивают карточку
         >
           {employee.reports.length === 0 ? (
-            <div className="rounded-lg bg-black/20 px-4 py-3 text-slate-400 ring-1 ring-white/10">
+            <div className="rounded-lg bg-app-subtle px-4 py-3 text-app-2 ring-1 ring-app">
               Нет отчётов
             </div>
           ) : (
@@ -149,7 +149,7 @@ function ReportItem({
     <li
       className={[
         'rounded-xl ring-1 transition-colors',
-        'bg-black/20 ring-white/10 hover:bg-black/30',
+        'bg-app-subtle ring-app hover:bg-app-hover',
       ].join(' ')}
     >
       <button
@@ -157,8 +157,8 @@ function ReportItem({
         className="w-full text-left px-4 py-3"
         aria-expanded={open}
       >
-        <div className="font-medium text-slate-100">{report.taskTitle}</div>
-        <div className="text-slate-400 text-sm mt-0.5">
+        <div className="font-medium text-app">{report.taskTitle}</div>
+        <div className="text-app-2 text-sm mt-0.5">
           Нажмите, чтобы посмотреть кратко
         </div>
       </button>
@@ -171,7 +171,7 @@ function ReportItem({
           'data-[open=true]:max-h-72 data-[open=true]:opacity-100 data-[open=true]:translate-y-0',
         ].join(' ')}
       >
-        <div className="px-4 pb-4 pt-1 text-slate-200">
+        <div className="px-4 pb-4 pt-1 text-app">
           <p className="mb-3">{preview}</p>
 
           {report.href ? (

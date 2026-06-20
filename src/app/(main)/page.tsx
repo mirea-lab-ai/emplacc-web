@@ -33,7 +33,7 @@ function StatCard({ label, value, sub, accent = false, href }: {
   const inner = (
     <div className={`stat-card h-full ${accent ? 't-surface-accent' : ''} ${href ? 'cursor-pointer t-surface-hover' : ''}`}>
       <div className="t-label mb-2">{label}</div>
-      <div className={`text-3xl font-bold tracking-tight ${accent ? 'text-emerald-300' : 'text-white'}`}>{value}</div>
+      <div className={`text-3xl font-bold tracking-tight ${accent ? 'text-emerald-300' : 'text-app'}`}>{value}</div>
       {sub && <div className="t-caption mt-1">{sub}</div>}
     </div>
   );
@@ -86,7 +86,7 @@ export default function Home() {
                 <div className="t-label mb-1 text-emerald-400/70">
                   {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </div>
-                <h1 className="t-heading text-white">
+                <h1 className="t-heading text-app">
                   {firstName ? `${greeting()}, ${firstName} 👋` : `${greeting()} 👋`}
                 </h1>
               </div>
@@ -134,7 +134,7 @@ function GuestBanner() {
   return (
     <div className="t-surface-accent rounded-2xl px-6 py-5">
       <div className="t-label mb-1 text-emerald-400/70">Гостевой доступ</div>
-      <h2 className="t-title text-white">Добро пожаловать в Emplacc</h2>
+      <h2 className="t-title text-app">Добро пожаловать в Emplacc</h2>
       <p className="t-body mt-1">У вас доступ только для чтения. Обратитесь к администратору для расширения прав.</p>
     </div>
   );

@@ -60,13 +60,13 @@ export default function RolesPage() {
 
       <Panel className="p-6">
         {isLoading && (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y border-app">
             {Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
           </div>
         )}
         {isError   && <div className="text-red-400 py-6 text-center">Не удалось загрузить роли</div>}
         {!isLoading && !isError && roles.length === 0 && (
-          <div className="text-slate-400 py-6 text-center">Роли не созданы</div>
+          <div className="text-app-2 py-6 text-center">Роли не созданы</div>
         )}
         <div className="space-y-3 list-appear">
           {roles.map(role => {
@@ -75,14 +75,14 @@ export default function RolesPage() {
               <div key={role.id} className="t-surface rounded-xl flex items-center gap-4 px-5 py-4">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold">{role.name}</div>
-                  {role.description && <div className="text-sm text-slate-400 mt-0.5">{role.description}</div>}
+                  {role.description && <div className="text-sm text-app-2 mt-0.5">{role.description}</div>}
                 </div>
-                {isProtected && <span className="text-xs text-slate-500 italic">системная</span>}
+                {isProtected && <span className="text-xs text-app-3 italic">системная</span>}
                 <button
                   onClick={() => handleDelete(role.id, role.name)}
                   disabled={deleteId === role.id || isProtected}
                   title={isProtected ? 'Системную роль нельзя удалить' : 'Удалить'}
-                  className="rounded-lg p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  className="rounded-lg p-1.5 text-app-3 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:pointer-events-none"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-2 6a1 1 0 112 0v4a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v4a1 1 0 11-2 0V8z" clipRule="evenodd"/>
@@ -97,20 +97,20 @@ export default function RolesPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
           onClick={e => e.target === e.currentTarget && setShowCreate(false)}>
-          <div className="t-surface w-full max-w-md rounded-2xl p-6 ring-1 ring-white/10">
+          <div className="t-surface w-full max-w-md rounded-2xl p-6 ring-1 ring-app">
             <h2 className="text-xl font-semibold mb-5">Создать роль</h2>
             <label className="grid gap-2 mb-4">
-              <span className="text-slate-200 text-sm">Название *</span>
+              <span className="text-app-2 text-sm">Название *</span>
               <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Например, teamlead"
-                className="h-11 w-full rounded-xl bg-white/5 px-4 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-emerald-500/50"/>
+                className="h-11 w-full rounded-xl bg-app-subtle px-4 text-app ring-1 ring-app focus:outline-none focus:ring-emerald-500/50"/>
             </label>
             <label className="grid gap-2 mb-6">
-              <span className="text-slate-200 text-sm">Описание</span>
+              <span className="text-app-2 text-sm">Описание</span>
               <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Краткое описание"
-                className="h-11 w-full rounded-xl bg-white/5 px-4 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-emerald-500/50"/>
+                className="h-11 w-full rounded-xl bg-app-subtle px-4 text-app ring-1 ring-app focus:outline-none focus:ring-emerald-500/50"/>
             </label>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowCreate(false)} className="rounded-lg px-4 py-2 text-slate-300 hover:text-white">Отмена</button>
+              <button onClick={() => setShowCreate(false)} className="rounded-lg px-4 py-2 text-app-2 hover:text-app">Отмена</button>
               <button onClick={handleCreate} disabled={!newName.trim() || creating}
                 className="rounded-lg bg-gradient-to-r from-emerald-600 to-lime-500 px-5 py-2 font-semibold text-black hover:brightness-110 disabled:opacity-60">
                 {creating ? 'Создаём…' : 'Создать'}

@@ -43,22 +43,22 @@ export default function CreateBoardModal({ projectId, onClose }: Props) {
             className="fixed inset-0 z-50 grid place-items-center bg-black/50 backdrop-blur-sm"
             onClick={onClose}
         >
-            <div 
-                className="w-full max-w-md rounded-xl border border-white/20 bg-[#0a1f16] p-6 shadow-2xl"
+            <div
+                className="w-full max-w-md rounded-xl border border-app t-surface-elevated p-6 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h2 className="mb-4 text-xl font-semibold text-white">Создать доску</h2>
-                
+                <h2 className="mb-4 text-xl font-semibold text-app">Создать доску</h2>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="mb-1 block text-sm text-slate-300">
+                        <label className="mb-1 block text-sm text-app-2">
                             Название доски*
                         </label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                            className="w-full rounded-lg border border-app bg-app-subtle px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                             placeholder="Введите название"
                             required
                             autoFocus
@@ -66,13 +66,13 @@ export default function CreateBoardModal({ projectId, onClose }: Props) {
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm text-slate-300">
+                        <label className="mb-1 block text-sm text-app-2">
                             Описание
                         </label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none resize-none"
+                            className="w-full rounded-lg border border-app bg-app-subtle px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:outline-none resize-none"
                             placeholder="Опишите цель доски"
                             rows={3}
                         />
@@ -83,7 +83,7 @@ export default function CreateBoardModal({ projectId, onClose }: Props) {
                             type="button"
                             onClick={onClose}
                             disabled={isPending}
-                            className="flex-1 rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                            className="flex-1 rounded-lg border border-app px-4 py-2 text-app hover:bg-app-hover transition-colors disabled:opacity-50"
                         >
                             Отмена
                         </button>

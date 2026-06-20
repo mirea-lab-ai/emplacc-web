@@ -48,20 +48,20 @@ export default function CreateTaskModal({
       className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-lg rounded-2xl bg-[#111829] p-6 ring-1 ring-white/10">
-        <h2 className="text-xl font-semibold mb-4">Создать задачу</h2>
+      <div className="w-full max-w-lg rounded-2xl t-surface-elevated p-6 ring-1 ring-app">
+        <h2 className="text-xl font-semibold mb-4 text-app">Создать задачу</h2>
 
         <label className="grid gap-2 mb-4">
-          <span className="text-slate-200">Название задачи</span>
+          <span className="text-app-2">Название задачи</span>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Например, Design System"
-            className="h-12 w-full rounded-xl bg-[#141c2f] px-4 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="h-12 w-full rounded-xl t-input px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
           />
         </label>
 
-        <div className="mb-2 text-slate-200">Подзадачи (необязательно)</div>
+        <div className="mb-2 text-app-2">Подзадачи (необязательно)</div>
         <div className="space-y-2">
           {subs.map((s, i) => (
             <div key={i} className="flex gap-2">
@@ -69,7 +69,7 @@ export default function CreateTaskModal({
                 value={s}
                 onChange={(e) => setSub(i, e.target.value)}
                 placeholder={`Подзадача ${i + 1}`}
-                className="h-10 w-full rounded-xl bg-[#141c2f] px-3 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                className="h-10 w-full rounded-xl t-input px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
               />
               <button
                 onClick={() => removeSub(i)}
@@ -94,7 +94,7 @@ export default function CreateTaskModal({
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-slate-300 hover:text-white"
+            className="rounded-lg px-4 py-2 text-app-2 hover:text-app"
           >
             Отмена
           </button>

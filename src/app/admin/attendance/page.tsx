@@ -7,6 +7,7 @@ import { useAllReports } from '@/features/reports/hooks';
 import { useAllAttendances } from '@/features/attendance/hooks';
 import Avatar from '@/components/ui/Avatar';
 import { SkeletonRow } from '@/components/ui/Skeleton';
+import { formatDate } from '@/lib/date';
 
 function toISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -46,7 +47,7 @@ export default function AttendancePage() {
           {(['attendance','reports'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={['flex-1 rounded-xl px-4 py-2 font-semibold transition',
-                tab===t ? 'bg-gradient-to-r from-emerald-600 to-lime-500 text-black' : 'bg-white/5 text-slate-200 hover:bg-white/10'
+                tab===t ? 'bg-gradient-to-r from-emerald-600 to-lime-500 text-black' : 'bg-app-subtle text-app-2 hover:bg-app-hover'
               ].join(' ')}>
               {t === 'attendance' ? 'Посещаемость' : 'Отчёты'}
             </button>
@@ -67,14 +68,14 @@ export default function AttendancePage() {
             <h2 className="text-lg font-semibold mb-4">Посещаемость за {date}</h2>
             {attendanceLoading && <div className="divide-y divide-white/5">{Array.from({length:4}).map((_,i)=><SkeletonRow key={i}/>)}</div>}
             {!attendanceLoading && attendancesForDate.length === 0 && (
-              <div className="t-surface rounded-xl px-4 py-3 text-slate-400">Нет данных за этот день</div>
+              <div className="t-surface rounded-xl px-4 py-3 text-app-2">Нет данных за этот день</div>
             )}
             <div className="space-y-3">
               {attendancesForDate.map(a => (
                 <div key={a.id} className="t-surface rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
-                  <span className="text-sm text-slate-400 font-mono">{a.userId.slice(0,8)}…</span>
-                  {a.actualStart && <span className="text-xs text-slate-500">Начало: {new Date(a.actualStart).toLocaleTimeString('ru-RU')}</span>}
-                  {a.endWork     && <span className="text-xs text-slate-500">Конец: {new Date(a.endWork).toLocaleTimeString('ru-RU')}</span>}
+                  <span className="text-sm text-app-2 font-mono">{a.userId.slice(0,8)}…</span>
+                  {a.actualStart && <span className="text-xs text-app-3">Начало: {new Date(a.actualStart).toLocaleTimeString('ru-RU')}</span>}
+                  {a.endWork     && <span className="text-xs text-app-3">Конец: {new Date(a.endWork).toLocaleTimeString('ru-RU')}</span>}
                   {a.commits       != null && <Chip color="emerald">{a.commits} коммитов</Chip>}
                   {a.mergeRequests != null && <Chip color="lime">{a.mergeRequests} МР</Chip>}
                   {a.codeReviews  != null && <Chip color="white">{a.codeReviews} ревью</Chip>}
@@ -96,7 +97,7 @@ export default function AttendancePage() {
             <h2 className="text-lg font-semibold mb-4">Отчёты за {date}</h2>
             {reportsLoading && <div className="divide-y divide-white/5">{Array.from({length:4}).map((_,i)=><SkeletonRow key={i}/>)}</div>}
             {!reportsLoading && reportsForDate.length === 0 && (
-              <div className="t-surface rounded-xl px-4 py-3 text-slate-400">Отчётов нет</div>
+              <div className="t-surface rounded-xl px-4 py-3 text-app-2">Отчётов нет</div>
             )}
             <div className="space-y-4">
               {reportsForDate.map(report => (
@@ -105,20 +106,20 @@ export default function AttendancePage() {
                     <Avatar name={report.user.name} email={report.user.email} url={report.user.avatarUrl} fallbackKey={report.user.id ?? report.id} size="md" />
                     <div className="flex-1">
                       <div className="font-medium">{report.user.name}</div>
-                      {report.reportDate && <div className="text-xs text-slate-500">{new Date(report.reportDate).toLocaleDateString('ru-RU')}</div>}
+                      {report.reportDate && <div className="text-xs text-app-3">{formatDate(report.reportDate)}</div>}
                     </div>
                     {!!report.checked && <Chip color="emerald">Проверен</Chip>}
                   </div>
                   {report.completedWork.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs text-slate-500 mb-1">Выполнено:</div>
-                      {report.completedWork.map((w,i) => <div key={w.id??i} className="text-sm text-slate-300">• {w.description}</div>)}
+                      <div className="text-xs text-app-3 mb-1">Выполнено:</div>
+                      {report.completedWork.map((w,i) => <div key={w.id??i} className="text-sm text-app-2">• {w.description}</div>)}
                     </div>
                   )}
                   {report.tomorrowPlans.length > 0 && (
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">Планы на завтра:</div>
-                      {report.tomorrowPlans.map((p,i) => <div key={p.id??i} className="text-sm text-slate-300">• {p.description}</div>)}
+                      <div className="text-xs text-app-3 mb-1">Планы на завтра:</div>
+                      {report.tomorrowPlans.map((p,i) => <div key={p.id??i} className="text-sm text-app-2">• {p.description}</div>)}
                     </div>
                   )}
                 </div>
@@ -130,10 +131,10 @@ export default function AttendancePage() {
             <Panel className="px-6 py-3">
               <div className="flex items-center justify-between">
                 <button onClick={() => setReportPage(p => Math.max(1,p-1))} disabled={reportPage===1}
-                  className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:text-white disabled:opacity-40">← Назад</button>
-                <span className="text-sm text-slate-400">Страница {reportPage} из {totalPages}</span>
+                  className="rounded-lg px-4 py-2 text-sm text-app-2 hover:text-app disabled:opacity-40">← Назад</button>
+                <span className="text-sm text-app-2">Страница {reportPage} из {totalPages}</span>
                 <button onClick={() => setReportPage(p => Math.min(totalPages,p+1))} disabled={reportPage===totalPages}
-                  className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:text-white disabled:opacity-40">Вперёд →</button>
+                  className="rounded-lg px-4 py-2 text-sm text-app-2 hover:text-app disabled:opacity-40">Вперёд →</button>
               </div>
             </Panel>
           )}
@@ -146,7 +147,7 @@ export default function AttendancePage() {
 function KPI({ label, value }: { label: string; value: number }) {
   return (
     <div className="t-surface rounded-2xl p-5">
-      <div className="text-slate-300 text-sm">{label}</div>
+      <div className="text-app-2 text-sm">{label}</div>
       <div className="text-3xl font-semibold mt-1">{value}</div>
     </div>
   );
@@ -155,6 +156,6 @@ function KPI({ label, value }: { label: string; value: number }) {
 function Chip({ children, color }: { children: React.ReactNode; color: 'emerald'|'lime'|'white' }) {
   const cls = color === 'emerald' ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
             : color === 'lime'    ? 'bg-lime-500/10    text-lime-300    ring-lime-500/20'
-            :                       'bg-white/5         text-slate-300   ring-white/10';
+            :                       'bg-app-subtle      text-app-2       ring-app';
   return <span className={`text-xs px-2 py-0.5 rounded-full ring-1 ${cls}`}>{children}</span>;
 }

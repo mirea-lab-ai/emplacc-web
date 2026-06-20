@@ -41,9 +41,9 @@ export default function ReportingPage() {
 
   if (!isClient || roleLoading) {
     return (
-      <main className="flex h-full min-h-0 flex-col text-white">
+      <main className="flex h-full min-h-0 flex-col text-app">
         <div className="flex-1 overflow-auto pb-6">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-center px-4 py-20 text-sm text-slate-300">
+          <div className="mx-auto flex w-full max-w-4xl items-center justify-center px-4 py-20 text-sm text-app-2">
             Загрузка...
           </div>
         </div>
@@ -53,9 +53,9 @@ export default function ReportingPage() {
 
   if (!hasCreds || !isGuest) {
     return (
-      <main className="flex h-full min-h-0 flex-col text-white">
+      <main className="flex h-full min-h-0 flex-col text-app">
         <div className="flex-1 overflow-auto pb-6">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-center px-4 py-20 text-sm text-slate-300">
+          <div className="mx-auto flex w-full max-w-4xl items-center justify-center px-4 py-20 text-sm text-app-2">
             Доступно только для гостевой роли.
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function ReportingPage() {
   }
 
   return (
-    <main className="flex h-full min-h-0 flex-col text-white">
+    <main className="flex h-full min-h-0 flex-col text-app">
       <div className="flex-1 overflow-auto pb-6">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4">
           <ReportDownload />
@@ -134,7 +134,7 @@ function ProjectExportPanel() {
     <Panel className="t-surface flex flex-col gap-4 p-5">
       <header>
         <h2 className="text-lg font-semibold">Выгрузка заданий по проекту</h2>
-        <p className="mt-1 text-sm text-slate-300">
+        <p className="mt-1 text-sm text-app-2">
           Выберите проект по которому нужно выгрузить задачи
         </p>
       </header>
@@ -144,7 +144,7 @@ function ProjectExportPanel() {
           type="button"
           disabled={isLoading || !sortedProjects.length}
           onClick={() => setMenuOpen((prev) => !prev)}
-          className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full items-center justify-between rounded-xl border border-app bg-app-subtle px-4 py-3 text-left text-sm text-app transition hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span>{selectedProject ? selectedProject.name : isLoading ? 'Загрузка проектов...' : 'Выберите проект'}</span>
           <svg
@@ -158,7 +158,7 @@ function ProjectExportPanel() {
         </button>
 
         {isMenuOpen && sortedProjects.length > 0 && (
-          <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-auto rounded-xl border border-white/10 bg-[#0b1f18] p-2 shadow-xl">
+          <div className="t-surface-elevated absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-auto rounded-xl border border-app p-2 shadow-xl">
             {sortedProjects.map((project) => (
               <button
                 key={project.id}
@@ -171,11 +171,11 @@ function ProjectExportPanel() {
                   'w-full rounded-lg px-3 py-2 text-left text-sm transition',
                   selectedProject?.id === project.id
                     ? 'bg-gradient-to-r from-emerald-500 to-lime-400 text-black'
-                    : 'text-slate-200 hover:bg-white/10',
+                    : 'text-app hover:bg-app-hover',
                 ].join(' ')}
               >
                 <div className="font-semibold">{project.name}</div>
-                {project.description && <div className="mt-0.5 text-xs text-slate-400">{project.description}</div>}
+                {project.description && <div className="mt-0.5 text-xs text-app-3">{project.description}</div>}
               </button>
             ))}
           </div>
@@ -228,7 +228,7 @@ function ActiveTasksExportPanel() {
     <Panel className="t-surface flex flex-col gap-4 p-5">
       <header>
         <h2 className="text-lg font-semibold">Активные задачи пользователей</h2>
-        <p className="mt-1 text-sm text-slate-300">Файл с активными задачами пользователей</p>
+        <p className="mt-1 text-sm text-app-2">Файл с активными задачами пользователей</p>
       </header>
 
       <button
@@ -277,7 +277,7 @@ function TomorrowPlansExportPanel() {
     <Panel className="t-surface flex flex-col gap-4 p-5">
       <header>
         <h2 className="text-lg font-semibold">Планы на сегодня</h2>
-        <p className="mt-1 text-sm text-slate-300">Выгрузка планов по всем сотрудникам </p>
+        <p className="mt-1 text-sm text-app-2">Выгрузка планов по всем сотрудникам </p>
       </header>
 
       <button

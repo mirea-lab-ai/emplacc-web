@@ -31,7 +31,7 @@ function ReportRow({ report }: { report: FlatReport }) {
     <li
       className={[
         'relative overflow-hidden rounded-2xl ring-1',
-        'bg-[#141c2f] ring-white/10 transition-colors',
+        't-surface ring-app transition-colors',
         open ? 'ring-2 ring-indigo-500/40 ' : '',
       ].join(' ')}
     >
@@ -48,12 +48,12 @@ function ReportRow({ report }: { report: FlatReport }) {
       <div className="relative z-[1]">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="w-full text-left px-4 py-3 hover:bg-[#16213a] rounded-2xl"
+          className="w-full text-left px-4 py-3 hover:bg-app-hover rounded-2xl"
           aria-expanded={open}
         >
           <div className="font-semibold">{report.employeeName}</div>
-          <div className="text-slate-300">{report.taskTitle}</div>
-          <div className="text-slate-400 text-sm mt-0.5">
+          <div className="text-app-2">{report.taskTitle}</div>
+          <div className="text-app-2 text-sm mt-0.5">
             Нажмите, чтобы посмотреть кратко
           </div>
         </button>
@@ -66,7 +66,7 @@ function ReportRow({ report }: { report: FlatReport }) {
             'data-[open=true]:max-h-72 data-[open=true]:opacity-100 data-[open=true]:translate-y-0',
           ].join(' ')}
         >
-          <p className="text-slate-200 pb-3">{preview}</p>
+          <p className="text-app pb-3">{preview}</p>
 
           {report.href ? (
             <Link

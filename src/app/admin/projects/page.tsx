@@ -49,16 +49,16 @@ export default function AdminProjectsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="t-heading text-white">Проекты</h1>
+          <h1 className="t-heading text-app">Проекты</h1>
           <p className="t-body mt-0.5">{(projects as any[]).length} проектов на платформе</p>
         </div>
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        <div className="flex rounded-xl ring-1 ring-white/10 overflow-hidden">
+        <div className="flex rounded-xl ring-1 ring-app overflow-hidden">
           {(['all','active','archived'] as const).map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-4 py-2 text-sm transition-colors ${statusFilter === s ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400 hover:text-white'}`}>
+              className={`px-4 py-2 text-sm transition-colors ${statusFilter === s ? 'bg-emerald-500/20 text-emerald-300' : 'text-app-2 hover:text-app'}`}>
               {s === 'all' ? 'Все' : s === 'active' ? 'Активные' : 'Архив'}
             </button>
           ))}
@@ -68,20 +68,20 @@ export default function AdminProjectsPage() {
           className="flex-1 min-w-48 t-input text-sm" />
       </div>
 
-      {isLoading && <div className="text-slate-400 py-8 text-center animate-pulse">Загрузка…</div>}
-      {!isLoading && filtered.length === 0 && <div className="text-slate-400 py-8 text-center">Проектов нет</div>}
+      {isLoading && <div className="text-app-2 py-8 text-center animate-pulse">Загрузка…</div>}
+      {!isLoading && filtered.length === 0 && <div className="text-app-2 py-8 text-center">Проектов нет</div>}
 
       <div className="space-y-2">
         {filtered.map((p: any) => (
-          <div key={p.id} className="t-surface rounded-2xl p-4 flex items-center gap-4 ring-1 ring-white/8 hover:ring-white/15 transition-all">
+          <div key={p.id} className="t-surface rounded-2xl p-4 flex items-center gap-4 ring-1 ring-app hover:ring-app transition-all">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-medium text-white truncate">{p.name}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full ring-1 ${p.status === 'active' ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30' : 'bg-white/5 text-slate-400 ring-white/10'}`}>
+                <span className="font-medium text-app truncate">{p.name}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full ring-1 ${p.status === 'active' ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30' : 'bg-app-subtle text-app-2 ring-app'}`}>
                   {p.status ?? 'active'}
                 </span>
               </div>
-              {p.description && <p className="text-xs text-slate-500 truncate mt-0.5">{p.description}</p>}
+              {p.description && <p className="text-xs text-app-3 truncate mt-0.5">{p.description}</p>}
               {p.gitlab_url && (
                 <a href={p.gitlab_url} target="_blank" rel="noopener noreferrer"
                   className="text-xs text-blue-400/70 hover:text-blue-300 truncate mt-0.5 inline-block">
@@ -92,13 +92,13 @@ export default function AdminProjectsPage() {
 
             <div className="flex items-center gap-2 shrink-0">
               <Link href={`/projects/${p.id}`}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Открыть проект">
+                className="p-2 rounded-xl text-app-2 hover:text-app hover:bg-app-hover transition-colors" title="Открыть проект">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                 </svg>
               </Link>
               <button onClick={() => handleDelete(p)} title="Удалить"
-                className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                className="p-2 rounded-xl text-app-2 hover:text-red-400 hover:bg-red-500/10 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                 </svg>

@@ -12,7 +12,7 @@ export default function SuccessModal({ open, onClose }: Props) {
 
   return (
     <Modal open onClose={onClose}>
-      <div className="w-full max-w-md rounded-xl border border-white/20 bg-white/5 p-8 shadow-lg backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-app bg-app-subtle p-8 shadow-lg backdrop-blur-sm">
         <div className="text-center">
           {/* Иконка успеха */}
           <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-lime-400 flex items-center justify-center mb-6">
@@ -32,12 +32,12 @@ export default function SuccessModal({ open, onClose }: Props) {
           </div>
 
           {/* Заголовок */}
-          <h2 className="text-2xl font-bold text-white mb-3">
+          <h2 className="text-2xl font-bold text-app mb-3">
             Отчёт отправлен!
           </h2>
 
           {/* Описание */}
-          <p className="text-slate-300 mb-8 leading-relaxed">
+          <p className="text-app-2 mb-8 leading-relaxed">
             Ваш отчёт успешно создан и отправлен. 
             Спасибо за подробную информацию о проделанной работе.
           </p>

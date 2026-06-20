@@ -53,7 +53,7 @@ export default function EditProblemModal({ problem, onClose, onRenamed }: Props)
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div className="t-surface-elevated w-full max-w-md rounded-2xl p-6 space-y-5 animate-fade-in-scale">
-        <h2 className="t-title text-white">Редактировать проблему</h2>
+        <h2 className="t-title text-app">Редактировать проблему</h2>
 
         <form onSubmit={submit} className="space-y-4">
           <label className="grid gap-1.5">

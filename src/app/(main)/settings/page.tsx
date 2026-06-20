@@ -85,14 +85,14 @@ export default function SettingsPage() {
         <SkeletonProfileHeader />
         <div className="skeleton h-12 w-48 rounded-2xl" />
         <div className="grid gap-5 md:grid-cols-[280px,1fr]">
-          <div className="t-surface rounded-2xl p-6 ring-1 ring-white/10 space-y-5">
+          <div className="t-surface rounded-2xl p-6 ring-1 ring-app space-y-5">
             <div className="skeleton w-20 h-20 rounded-full mx-auto" />
             <div className="space-y-2 text-center">
               <div className="skeleton h-4 w-32 mx-auto rounded-lg" />
               <div className="skeleton h-3 w-44 mx-auto rounded-lg" />
             </div>
           </div>
-          <div className="t-surface rounded-2xl p-6 ring-1 ring-white/10 space-y-5">
+          <div className="t-surface rounded-2xl p-6 ring-1 ring-app space-y-5">
             <div className="skeleton h-5 w-36 rounded-lg" />
             <div className="grid sm:grid-cols-2 gap-4">
               <SkeletonField /><SkeletonField />
@@ -133,7 +133,7 @@ export default function SettingsPage() {
               'px-4 py-2 rounded-xl text-sm font-medium transition-all',
               tab === t.id
                 ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25'
-                : 'text-white/50 hover:text-white/80 hover:bg-white/5',
+                : 'text-app-2 hover:text-app hover:bg-app-hover',
             ].join(' ')}>
             {t.label}
           </button>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
               onChange={setAvatarSrc}
             />
             <div>
-              <div className="font-semibold text-white">{fullName}</div>
+              <div className="font-semibold text-app">{fullName}</div>
               <div className="t-caption mt-0.5">{userData?.email}</div>
               {profession && <div className="t-caption mt-1">{profession}</div>}
             </div>
@@ -160,7 +160,7 @@ export default function SettingsPage() {
 
           {/* Fields column */}
           <Panel className="p-6 space-y-5">
-            <h2 className="t-title text-white">Личные данные</h2>
+            <h2 className="t-title text-app">Личные данные</h2>
 
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">

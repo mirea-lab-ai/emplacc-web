@@ -6,13 +6,7 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed } from '@/lib/auth';
 import { useMyTasks } from '@/features/tasks/hooks';
 import { getTaskPriorityMeta, TASK_PRIORITY_OPTIONS } from '@/features/tasks/types';
-
-function fmtDate(value?: string) {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' });
-}
+import { formatDateShort } from '@/lib/date';
 
 export default function MyTasksPage() {
   const isClient = useIsClient();
@@ -46,12 +40,12 @@ export default function MyTasksPage() {
     <div className="space-y-6 animate-fade-in pb-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="t-heading text-white">Мои задачи</h1>
+          <h1 className="t-heading text-app">Мои задачи</h1>
           <p className="t-body mt-1">Активные задачи по всем проектам</p>
         </div>
         <div className="t-surface rounded-xl px-4 py-2 text-center">
           <div className="text-2xl font-bold text-emerald-400">{isLoading ? '—' : tasks.length}</div>
-          <div className="text-xs text-slate-500">активных</div>
+          <div className="text-xs text-app-3">активных</div>
         </div>
       </div>
 
@@ -74,7 +68,7 @@ export default function MyTasksPage() {
         </select>
         {(query || priority !== '') && (
           <button onClick={() => { setQuery(''); setPriority(''); }}
-            className="rounded-xl px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            className="rounded-xl px-3 py-2 text-sm text-app-2 hover:text-app hover:bg-app-subtle transition-colors">
             Сбросить
           </button>
         )}
@@ -83,13 +77,13 @@ export default function MyTasksPage() {
       {isLoading ? (
         <div className="t-body py-6">Загрузка…</div>
       ) : tasks.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center">
+        <div className="rounded-2xl border border-dashed border-app px-6 py-12 text-center">
           <div className="text-3xl mb-2">✅</div>
           <div className="t-body">У вас нет активных задач</div>
           <Link href="/projects" className="btn-ghost mt-4 inline-block">К проектам →</Link>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 px-6 py-10 text-center">
+        <div className="rounded-2xl border border-dashed border-app px-6 py-10 text-center">
           <div className="t-body">Ничего не найдено</div>
         </div>
       ) : (
@@ -97,21 +91,21 @@ export default function MyTasksPage() {
           {groups.map(([project, items]) => (
             <div key={project}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-semibold text-white/80">📁 {project}</span>
-                <span className="rounded-full bg-white/8 text-slate-400 text-xs px-2 py-0.5">{items.length}</span>
+                <span className="text-sm font-semibold text-app">📁 {project}</span>
+                <span className="rounded-full bg-app-hover text-app-2 text-xs px-2 py-0.5">{items.length}</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((t) => {
                   const pm = getTaskPriorityMeta(t.priority);
                   return (
                     <Link key={t.id} href={`/tasks/${t.id}`}
-                      className="t-surface-hover rounded-2xl p-4 ring-1 ring-white/8 hover:ring-white/20 transition-all block">
-                      <div className="font-medium text-white line-clamp-2">{t.title}</div>
+                      className="t-surface-hover rounded-2xl p-4 ring-1 ring-app hover:ring-app transition-all block">
+                      <div className="font-medium text-app line-clamp-2">{t.title}</div>
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${pm.badgeClass}`}>
                           {pm.label}
                         </span>
-                        {t.due && <span className="t-caption">до {fmtDate(t.due)}</span>}
+                        {t.due && <span className="t-caption">до {formatDateShort(t.due)}</span>}
                       </div>
                     </Link>
                   );

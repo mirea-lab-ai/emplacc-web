@@ -8,6 +8,7 @@ import { useAllUsers } from '@/features/user/hooks';
 import { listPendingApprovals } from '@/features/conveyor/api';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { formatDateShort } from '@/lib/date';
 
 function useAdminStats(enabled: boolean) {
   return useQuery({
@@ -91,8 +92,7 @@ const SECTIONS = [
 
 function fmtDate(iso?: string) {
   if (!iso) return '';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' });
+  return formatDateShort(iso);
 }
 
 export default function AdminDashboard() {
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="t-heading text-white">Панель администратора</h1>
+        <h1 className="t-heading text-app">Панель администратора</h1>
         <p className="t-body mt-1">Обзор платформы и управление системой</p>
       </div>
 
@@ -142,11 +142,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {STAT_CARDS.map(s => (
           <Link key={s.key} href={s.href}
-            className="t-surface-hover rounded-2xl p-4 text-center space-y-1 ring-1 ring-white/8 hover:ring-white/20 transition-all">
+            className="t-surface-hover rounded-2xl p-4 text-center space-y-1 ring-1 ring-app hover:ring-app transition-all">
             <div className={`text-3xl font-bold ${s.color}`}>
-              {isLoading ? <span className="animate-pulse text-slate-600">—</span> : ((stats as any)?.[s.key] ?? 0)}
+              {isLoading ? <span className="animate-pulse text-app-3">—</span> : ((stats as any)?.[s.key] ?? 0)}
             </div>
-            <div className="text-xs text-slate-500">{s.label}</div>
+            <div className="text-xs text-app-3">{s.label}</div>
           </Link>
         ))}
       </div>
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap gap-2">
         {QUICK_ACTIONS.map(a => (
           <Link key={a.href} href={a.href}
-            className="flex items-center gap-2 rounded-xl bg-white/[0.04] ring-1 ring-white/8 px-3.5 py-2 text-sm text-white/80 hover:text-white hover:bg-white/8 hover:ring-white/20 transition-all">
+            className="flex items-center gap-2 rounded-xl bg-app-subtle ring-1 ring-app px-3.5 py-2 text-sm text-app-2 hover:text-app hover:bg-app-hover hover:ring-app transition-all">
             <span>{a.icon}</span>{a.label}
           </Link>
         ))}
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
       <div className="grid lg:grid-cols-2 gap-4">
         <div className="t-surface rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="t-title text-white">Последние темы форума</h2>
+            <h2 className="t-title text-app">Последние темы форума</h2>
             <Link href="/admin/forum" className="t-caption hover:text-emerald-300">Все →</Link>
           </div>
           {problemsLoading ? (
@@ -175,8 +175,8 @@ export default function AdminDashboard() {
           ) : (
             <ul className="space-y-1.5">
               {recentProblems.map(p => (
-                <li key={p.id} className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 hover:bg-white/5 transition-colors">
-                  <span className="text-sm text-white/90 truncate">{p.name}</span>
+                <li key={p.id} className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 hover:bg-app-hover transition-colors">
+                  <span className="text-sm text-app truncate">{p.name}</span>
                   <span className="t-caption shrink-0">{fmtDate(p.createdAt)}</span>
                 </li>
               ))}
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
 
         <div className="t-surface rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="t-title text-white">Новые сотрудники</h2>
+            <h2 className="t-title text-app">Новые сотрудники</h2>
             <Link href="/admin/users" className="t-caption hover:text-emerald-300">Все →</Link>
           </div>
           {newUsers.length === 0 ? (
@@ -194,12 +194,12 @@ export default function AdminDashboard() {
           ) : (
             <ul className="space-y-1.5">
               {newUsers.map(u => (
-                <li key={u.id} className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-white/5 transition-colors">
+                <li key={u.id} className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-app-hover transition-colors">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-bold">
                     {((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?'}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white/90 truncate">{`${u.firstName} ${u.lastName}`.trim() || u.email}</div>
+                    <div className="text-sm text-app truncate">{`${u.firstName} ${u.lastName}`.trim() || u.email}</div>
                     <div className="t-caption truncate">{u.email}</div>
                   </div>
                   <span className="t-caption shrink-0">{fmtDate(u.createdAt)}</span>
@@ -212,15 +212,15 @@ export default function AdminDashboard() {
 
       {/* Section nav */}
       <div>
-        <h2 className="t-title text-white mb-4">Разделы</h2>
+        <h2 className="t-title text-app mb-4">Разделы</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {SECTIONS.map(s => (
             <Link key={s.href} href={s.href}
-              className="t-surface-hover rounded-2xl p-5 flex items-start gap-4 ring-1 ring-white/8 hover:ring-white/20 transition-all group">
+              className="t-surface-hover rounded-2xl p-5 flex items-start gap-4 ring-1 ring-app hover:ring-app transition-all group">
               <span className="text-3xl shrink-0">{s.icon}</span>
               <div className="min-w-0">
-                <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors">{s.label}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{s.desc}</div>
+                <div className="font-semibold text-app group-hover:text-emerald-300 transition-colors">{s.label}</div>
+                <div className="text-xs text-app-3 mt-0.5">{s.desc}</div>
               </div>
             </Link>
           ))}

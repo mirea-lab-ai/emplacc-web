@@ -5,6 +5,7 @@ import { useAllProblems } from '@/features/problems/hooks';
 import {getUserId, isAuthed} from "@/lib/auth";
 import { useIsClient } from '@/hooks/useIsClient';
 import type {UIProblem} from "@/features/problems/api";
+import { formatDate } from '@/lib/date';
 
 export type Problem = {
   id: string;
@@ -31,20 +32,20 @@ export default function Problems() {
             {problems.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 ring-1 ring-white/10 px-4 py-2"
+                className="flex items-center justify-between rounded-xl backdrop-blur-sm bg-app-hover border border-app text-app hover:bg-app-hover ring-1 ring-app px-4 py-2"
               >
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{p.name}</div>
                   {p.description && (
-                    <div className="text-slate-400 text-sm truncate">{p.description}</div>
+                    <div className="text-app-2 text-sm truncate">{p.description}</div>
                   )}
-                  <div className="text-slate-400 text-xs">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div>
+                  <div className="text-app-2 text-xs">{p.createdAt ? formatDate(p.createdAt) : ''}</div>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <div className="grid h-full place-items-center text-slate-400">
+          <div className="grid h-full place-items-center text-app-2">
             Похоже, проблем нет
           </div>
         )}

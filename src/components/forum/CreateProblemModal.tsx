@@ -42,12 +42,12 @@ export default function CreateProblemModal({ onClose }: Props) {
 
   return (
     <Modal open onClose={onClose}>
-      <div className="w-full max-w-md rounded-xl border border-white/20 bg-white/5 p-6 shadow-lg backdrop-blur-sm">
-        <h2 className="mb-4 text-xl font-semibold text-white">Новая проблема</h2>
+      <div className="w-full max-w-md rounded-xl border border-app bg-app-subtle p-6 shadow-lg backdrop-blur-sm">
+        <h2 className="mb-4 text-xl font-semibold text-app">Новая проблема</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="problem-title" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="problem-title" className="mb-1 block text-sm font-medium text-app-2">
               Название проблемы <span className="text-red-400">*</span>
             </label>
             <input
@@ -55,14 +55,14 @@ export default function CreateProblemModal({ onClose }: Props) {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+              className="w-full rounded-md border border-app bg-app-hover px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
               placeholder="Краткое описание проблемы"
               required
             />
           </div>
           
           <div>
-            <label htmlFor="problem-description" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="problem-description" className="mb-1 block text-sm font-medium text-app-2">
               Описание (необязательно)
             </label>
             <textarea
@@ -70,7 +70,7 @@ export default function CreateProblemModal({ onClose }: Props) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+              className="w-full rounded-md border border-app bg-app-hover px-3 py-2 text-app placeholder-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
               placeholder="Подробное описание проблемы, шаги воспроизведения, ожидаемый результат..."
             />
           </div>
@@ -81,7 +81,7 @@ export default function CreateProblemModal({ onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-4 py-2 text-slate-300 hover:bg-white/10 transition-colors"
+              className="rounded-md px-4 py-2 text-app-2 hover:bg-app-hover transition-colors"
               disabled={isPending}
             >
               Отмена

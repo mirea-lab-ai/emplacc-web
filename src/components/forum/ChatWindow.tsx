@@ -467,7 +467,7 @@ function Bubble({
 
       {/* Action bar — for self: left of bubble; for others: right */}
       {hovered && !isEditing && (
-        <div className={`flex items-center gap-0.5 shrink-0 self-center ${isSelf ? 'order-first' : ''}`}>
+        <div className={`flex items-center gap-0.5 shrink-0 self-center ${isSelf ? 'order-first' : 'order-last'}`}>
           <ActionBtn title="Ответить" onClick={onReply}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
               <path d="M3 10h11a4 4 0 010 8h-1m-10-8l4-4m-4 4l4 4"/>

@@ -347,11 +347,7 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
           <SidebarCard label="Статус">
             {statuses.length > 0 ? (
               <div className="space-y-2">
-                <select disabled={savingStatus} value={task.statusId} onChange={e => void handleStatusChange(e.target.value)}
-                  className="w-full rounded-xl bg-app-subtle ring-1 ring-app px-3 py-2 text-sm focus:outline-none focus:ring-emerald-500/50 disabled:opacity-50">
-                  {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-                {/* Status pills */}
+                {/* Status pills (цветные чипы — один контрол, без дублирующего select) */}
                 <div className="flex flex-wrap gap-1.5">
                   {statuses.map(s => (
                     <button key={s.id} disabled={savingStatus} onClick={() => void handleStatusChange(s.id)}

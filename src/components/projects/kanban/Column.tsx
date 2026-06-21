@@ -163,6 +163,7 @@ export default function Column({
               key={task.id}
               task={task}
               fromColId={column.id}
+              columnIsOpen={column.isOpen}
               onRemove={() => onRemoveTask(task.id)}
               onEdit={() => onEditTask(task.id)}
               isDeleting={isDeletingTask}

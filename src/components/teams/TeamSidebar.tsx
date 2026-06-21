@@ -66,20 +66,20 @@ export default function TeamSidebar({
                     className={[
                       'pointer-events-none absolute inset-0 rounded-2xl transition-opacity',
                       active
-                        ? 'bg-gradient-to-br from-emerald-500 to-lime-400'
+                        ? 'bg-emerald-500/12'
                         : 'opacity-0',
                     ].join(' ')}
                   />
                   <div className="relative z-[1] pr-8 space-y-1">
                     <div className={[
                       'font-semibold truncate',
-                      active ? 'text-black' : 'text-app',
+                      active ? 'text-emerald-100' : 'text-app',
                     ].join(' ')}>
                       {t.name}
                     </div>
                     <div className={[
                       'text-xs flex items-center gap-2 uppercase tracking-wide',
-                      active ? 'text-slate-700' : 'text-app-2',
+                      'text-app-2',
                     ].join(' ')}>
                       <span className="rounded-full bg-app-hover px-2 py-0.5">
                         {membersCount} {membersCount === 1 ? 'участник' : 'участников'}
@@ -88,7 +88,7 @@ export default function TeamSidebar({
                     {t.description && (
                       <p className={[
                         'text-xs line-clamp-2',
-                        active ? 'text-slate-700' : 'text-app-2',
+                        'text-app-2',
                       ].join(' ')}>
                         {t.description}
                       </p>

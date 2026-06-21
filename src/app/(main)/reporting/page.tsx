@@ -170,7 +170,7 @@ function ProjectExportPanel() {
                 className={[
                   'w-full rounded-lg px-3 py-2 text-left text-sm transition',
                   selectedProject?.id === project.id
-                    ? 'bg-gradient-to-r from-emerald-500 to-lime-400 text-black'
+                    ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/30'
                     : 'text-app hover:bg-app-hover',
                 ].join(' ')}
               >

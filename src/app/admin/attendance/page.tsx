@@ -47,7 +47,7 @@ export default function AttendancePage() {
           {(['attendance','reports'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={['flex-1 rounded-xl px-4 py-2 font-semibold transition',
-                tab===t ? 'bg-gradient-to-r from-emerald-600 to-lime-500 text-black' : 'bg-app-subtle text-app-2 hover:bg-app-hover'
+                tab===t ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/40' : 'bg-app-subtle text-app-2 hover:bg-app-hover'
               ].join(' ')}>
               {t === 'attendance' ? 'Посещаемость' : 'Отчёты'}
             </button>

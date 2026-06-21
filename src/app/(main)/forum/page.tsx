@@ -238,7 +238,7 @@ function ForumContent() {
                       className={[
                         'w-full text-left rounded-xl px-3 py-2.5 transition-all duration-150 pr-16',
                         active
-                          ? 'bg-gradient-to-r from-emerald-600/80 to-lime-500/80 text-white shadow-lg shadow-emerald-900/20'
+                          ? 'bg-emerald-500/15 text-emerald-100 ring-1 ring-emerald-500/40'
                           : 't-surface-hover hover:ring-1 hover:ring-emerald-500/40 text-app-2 hover:text-app',
                       ].join(' ')}
                     >

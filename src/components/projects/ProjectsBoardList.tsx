@@ -64,7 +64,7 @@ export default function ProjectsBoardList({
                   className={[
                     'w-full rounded-xl px-4 py-2 text-left transition-colors ring-1 ring-app',
                     active
-                      ? 'bg-gradient-to-br from-emerald-500 to-lime-400 text-black font-semibold'
+                      ? 'bg-emerald-500/15 text-emerald-200 font-semibold ring-emerald-500/40'
                       : 't-surface hover:bg-app-hover text-app-2',
                   ].join(' ')}
                 >

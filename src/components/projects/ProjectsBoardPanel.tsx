@@ -160,6 +160,7 @@ export default function ProjectsBoardPanel({
         tasks: status.tasks ?? [],
         color: status.color,
         order: status.order,
+        isOpen: status.isOpen,
       }));
     }
     if (!statusLoading && !statusError && currentBoard?.id) {

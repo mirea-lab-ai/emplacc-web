@@ -9,6 +9,7 @@ import { getTaskPriorityMeta, type UITask } from '@/features/tasks/types';
 type Props = {
   task: UITask;
   fromColId: string;
+  columnIsOpen?: boolean;
   onRemove: () => void;
   onEdit: () => void;
   isDeleting?: boolean;
@@ -27,6 +28,7 @@ const formatDate = (value: string) => {
 export default function Card({
   task,
   fromColId,
+  columnIsOpen,
   onRemove,
   onEdit,
   isDeleting = false,
@@ -163,7 +165,14 @@ export default function Card({
       )}
 
       <div className="font-medium pr-20">{task.title}</div>
-      {task.due && <div className="mt-1 text-sm text-app-2">Срок: {formatDate(task.due)}</div>}
+      {task.due && (() => {
+        const overdue = columnIsOpen !== false && new Date(task.due) < new Date(new Date().toDateString());
+        return (
+          <div className={`mt-1 text-sm ${overdue ? 'text-red-400 font-medium' : 'text-app-2'}`}>
+            {overdue ? 'Просрочено: ' : 'Срок: '}{formatDate(task.due)}
+          </div>
+        );
+      })()}
       <div className="mt-2">
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${priorityMeta.badgeClass}`}>
           {priorityMeta.label}

@@ -7,6 +7,7 @@ import { isAuthed } from '@/lib/auth';
 import { formatDateShort } from '@/lib/date';
 import { useNotifications, useUnreadCount, useMarkRead, useMarkAllRead } from '@/features/notifications/hooks';
 import type { Notification } from '@/features/notifications/api';
+import * as browserNotify from '@/lib/browserNotify';
 
 const ICON: Record<string, string> = {
   'task.assigned': '📌',
@@ -30,6 +31,17 @@ export default function NotificationBell() {
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
   const items = data?.notifications ?? [];
+
+  const [perm, setPerm] = useState<browserNotify.NotifyState>('default');
+  useEffect(() => { if (open) setPerm(browserNotify.permissionState()); }, [open]);
+  async function toggleBrowser() {
+    if (browserNotify.effectivelyEnabled()) {
+      browserNotify.disable();
+      setPerm(browserNotify.permissionState());
+    } else {
+      setPerm(await browserNotify.enable());
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -68,6 +80,24 @@ export default function NotificationBell() {
               </button>
             )}
           </div>
+
+          {perm !== 'unsupported' && (
+            <div className="flex items-center justify-between px-4 py-2 border-b border-app">
+              <span className="t-caption">🔔 Браузерные уведомления</span>
+              {perm === 'denied' ? (
+                <span className="text-xs text-app-3">заблокировано в браузере</span>
+              ) : (
+                <button onClick={toggleBrowser}
+                  className={`text-xs rounded-lg px-2 py-0.5 transition-colors ${
+                    browserNotify.effectivelyEnabled()
+                      ? 'text-emerald-300 bg-emerald-500/10'
+                      : 'text-app-2 hover:text-app hover:bg-app-hover'
+                  }`}>
+                  {browserNotify.effectivelyEnabled() ? 'Вкл' : 'Включить'}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto custom-scroll">
             {isLoading ? (

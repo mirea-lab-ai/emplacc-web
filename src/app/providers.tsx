@@ -6,6 +6,9 @@ import { useState } from 'react';
 import { useTokenAutoRefresh } from '@/hooks/useTokenAutoRefresh';
 import { useUserCache } from '@/hooks/useUserCache';
 import { useRealtime } from '@/lib/realtime';
+import { useIsClient } from '@/hooks/useIsClient';
+import { isAuthed } from '@/lib/auth';
+import { useBrowserNotificationBridge } from '@/features/notifications/hooks';
 import { ToastProvider, notifyGlobalError } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { getErrorMessage } from '@/lib/errors';
@@ -22,6 +25,12 @@ function UserCacheInitializer() {
 
 function RealtimeInitializer() {
     useRealtime();
+    return null;
+}
+
+function NotificationsInitializer() {
+    const isClient = useIsClient();
+    useBrowserNotificationBridge(isClient && isAuthed());
     return null;
 }
 
@@ -46,6 +55,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 <TokenRefreshInitializer />
                 <UserCacheInitializer />
                 <RealtimeInitializer />
+                <NotificationsInitializer />
                 {children}
               </ConfirmProvider>
             </ToastProvider>

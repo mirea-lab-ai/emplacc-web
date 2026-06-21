@@ -37,16 +37,11 @@ export function useRealtime() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const token = getSessionToken();
-    if (!token) return;
 
-    const url = `${getApiBaseUrl()}/v2/stream?token=${encodeURIComponent(token)}`;
     let es: EventSource | null = null;
-    try {
-      es = new EventSource(url);
-    } catch {
-      return;
-    }
+    let activeToken: string | null = null;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    let closed = false;
 
     const onEvent = () => {
       for (const key of INVALIDATE_KEYS) {
@@ -54,10 +49,44 @@ export function useRealtime() {
       }
     };
 
-    // Сервер шлёт все realtime-события под именем "emplacc".
-    es.addEventListener('emplacc', onEvent);
+    // (Пере)подключаемся к /v2/stream с актуальным токеном. EventSource сам
+    // ретраит при обрыве, НО держит исходный URL: если токен протух/сменился —
+    // ретраи будут с мёртвым токеном. Поэтому на ошибке проверяем смену токена и
+    // пересоздаём поток, а если токена ещё нет — ждём и пробуем снова.
+    const connect = () => {
+      if (closed) return;
+      const token = getSessionToken();
+      if (!token) { retry = setTimeout(connect, 3000); return; }
+      activeToken = token;
+      try {
+        es = new EventSource(`${getApiBaseUrl()}/v2/stream?token=${encodeURIComponent(token)}`);
+      } catch {
+        retry = setTimeout(connect, 3000);
+        return;
+      }
+      es.addEventListener('emplacc', onEvent);
+      es.onerror = () => {
+        const current = getSessionToken();
+        if (current && current !== activeToken) { es?.close(); connect(); }
+        // иначе оставляем встроенный авто-ретрай EventSource
+      };
+    };
+
+    // Ротация токена в этом же приложении (useTokenAutoRefresh) или в другой вкладке.
+    const onTokenChange = () => {
+      const current = getSessionToken();
+      if (current && current !== activeToken) { es?.close(); connect(); }
+    };
+    window.addEventListener('storage', onTokenChange);
+    window.addEventListener('emplacc:token', onTokenChange);
+
+    connect();
 
     return () => {
+      closed = true;
+      if (retry) clearTimeout(retry);
+      window.removeEventListener('storage', onTokenChange);
+      window.removeEventListener('emplacc:token', onTokenChange);
       es?.removeEventListener('emplacc', onEvent);
       es?.close();
     };

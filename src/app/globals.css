@@ -301,6 +301,12 @@ body::before {
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
+/* Покачивание колокольчика уведомлений при наличии непрочитанных. */
+@keyframes wiggle {
+  0%, 50%, 100% { transform: rotate(0deg); }
+  10%, 30%      { transform: rotate(-12deg); }
+  20%, 40%      { transform: rotate(12deg); }
+}
 
 .animate-fade-in       { animation: fade-in        0.35s cubic-bezier(0.16,1,0.3,1) both; }
 .animate-fade-in-scale { animation: fade-in-scale  0.28s cubic-bezier(0.34,1.56,0.64,1) both; }

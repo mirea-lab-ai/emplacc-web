@@ -49,6 +49,9 @@ export function saveSession(session: Session) {
   localStorage.setItem(KEYS.expiresAt,         session.expires_at);
   localStorage.setItem(KEYS.absoluteExpiresAt, session.absolute_expires_at);
   localStorage.setItem(KEYS.userId,            session.user_id);
+  // Сигнал для realtime (SSE), чтобы переподключиться с новым токеном после
+  // логина/ротации в этой же вкладке (storage-событие тут не срабатывает).
+  try { window.dispatchEvent(new Event('emplacc:token')); } catch {}
 }
 
 export function updateSessionExpiry(expiresAt: string) {

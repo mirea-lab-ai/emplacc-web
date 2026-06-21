@@ -852,6 +852,13 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] 
   const toast = useToast();
   const [state, setState] = useState<LoadState<ConveyorForumDigest[]>>({ loading: false, data: null, error: null });
   const [busy, setBusy] = useState(false);
+  // Сворачивание панели — чтобы дайджест не сжимал чат. По умолчанию свёрнут; помним выбор.
+  const [collapsed, setCollapsed] = useState(true);
+  useEffect(() => { setCollapsed(localStorage.getItem('emplacc-digest-collapsed') !== 'false'); }, []);
+  const setCollapsedPersist = (v: boolean) => {
+    setCollapsed(v);
+    try { localStorage.setItem('emplacc-digest-collapsed', String(v)); } catch {}
+  };
 
   const load = useCallback(async () => {
     if (!sourceId) return;
@@ -889,6 +896,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] 
           .map((m) => ({ locator: `/forum?problem=${sourceId}`, author: m.author ?? '', text: m.text ?? '', accessible: true })),
       });
       toast.success(copy.forumDigest.created);
+      setCollapsedPersist(false);
       await load();
     } catch {
       toast.error(copy.forumDigest.error);
@@ -932,14 +940,20 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] 
   return (
     <Panel className="space-y-3 p-4">
       <header className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold text-app">{copy.forumDigest.title}</h2>
-          <p className="mt-1 text-xs text-app-2">{copy.forumDigest.subtitle}</p>
-        </div>
-        <button type="button" onClick={() => void load()} disabled={!sourceId || state.loading} className="rounded-lg px-2.5 py-1 text-xs text-emerald-300 ring-1 ring-emerald-500/20 disabled:opacity-50">
-          {copy.forumDigest.refresh}
+        <button type="button" onClick={() => setCollapsedPersist(!collapsed)} className="flex min-w-0 items-start gap-2 text-left hover:opacity-80 transition-opacity" aria-expanded={!collapsed}>
+          <svg className={`mt-0.5 h-4 w-4 shrink-0 text-app-3 transition-transform ${collapsed ? '' : 'rotate-90'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+          <span className="min-w-0">
+            <h2 className="text-sm font-semibold text-app">{copy.forumDigest.title}</h2>
+            {!collapsed && <p className="mt-1 text-xs text-app-2">{copy.forumDigest.subtitle}</p>}
+          </span>
         </button>
+        {!collapsed && (
+          <button type="button" onClick={() => void load()} disabled={!sourceId || state.loading} className="shrink-0 rounded-lg px-2.5 py-1 text-xs text-emerald-300 ring-1 ring-emerald-500/20 disabled:opacity-50">
+            {copy.forumDigest.refresh}
+          </button>
+        )}
       </header>
+      {!collapsed && (<>
       {!sourceId && <EmptyText>{copy.forumDigest.sourceRequired}</EmptyText>}
       {state.loading && <SkeletonText lines={2} />}
       {state.error && <ErrorText error={state.error} />}
@@ -982,6 +996,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] 
       <button type="button" onClick={() => void handleCreate()} disabled={!sourceId || busy} className="rounded-xl bg-app-hover px-4 py-2 text-sm font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
         {busy ? copy.forumDigest.creating : copy.forumDigest.create}
       </button>
+      </>)}
     </Panel>
   );
 }

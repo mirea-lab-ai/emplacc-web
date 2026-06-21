@@ -320,7 +320,8 @@ function ForumContent() {
                     </button>
                   )}
                 </div>
-                <ConveyorForumDigestPanel sourceId={activeProblem.id} sourceTitle={activeProblem.name} />
+                <ConveyorForumDigestPanel sourceId={activeProblem.id} sourceTitle={activeProblem.name}
+                  messages={messages.map(m => ({ author: m.author?.name, text: m.text }))} />
               </div>
             )}
             <div className="flex-1 min-h-0">

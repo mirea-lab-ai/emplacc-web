@@ -180,7 +180,7 @@ export type CreateWorkOrderPayload = { source_task_id: string; provider_board_id
 export type AcceptWorkOrderPayload = { target_name: string; idempotency_key: string };
 export type ReasonPayload = { reason: string; idempotency_key: string };
 export type CompleteWorkOrderPayload = { result_evidence_id?: string; evidence_waiver?: string; idempotency_key: string };
-export type CreateForumDigestPayload = { source_type: string; source_id: string; source_title: string; source_locator?: string; period_start: string; period_end: string; summary?: string; decisions?: unknown; source_metadata?: unknown; messages?: unknown[]; candidate_inputs?: unknown[] };
+export type CreateForumDigestPayload = { source_type: string; source_id: string; source_title: string; source_locator?: string; period_start: string; period_end: string; summary?: string; decisions?: unknown; source_metadata?: unknown; messages?: unknown[]; candidate_inputs?: unknown[]; use_llm?: boolean };
 export type ConfirmForumCandidatePayload = { status_id: string; assigned_to?: string; priority?: number; idempotency_key: string };
 
 const WORK_ITEM_CRITERIA_PATH = '/api/work-items/{id}/criteria';

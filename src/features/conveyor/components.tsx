@@ -847,7 +847,7 @@ export function ConveyorGeneratedReportPanel({ projects, projectsLoading }: { pr
   );
 }
 
-export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: string; sourceTitle?: string }) {
+export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] }: { sourceId: string; sourceTitle?: string; messages?: { author?: string; text?: string }[] }) {
   const toast = useToast();
   const [state, setState] = useState<LoadState<ConveyorForumDigest[]>>({ loading: false, data: null, error: null });
   const [busy, setBusy] = useState(false);
@@ -881,6 +881,11 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
         period_start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         period_end: now.toISOString(),
         summary: '',
+        // Передаём сообщения треда и просим LLM сделать сводку — иначе дайджест пустой.
+        use_llm: true,
+        messages: messages
+          .filter((m) => (m.text ?? '').trim())
+          .map((m) => ({ locator: `/forum?problem=${sourceId}`, author: m.author ?? '', text: m.text ?? '', accessible: true })),
       });
       toast.success(copy.forumDigest.created);
       await load();
@@ -940,7 +945,9 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
       {!state.loading && sourceId && !latest && <EmptyText>{copy.forumDigest.empty}</EmptyText>}
       {latest && (
         <div className="space-y-2">
-          <p className="text-sm text-app-2">{latest.summary || copy.forumDigest.empty}</p>
+          <p className={`text-sm ${latest.summary?.trim() ? 'text-app-2' : 'text-app-3 italic'}`}>
+            {latest.summary?.trim() || 'Дайджест создан, но сводка пуста — вероятно, LLM не настроена в админке («Настроить LLM»).'}
+          </p>
           <div className="space-y-2">
             {candidates.map((candidate) => {
               const canConfirm = Boolean(candidate.status_id);

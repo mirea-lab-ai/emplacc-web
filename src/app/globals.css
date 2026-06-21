@@ -101,6 +101,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Reactor grid — фирменная подложка из клеточек (как в mirea-ai-design-system).
+   Фиксирована к вьюпорту, выцветает книзу radial-маской, цвет берёт из бордера темы. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--surface-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--surface-border) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
+  opacity: 0.55;
+}
+
 /* ── Surfaces ── */
 .t-surface {
   background: linear-gradient(145deg, var(--surface-bg), var(--surface-grad-2));

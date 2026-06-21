@@ -70,7 +70,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-hidden rounded-2xl t-surface ring-1 ring-app shadow-xl z-50 flex flex-col">
+        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-hidden rounded-2xl t-surface-elevated backdrop-blur-xl ring-1 ring-app z-50 flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-app">
             <span className="font-semibold text-app">Уведомления</span>
             {unread > 0 && (

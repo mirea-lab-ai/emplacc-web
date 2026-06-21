@@ -158,18 +158,24 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
                 readOnly={isGuest}
               />
             )}
-            {!isGuest && section === 'teams' && <ProjectsTeamsPanel projectId={projectId} />}
+            {!isGuest && section === 'teams' && (
+              <div className="h-full overflow-y-auto pr-1">
+                <ProjectsTeamsPanel projectId={projectId} />
+              </div>
+            )}
             {!isGuest && section === 'git' && (
               <div className="h-full overflow-y-auto pr-1">
                 <ProjectGitPanel projectId={projectId} readOnly={isGuest} />
               </div>
             )}
             {!isGuest && section === 'settings' && (
-              <ProjectsSettingsPanel
-                project={project}
-                onProjectUpdate={setProject}
-                onProjectDelete={() => router.push('/projects')}
-              />
+              <div className="h-full overflow-y-auto pr-1">
+                <ProjectsSettingsPanel
+                  project={project}
+                  onProjectUpdate={setProject}
+                  onProjectDelete={() => router.push('/projects')}
+                />
+              </div>
             )}
           </section>
         </div>

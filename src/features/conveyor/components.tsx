@@ -856,7 +856,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
     if (!sourceId) return;
     setState((current) => ({ ...current, loading: true, error: null }));
     try {
-      const data = await listForumDigests('problem', sourceId);
+      const data = await listForumDigests('forum', sourceId);
       setState({ loading: false, data, error: null });
     } catch (error) {
       setState({ loading: false, data: null, error: error instanceof Error ? error : new Error(String(error)) });
@@ -874,7 +874,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle }: { sourceId: 
     try {
       const now = new Date();
       await createForumDigest({
-        source_type: 'problem',
+        source_type: 'forum',
         source_id: sourceId,
         source_title: sourceTitle ?? sourceId,
         source_locator: `/forum?problem=${sourceId}`,

@@ -6,8 +6,9 @@ import { getSessionToken } from '@/lib/auth';
 import { getApiBaseUrl } from '@/lib/publicEnv';
 
 // Ключи react-query, которые инвалидируем при любом realtime-событии.
-// Сейчас события эмитит только conveyor.createEvent (approvals/evidence/criteria/close/agent-runs),
-// что затрагивает задачи, доски и conveyor-данные — инвалидируем их широко.
+// События эмитят conveyor (approvals/evidence/criteria/close/agent-runs) и сервисы
+// задач/статусов/досок/форума (task.*, status.*, board.*, forum.message.*).
+// Префикс-ключ инвалидирует все вложенные (['forumMessages'] → все ['forumMessages', id, …]).
 const INVALIDATE_KEYS: (readonly unknown[])[] = [
   ['conveyorPendingApprovals'],
   ['adminPendingApprovals'],
@@ -16,9 +17,13 @@ const INVALIDATE_KEYS: (readonly unknown[])[] = [
   ['boardStatus'],
   ['boardTasks'],
   ['boardTasksByProjectAndBoard'],
+  ['projectBoards'],
   ['myTasks'],
   ['allTasks'],
   ['taskById'],
+  ['allProblems'],
+  ['adminRecentProblems'],
+  ['forumMessages'],
 ];
 
 /**

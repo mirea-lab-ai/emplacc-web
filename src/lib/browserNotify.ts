@@ -19,20 +19,23 @@ export function permissionState(): NotifyState {
   return Notification.permission as NotifyState;
 }
 
+// По умолчанию ВКЛЮЧЕНО, когда браузер разрешил: выдача разрешения сама по себе —
+// явное согласие пользователя, поэтому отдельный «хочу»-клик не требуется. В
+// localStorage храним ТОЛЬКО явное выключение ('0').
 export function wantsEnabled(): boolean {
   if (typeof window === 'undefined') return false;
-  return localStorage.getItem(PREF_KEY) === '1';
+  return localStorage.getItem(PREF_KEY) !== '0';
 }
 
-/** Фактически включено = пользователь хочет И браузер разрешил прямо сейчас. */
+/** Фактически включено = пользователь не выключал явно И браузер разрешил сейчас. */
 export function effectivelyEnabled(): boolean {
   return wantsEnabled() && permissionState() === 'granted';
 }
 
 function setWants(on: boolean) {
   if (typeof window === 'undefined') return;
-  if (on) localStorage.setItem(PREF_KEY, '1');
-  else localStorage.removeItem(PREF_KEY);
+  if (on) localStorage.removeItem(PREF_KEY);   // вернуться к дефолту «включено»
+  else localStorage.setItem(PREF_KEY, '0');    // явное выключение
 }
 
 /** Включить: запросить разрешение если нужно. Возвращает фактическое состояние. */

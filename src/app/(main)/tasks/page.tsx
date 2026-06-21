@@ -99,7 +99,7 @@ export default function MyTasksPage() {
                   const pm = getTaskPriorityMeta(t.priority);
                   return (
                     <Link key={t.id} href={`/tasks/${t.id}`}
-                      className="t-surface-hover rounded-2xl p-4 ring-1 ring-app hover:ring-app transition-all block">
+                      className="t-surface-hover rounded-2xl p-4 ring-1 ring-app hover:ring-emerald-500/40 hover:-translate-y-0.5 transition-all block">
                       <div className="font-medium text-app line-clamp-2">{t.title}</div>
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${pm.badgeClass}`}>

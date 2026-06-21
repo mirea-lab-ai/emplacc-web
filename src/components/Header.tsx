@@ -181,7 +181,7 @@ export default function Header({ items }: Props) {
               <button
                 type="button"
                 onClick={() => setProfileOpen(p => !p)}
-                className="flex items-center gap-2 rounded-xl bg-app-subtle px-2 py-1.5 ring-1 ring-app transition-all hover:bg-app-hover hover:ring-app focus:outline-none"
+                className="flex items-center gap-2 rounded-xl bg-app-subtle px-2 py-1.5 ring-1 ring-app transition-all hover:bg-app-hover hover:ring-emerald-500/40 focus:outline-none"
               >
                 <div className="rounded-full p-[1.5px] bg-gradient-to-br from-emerald-400/70 to-lime-400/70">
                   <Avatar name={`${user.firstName} ${user.lastName}`} email={user.email} url={user.avatarUrl} size="sm" />

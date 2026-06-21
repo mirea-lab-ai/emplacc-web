@@ -142,7 +142,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {STAT_CARDS.map(s => (
           <Link key={s.key} href={s.href}
-            className="t-surface-hover rounded-2xl p-4 text-center space-y-1 ring-1 ring-app hover:ring-app transition-all">
+            className="t-surface-hover rounded-2xl p-4 text-center space-y-1 ring-1 ring-app hover:ring-emerald-500/40 transition-all">
             <div className={`text-3xl font-bold ${s.color}`}>
               {isLoading ? <span className="animate-pulse text-app-3">—</span> : ((stats as any)?.[s.key] ?? 0)}
             </div>
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap gap-2">
         {QUICK_ACTIONS.map(a => (
           <Link key={a.href} href={a.href}
-            className="flex items-center gap-2 rounded-xl bg-app-subtle ring-1 ring-app px-3.5 py-2 text-sm text-app-2 hover:text-app hover:bg-app-hover hover:ring-app transition-all">
+            className="flex items-center gap-2 rounded-xl bg-app-subtle ring-1 ring-app px-3.5 py-2 text-sm text-app-2 hover:text-app hover:bg-app-hover hover:ring-emerald-500/40 transition-all">
             <span>{a.icon}</span>{a.label}
           </Link>
         ))}
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {SECTIONS.map(s => (
             <Link key={s.href} href={s.href}
-              className="t-surface-hover rounded-2xl p-5 flex items-start gap-4 ring-1 ring-app hover:ring-app transition-all group">
+              className="t-surface-hover rounded-2xl p-5 flex items-start gap-4 ring-1 ring-app hover:ring-emerald-500/40 transition-all group">
               <span className="text-3xl shrink-0">{s.icon}</span>
               <div className="min-w-0">
                 <div className="font-semibold text-app group-hover:text-emerald-300 transition-colors">{s.label}</div>

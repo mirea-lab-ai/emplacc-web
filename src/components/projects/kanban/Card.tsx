@@ -67,8 +67,10 @@ export default function Card({
   const priorityMeta = getTaskPriorityMeta(task.priority);
 
   const containerClasses = [
-    'group relative rounded-lg border border-app p-3 t-accent-grad/20',
-    readOnly ? 'cursor-default' : 'cursor-pointer active:cursor-grabbing hover:brightness-110',
+    'group relative rounded-lg border border-app p-3 t-accent-grad/20 transition-all duration-150',
+    readOnly
+      ? 'cursor-default'
+      : 'cursor-pointer active:cursor-grabbing hover:-translate-y-0.5 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10',
   ].join(' ');
 
   return (

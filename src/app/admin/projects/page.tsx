@@ -73,7 +73,7 @@ export default function AdminProjectsPage() {
 
       <div className="space-y-2">
         {filtered.map((p: any) => (
-          <div key={p.id} className="t-surface rounded-2xl p-4 flex items-center gap-4 ring-1 ring-app hover:ring-app transition-all">
+          <div key={p.id} className="t-surface rounded-2xl p-4 flex items-center gap-4 ring-1 ring-app hover:ring-emerald-500/40 transition-all">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium text-app truncate">{p.name}</span>

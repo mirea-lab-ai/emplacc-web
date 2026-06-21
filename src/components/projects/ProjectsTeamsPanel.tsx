@@ -67,7 +67,7 @@ export default function ProjectsTeamsPanel({ projectId }: { projectId: string })
           const memberCount = typeof team.members === 'number' ? team.members : 0;
           return (
             <div key={team.id}
-              className="t-surface rounded-2xl p-5 ring-1 ring-app hover:ring-app transition-all group">
+              className="t-surface rounded-2xl p-5 ring-1 ring-app hover:ring-emerald-500/40 transition-all group">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <Link href={`/teams?team=${encodeURIComponent(team.id)}`}

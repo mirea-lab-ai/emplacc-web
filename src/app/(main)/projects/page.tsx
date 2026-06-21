@@ -125,7 +125,7 @@ function ProjectCard({ project, onClick }: { project: UIProject; onClick: () => 
 
   return (
     <button type="button" onClick={onClick}
-      className="t-surface rounded-2xl p-5 ring-1 ring-app hover:ring-app text-left group transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 animate-fade-in-scale w-full">
+      className="t-surface rounded-2xl p-5 ring-1 ring-app hover:ring-emerald-500/40 text-left group transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 animate-fade-in-scale w-full">
       <div className="flex items-start gap-3 mb-3">
         <ProjectIcon name={project.name} />
         <div className="flex-1 min-w-0 pt-0.5">

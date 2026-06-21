@@ -138,7 +138,7 @@ function UserRow({ user, roles, onRefresh, toast, confirm }: {
 
   return (
     <>
-      <div className={`t-surface rounded-2xl p-4 flex items-center gap-4 ring-1 transition-all ${isBanned ? 'ring-red-500/20 opacity-60' : 'ring-app hover:ring-app'}`}>
+      <div className={`t-surface rounded-2xl p-4 flex items-center gap-4 ring-1 transition-all ${isBanned ? 'ring-red-500/20 opacity-60' : 'ring-app hover:ring-emerald-500/40'}`}>
         <div className="shrink-0">
           <Avatar name={name} url={user.avatarUrl} email={user.email} fallbackKey={user.id} size="md"/>
         </div>

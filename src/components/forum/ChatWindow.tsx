@@ -48,6 +48,16 @@ export function renderMentions(text: string): string {
       (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(16,185,129,0.15);color:#6ee7b7;margin:0 2px">✅ ${escapeMentionLabel(name)}</span>`);
 }
 
+// Превращает mention-маркап в человекочитаемый текст для превью (цитата ответа,
+// нотификации): @[Имя](user:id) → @Имя. Также срезает «висящий» обрезок разметки,
+// если строку обрубили посреди упоминания (иначе в превью лезет сырой @[...]( ).
+export function stripMentions(text: string): string {
+  return text
+    .replace(/[@#]\[([^\]]+)\]\((?:user|task|project|team):[^)]+\)/g, (_m, name) => `@${name}`)
+    .replace(/[@#]\[[^\]]*$/g, '') // оборванное упоминание в конце (после побайтовой обрезки)
+    .trim();
+}
+
 // Extract mention IDs from text for notifications backend
 export function extractMentions(text: string): { type: MentionItem['type']; id: string }[] {
   const result: { type: MentionItem['type']; id: string }[] = [];
@@ -303,7 +313,7 @@ export default function ChatWindow({
                 canEdit={!!onEdit && !!m.self}
                 onDelete={() => onDelete?.(m.id)}
                 onEdit={() => { setEditingId(m.id); setEditDraft(m.text); }}
-                onReply={() => setReplyTo({ id: m.id, text: m.text.slice(0, 80), authorName: m.author.name })}
+                onReply={() => setReplyTo({ id: m.id, text: stripMentions(m.text).slice(0, 80), authorName: m.author.name })}
               />
         ))}
         {(isSending || uploading) && (
@@ -496,7 +506,7 @@ function Bubble({
               {msg.replyTo?.text ? (
                 <>
                   <span className="font-medium text-emerald-300">{msg.replyTo.authorName}</span>
-                  <p className="truncate text-app-2">{msg.replyTo.text}</p>
+                  <p className="truncate text-app-2">{stripMentions(msg.replyTo.text)}</p>
                 </>
               ) : (
                 <p className="italic text-app-3">🗑 сообщение удалено</p>

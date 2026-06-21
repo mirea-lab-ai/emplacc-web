@@ -877,6 +877,13 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [],
 
   useEffect(() => { void load(); }, [load]);
 
+  // Realtime: дайджест, созданный на другом клиенте, прилетает по SSE (см. realtime.ts).
+  useEffect(() => {
+    const onRealtime = () => { void load(); };
+    window.addEventListener('emplacc:realtime', onRealtime);
+    return () => window.removeEventListener('emplacc:realtime', onRealtime);
+  }, [load]);
+
   const latest = state.data?.[0] ?? null;
   const candidates = latest ? (latest.candidates ?? latest.action_candidates ?? []) : [];
 

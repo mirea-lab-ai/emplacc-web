@@ -3,7 +3,10 @@
 import { useRef, useState, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { uploadImage, uploadFile, isPresignedUrl, refreshPresignedUrl } from '@/lib/upload';
 import { renderMentions, type MentionItem } from '@/components/forum/ChatWindow';
 
@@ -436,8 +439,8 @@ export function MarkdownView({ content }: { content: string }) {
   const processed = useMemo(() => renderMentions(content), [content]);
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkSoftBreaks]}
-      rehypePlugins={[rehypeRaw, rehypeSanitizeInline]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkSoftBreaks]}
+      rehypePlugins={[rehypeRaw, [rehypeKatex, { output: 'html', throwOnError: false }], rehypeSanitizeInline]}
       components={{
         img: ({ src, alt }) => <RefreshableImage src={src} alt={alt} />,
         video: ({ src }: { src?: string | Blob | MediaSource | MediaStream }) => <RefreshableVideo src={typeof src === 'string' ? src : undefined} />,

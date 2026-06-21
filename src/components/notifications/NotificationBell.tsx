@@ -8,6 +8,7 @@ import { formatDateShort } from '@/lib/date';
 import { useNotifications, useUnreadCount, useMarkRead, useMarkAllRead } from '@/features/notifications/hooks';
 import type { Notification } from '@/features/notifications/api';
 import * as browserNotify from '@/lib/browserNotify';
+import { soundMuted, setSoundMuted } from '@/lib/sound';
 
 const ICON: Record<string, string> = {
   'task.assigned': '📌',
@@ -48,7 +49,8 @@ export default function NotificationBell() {
   }, [unread]);
 
   const [perm, setPerm] = useState<browserNotify.NotifyState>('default');
-  useEffect(() => { if (open) setPerm(browserNotify.permissionState()); }, [open]);
+  const [muted, setMuted] = useState(false);
+  useEffect(() => { if (open) { setPerm(browserNotify.permissionState()); setMuted(soundMuted()); } }, [open]);
   async function toggleBrowser() {
     if (browserNotify.effectivelyEnabled()) {
       browserNotify.disable();
@@ -120,6 +122,16 @@ export default function NotificationBell() {
               )}
             </div>
           )}
+
+          <div className="flex items-center justify-between px-4 py-2 border-b border-app">
+            <span className="t-caption">{muted ? '🔇' : '🔊'} Звуки</span>
+            <button onClick={() => { const v = !muted; setSoundMuted(v); setMuted(v); }}
+              className={`text-xs rounded-lg px-2 py-0.5 transition-colors ${
+                muted ? 'text-app-2 hover:text-app hover:bg-app-hover' : 'text-emerald-300 bg-emerald-500/10'
+              }`}>
+              {muted ? 'Выкл' : 'Вкл'}
+            </button>
+          </div>
 
           <div className="flex-1 overflow-y-auto custom-scroll">
             {isLoading ? (

@@ -47,6 +47,8 @@ export function useRealtime() {
       for (const key of INVALIDATE_KEYS) {
         qc.invalidateQueries({ queryKey: key as unknown[] });
       }
+      // Для не-react-query потребителей (напр. панель дайджеста на ручном fetch).
+      try { window.dispatchEvent(new Event('emplacc:realtime')); } catch {}
     };
 
     // (Пере)подключаемся к /v2/stream с актуальным токеном. EventSource сам

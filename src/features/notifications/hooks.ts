@@ -5,6 +5,7 @@ import {
   fetchNotifications, fetchUnreadCount, markNotificationRead, markAllNotificationsRead,
 } from './api';
 import * as browserNotify from '@/lib/browserNotify';
+import { playNotify } from '@/lib/sound';
 
 export function useUnreadCount(enabled = true) {
   return useQuery({
@@ -35,6 +36,7 @@ export function useBrowserNotificationBridge(enabled = true) {
     const before = prev.current;
     prev.current = unread;
     if (before === undefined || unread <= before) return; // первый замер / без роста — молчим
+    playNotify(); // звук нового уведомления (уважает mute)
     if (!browserNotify.effectivelyEnabled()) return;
     fetchNotifications(1, 1, true)
       .then((r) => {

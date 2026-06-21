@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Avatar from '@/components/ui/Avatar';
 import { MarkdownView } from '@/components/ui/MarkdownEditor';
 import { uploadImage, uploadFile } from '@/lib/upload';
+import { playSend, playReceive } from '@/lib/sound';
 import type { UIForumMessageReplyPreview } from '@/features/forum-messages/api';
 
 export type Message = {
@@ -126,6 +127,18 @@ export default function ChatWindow({
     el.scrollTo({ top: el.scrollHeight, behavior: messages.length <= 1 ? 'instant' : 'smooth' });
   }, [messages.length]);
 
+  // Звук на входящее сообщение: только при росте списка И если последнее сообщение
+  // реально свежее (по времени) и не своё. Это отсекает первичную загрузку треда,
+  // переключение тем и F5 (там сообщения исторические) — звук там не играет.
+  const prevMsgCount = useRef<number | null>(null);
+  useEffect(() => {
+    const prev = prevMsgCount.current;
+    prevMsgCount.current = messages.length;
+    if (prev === null || messages.length <= prev) return;
+    const last = messages[messages.length - 1];
+    if (last && !last.self && last.ts && Date.now() - last.ts < 15000) playReceive();
+  }, [messages]);
+
   const resizeTextarea = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 160) + 'px';
@@ -162,6 +175,7 @@ export default function ChatWindow({
 
     if (!text) return;
     onSend(text, replyTo?.id);
+    playSend();
     setDraft('');
     setReplyTo(null);
     if (textareaRef.current) {

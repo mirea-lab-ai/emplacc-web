@@ -9,7 +9,7 @@ import {
   AttachEvidenceForm,
   CloseGateControls,
 } from '../src/features/conveyor/components';
-import copy from '../src/locales/en/conveyor.json';
+import copy from '../src/locales/ru/conveyor.json';
 
 function renderWithToast(element: React.ReactElement) {
   return renderToStaticMarkup(<ToastProvider>{element}</ToastProvider>);

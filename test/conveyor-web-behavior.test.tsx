@@ -10,7 +10,7 @@ import {
   ConveyorWorkOrderSection,
   ErrorText,
 } from '../src/features/conveyor/components';
-import copy from '../src/locales/en/conveyor.json';
+import copy from '../src/locales/ru/conveyor.json';
 
 function renderWithToast(element: React.ReactElement) {
   return renderToStaticMarkup(<ToastProvider>{element}</ToastProvider>);
@@ -61,8 +61,9 @@ describe('Conveyor web behavior states', () => {
   });
 
   test('forum digest panel distinguishes missing source from empty digest state', () => {
-    const missingSourceMarkup = renderWithToast(<ConveyorForumDigestPanel sourceId="" />);
-    const emptyDigestMarkup = renderWithToast(<ConveyorForumDigestPanel sourceId="topic-1" sourceTitle="Topic" />);
+    // Панель сворачиваемая (по умолчанию свёрнута); для проверки тела рендерим развёрнутой.
+    const missingSourceMarkup = renderWithToast(<ConveyorForumDigestPanel sourceId="" initialCollapsed={false} />);
+    const emptyDigestMarkup = renderWithToast(<ConveyorForumDigestPanel sourceId="topic-1" sourceTitle="Topic" initialCollapsed={false} />);
 
     expect(missingSourceMarkup).toContain(copy.forumDigest.sourceRequired);
     expect(disabledCount(missingSourceMarkup)).toBeGreaterThanOrEqual(2);

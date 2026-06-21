@@ -217,5 +217,63 @@
     "open": "Открыть",
     "view": "Просмотр",
     "edit": "Изменить"
+  },
+  "events": {
+    "types": {
+      "criterion.created": "Критерий создан",
+      "criterion.state_changed": "Состояние критерия изменено",
+      "evidence.attached": "Доказательство прикреплено",
+      "evidence.revoked": "Доказательство отозвано",
+      "agent_run.registered": "Запуск агента зарегистрирован",
+      "agent_run.status_changed": "Статус запуска агента изменён",
+      "agent_run.heartbeat": "Пульс запуска агента",
+      "approval.requested": "Запрошено одобрение",
+      "approval.granted": "Одобрение выдано",
+      "approval.denied": "Одобрение отклонено",
+      "task.linked": "Задача связана",
+      "task.completed": "Задача завершена",
+      "work_order.created": "Наряд создан",
+      "work_order.accepted": "Наряд принят",
+      "work_order.completed": "Наряд завершён",
+      "work_order.rejected": "Наряд отклонён",
+      "work_order.canceled": "Наряд отменён",
+      "work_order.failed": "Наряд провалился",
+      "waiver.created": "Вейвер создан",
+      "generated_report.created": "Отчёт сгенерирован",
+      "forum_candidate.confirmed": "Кандидат форума подтверждён"
+    },
+    "entities": {
+      "criterion": "Критерий",
+      "evidence": "Доказательство",
+      "agent_run": "Запуск агента",
+      "approval": "Одобрение",
+      "task": "Задача",
+      "work_order": "Наряд",
+      "waiver": "Вейвер",
+      "link": "Связь",
+      "generated_report": "Отчёт",
+      "forum_candidate": "Кандидат форума"
+    },
+    "actions": {
+      "created": "создан",
+      "updated": "обновлён",
+      "state_changed": "статус изменён",
+      "status_changed": "статус изменён",
+      "attached": "прикреплено",
+      "revoked": "отозвано",
+      "registered": "зарегистрирован",
+      "heartbeat": "пульс",
+      "requested": "запрошено",
+      "granted": "выдано",
+      "denied": "отклонено",
+      "linked": "связана",
+      "completed": "завершено",
+      "accepted": "принят",
+      "rejected": "отклонён",
+      "canceled": "отменён",
+      "failed": "провал",
+      "confirmed": "подтверждён"
+    },
+    "unknown": "Событие"
   }
 }

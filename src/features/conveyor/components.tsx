@@ -6,6 +6,7 @@ import { MarkdownView } from '@/components/ui/MarkdownEditor';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
 import copy from '@/locales/ru/conveyor.json';
+import { eventLabel } from '@/features/conveyor/labels';
 import {
   ConveyorApiError,
   ConveyorAgentRun,
@@ -45,7 +46,7 @@ import type { UIProject } from '@/features/projects/api';
 type LoadState<T> = { loading: boolean; data: T | null; error: ConveyorApiError | Error | null };
 
 function formatDate(value?: string) {
-  if (!value) return copy.common.none;
+  if (!value) return ''; // пустую дату не показываем как «Нет» — строка meta скрывается
   const time = new Date(value);
   if (Number.isNaN(time.getTime())) return value;
   return time.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -110,12 +111,12 @@ function SafeMetadata({ value }: { value: unknown }) {
   );
 }
 
-function ListItem({ title, meta, status, children }: { title: React.ReactNode; meta?: React.ReactNode; status?: string; children?: React.ReactNode }) {
+function ListItem({ title, meta, status, statusLabel, children }: { title: React.ReactNode; meta?: React.ReactNode; status?: string; statusLabel?: React.ReactNode; children?: React.ReactNode }) {
   return (
     <li className="rounded-lg t-surface-elevated p-2 ring-1 ring-app">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 text-sm text-app">{title}</div>
-        {status && <Badge status={status}>{stateLabel(status)}</Badge>}
+        {status && <Badge status={status}>{statusLabel ?? stateLabel(status)}</Badge>}
       </div>
       {meta && <div className="mt-1 text-xs text-app-3">{meta}</div>}
       {children}
@@ -743,7 +744,10 @@ export function ConveyorTaskPanel({ taskId }: { taskId: string }) {
             <Section title={copy.taskPanel.events} count={state.data.events.length}>
               {state.data.errors.events ? <ErrorText error={state.data.errors.events} /> : state.data.events.length === 0 ? <EmptyText>{copy.taskPanel.empty}</EmptyText> : (
                 <ul className="space-y-2">
-                  {state.data.events.slice(0, 6).map((event) => <ListItem key={event.id} title={event.summary ?? event.event_type ?? event.type ?? event.id} status={event.event_type ?? event.type} meta={formatDate(event.created_at)} />)}
+                  {state.data.events.slice(0, 6).map((event) => {
+                    const evType = event.event_type ?? event.type;
+                    return <ListItem key={event.id} title={event.summary ?? eventLabel(evType) ?? event.id} status={evType} statusLabel={eventLabel(evType)} meta={formatDate(event.created_at)} />;
+                  })}
                 </ul>
               )}
             </Section>
@@ -848,12 +852,12 @@ export function ConveyorGeneratedReportPanel({ projects, projectsLoading }: { pr
   );
 }
 
-export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] }: { sourceId: string; sourceTitle?: string; messages?: { author?: string; text?: string }[] }) {
+export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [], initialCollapsed = true }: { sourceId: string; sourceTitle?: string; messages?: { author?: string; text?: string }[]; initialCollapsed?: boolean }) {
   const toast = useToast();
   const [state, setState] = useState<LoadState<ConveyorForumDigest[]>>({ loading: false, data: null, error: null });
   const [busy, setBusy] = useState(false);
   // Сворачивание панели — чтобы дайджест не сжимал чат. По умолчанию свёрнут; помним выбор.
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(initialCollapsed);
   useEffect(() => { setCollapsed(localStorage.getItem('emplacc-digest-collapsed') !== 'false'); }, []);
   const setCollapsedPersist = (v: boolean) => {
     setCollapsed(v);

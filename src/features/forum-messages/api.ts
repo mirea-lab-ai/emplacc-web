@@ -45,7 +45,10 @@ export async function fetchForumMessagesByProblem(
   const list = json.messages ?? [];
 
   return (list as Record<string, unknown>[]).map(m => {
-    const desc = Array.isArray(m.description) ? (m.description as string[]).join(' ') : String(m.content ?? '');
+    // description[] — это строки сообщения (по элементу на строку). Склеиваем через
+    // \n, а не пробел: иначе теряются переносы и ломается markdown (списки «- …»
+    // слипаются в один абзац). Многострочный текст из UI лежит одним элементом с \n.
+    const desc = Array.isArray(m.description) ? (m.description as string[]).join('\n') : String(m.content ?? '');
     const author = m.author as Record<string, string> | null | undefined;
     const replyTo = m.reply_to as Record<string, string> | null | undefined;
     return {

@@ -38,6 +38,9 @@ function escapeMentionLabel(s: string): string {
 // MarkdownView дополнительно прогоняет результат через allowlist-санитайзер, label здесь экранируется.
 export function renderMentions(text: string): string {
   return text
+    // Агент-тег "[agent <harness>]" — бейдж, чтобы сообщения агентов были видны (не сырой текст).
+    .replace(/\[agent ([^\]]+)\]/g,
+      (_m, name) => `<span style="display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(45,212,191,0.15);color:#5eead4;margin:0 2px">🤖 ${escapeMentionLabel(name)}</span>`)
     .replace(/@\[([^\]]+)\]\(user:[^)]+\)/g,
       (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px">@${escapeMentionLabel(name)}</span>`)
     // Проект — кликабельный чип-ссылка на страницу проекта.

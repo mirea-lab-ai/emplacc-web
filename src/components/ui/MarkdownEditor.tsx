@@ -449,8 +449,21 @@ export function MarkdownView({ content }: { content: string }) {
             : <code className="bg-app-hover rounded px-1 py-0.5 text-xs font-mono text-emerald-300">{children}</code>;
         },
         blockquote: ({ children }) => (
-          <blockquote className="border-l-2 border-emerald-500/50 pl-3 text-app-2 italic">{children}</blockquote>
+          <blockquote className="border-l-2 border-emerald-500/50 pl-3 text-app-2 italic my-1.5">{children}</blockquote>
         ),
+        // Tailwind preflight сбрасывает маркеры/отступы списков и стили заголовков —
+        // возвращаем их явно, чтобы рендерился весь набор markdown.
+        ul: ({ children }) => <ul className="list-disc pl-5 my-1.5 space-y-0.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-5 my-1.5 space-y-0.5">{children}</ol>,
+        li: ({ children }) => <li className="leading-snug">{children}</li>,
+        h1: ({ children }) => <h1 className="text-lg font-semibold mt-2.5 mb-1 text-app">{children}</h1>,
+        h2: ({ children }) => <h2 className="text-base font-semibold mt-2 mb-1 text-app">{children}</h2>,
+        h3: ({ children }) => <h3 className="text-sm font-semibold mt-1.5 mb-0.5 text-app">{children}</h3>,
+        p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
+        hr: () => <hr className="my-2.5 border-app" />,
+        table: ({ children }) => <div className="my-2 overflow-x-auto"><table className="w-full text-sm border-collapse">{children}</table></div>,
+        th: ({ children }) => <th className="border border-app px-2 py-1 text-left font-semibold">{children}</th>,
+        td: ({ children }) => <td className="border border-app px-2 py-1">{children}</td>,
       }}
     >
       {processed}

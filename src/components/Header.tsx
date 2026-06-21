@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import Avatar from '@/components/ui/Avatar';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import CommandPalette from '@/components/ui/CommandPalette';
 import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
 import { http } from '@/lib/http';
@@ -172,6 +173,8 @@ export default function Header({ items }: Props) {
               );
             })}
           </nav>
+
+          {hasCreds && user && <NotificationBell />}
 
           {hasCreds && user ? (
             <div className="relative" ref={profileRef}>

@@ -24,6 +24,8 @@ const INVALIDATE_KEYS: (readonly unknown[])[] = [
   ['allProblems'],
   ['adminRecentProblems'],
   ['forumMessages'],
+  ['notifications'],
+  ['notificationsUnread'],
 ];
 
 /**

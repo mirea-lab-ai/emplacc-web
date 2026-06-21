@@ -6,7 +6,7 @@ import { SkeletonSidebarItem, SkeletonCard } from '@/components/ui/Skeleton';
 import TeamSidebar from '@/components/teams/TeamSidebar';
 import TeamBoard from '@/components/teams/TeamBoard';
 import AddTeamModal from '@/components/teams/AddTeamModal';
-import DeleteTeamModal from '@/components/teams/DeleteTeamModal';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import type { Member, Team } from '@/components/teams/types';
 import EditTeamModal from '@/components/teams/EditTeamModal';
 import { useAllTeams, useDeleteTeam } from '@/features/teams/hooks';
@@ -28,11 +28,6 @@ export default function TeamsPage() {
 
 function TeamsPageContent() {
   const [openCreate, setOpenCreate] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<{ open: boolean; teamId: string; teamName: string }>({
-    open: false,
-    teamId: '',
-    teamName: '',
-  });
   const [editTeam, setEditTeam] = useState<Team | null>(null);
 
   const searchParams = useSearchParams();
@@ -49,6 +44,7 @@ function TeamsPageContent() {
   const { data: apiTeams, isLoading, error } = useAllTeams(hasCreds);
   const deleteTeamMutation = useDeleteTeam();
   const toast = useToast();
+  const confirm = useConfirm();
   
   // Преобразуем данные API в формат компонента
   const teams: Team[] = useMemo(() => {
@@ -126,23 +122,20 @@ function TeamsPageContent() {
     selectTeam(team.id);
   };
 
-  const handleDeleteTeam = (teamId: string, teamName: string) => {
-    setDeleteModal({ open: true, teamId, teamName });
-  };
-
-  const confirmDeleteTeam = async () => {
+  const handleDeleteTeam = async (teamId: string, teamName: string) => {
+    if (!(await confirm({
+      title: 'Удалить команду',
+      message: `Удалить команду «${teamName}»? Действие нельзя отменить.`,
+      danger: true,
+      confirmLabel: 'Удалить',
+    }))) return;
     try {
-      await deleteTeamMutation.mutateAsync(deleteModal.teamId);
-      // Если удаляемая команда была активной, выбираем первую доступную
-      if (activeTeamId === deleteModal.teamId) {
-        const remainingTeams = teams.filter(t => t.id !== deleteModal.teamId);
-        if (remainingTeams.length > 0) {
-          selectTeam(remainingTeams[0].id);
-        } else {
-          clearTeamSelection();
-        }
+      await deleteTeamMutation.mutateAsync(teamId);
+      if (activeTeamId === teamId) {
+        const remainingTeams = teams.filter(t => t.id !== teamId);
+        if (remainingTeams.length > 0) selectTeam(remainingTeams[0].id);
+        else clearTeamSelection();
       }
-      setDeleteModal({ open: false, teamId: '', teamName: '' });
     } catch (error) {
       console.error('Ошибка при удалении команды:', error);
       toast.error('Ошибка при удалении команды. Попробуйте еще раз.');
@@ -204,13 +197,6 @@ function TeamsPageContent() {
       </div>
 
       <AddTeamModal open={openCreate} onClose={() => setOpenCreate(false)} onCreate={addTeam} />
-      <DeleteTeamModal
-        open={deleteModal.open}
-        onClose={() => setDeleteModal({ open: false, teamId: '', teamName: '' })}
-        onConfirm={confirmDeleteTeam}
-        teamName={deleteModal.teamName}
-        isDeleting={deleteTeamMutation.isPending}
-      />
       <EditTeamModal open={!!editTeam} team={editTeam} onClose={() => setEditTeam(null)} />
     </div>
   );

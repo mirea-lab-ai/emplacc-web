@@ -11,7 +11,7 @@ import { getErrorMessage } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useIsClient } from '@/hooks/useIsClient';
-import DeleteBoardModal from './DeleteBoardModal';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import type { UIBoard } from '@/features/boards/api';
 
 const demoColumns: KBColumn[] = [
@@ -93,14 +93,14 @@ export default function ProjectsBoardPanel({
   readOnly = false,
 }: Props) {
   const [internalBoardId, setInternalBoardId] = useState<string | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [headerControls, setHeaderControls] = useState<HeaderControls | null>(null);
   const [columnsEditMode, setColumnsEditMode] = useState(false);
 
   const isClient = useIsClient();
   const hasCreds = isClient && isAuthed();
   const { data: boards, isLoading, error } = useProjectBoards(projectId, hasCreds);
-  const { mutate: deleteBoard, isPending: isDeleting } = useDeleteBoard();
+  const { mutate: deleteBoard } = useDeleteBoard();
+  const confirm = useConfirm();
   const { mutate: createStatus, isPending: isCreatingStatus } = useCreateStatus();
   const { mutate: removeStatus, isPending: isDeletingStatus } = useDeleteStatus();
   const { mutateAsync: createTaskAsync, isPending: isCreatingTask } = useCreateTask();
@@ -115,7 +115,6 @@ export default function ProjectsBoardPanel({
   useEffect(() => {
     if (readOnly) {
       setColumnsEditMode(false);
-      setShowDeleteModal(false);
       setHeaderControls(null);
     }
   }, [readOnly]);
@@ -316,15 +315,19 @@ export default function ProjectsBoardPanel({
     handleSelectBoard(boardsList[nextIndex]?.id ?? null);
   };
 
-  const handleDeleteBoard = () => {
-    if (readOnly) return;
-    if (!currentBoard) return;
+  const handleDeleteBoard = async () => {
+    if (readOnly || !currentBoard) return;
+    if (!(await confirm({
+      title: 'Удалить доску',
+      message: `Удалить доску «${currentBoard.name}» со всеми статусами и задачами?`,
+      danger: true,
+      confirmLabel: 'Удалить',
+    }))) return;
 
     deleteBoard(
       { boardId: currentBoard.id, projectId },
       {
         onSuccess: () => {
-          setShowDeleteModal(false);
           if (boardsList.length <= 1) {
             handleSelectBoard(null);
           } else {
@@ -332,7 +335,6 @@ export default function ProjectsBoardPanel({
             handleSelectBoard(boardsList[nextIndex]?.id ?? null);
           }
         },
-        onError: () => setShowDeleteModal(false),
       },
     );
   };
@@ -380,7 +382,7 @@ export default function ProjectsBoardPanel({
                   <h2 className="text-xl font-semibold text-app">{currentBoard?.name ?? 'Без названия'}</h2>
                   {!readOnly && columnsEditMode && currentBoard && (
                     <button
-                      onClick={() => setShowDeleteModal(true)}
+                      onClick={handleDeleteBoard}
                       className="p-1 text-app-2 transition-colors hover:text-red-500"
                       title="Удалить доску"
                     >
@@ -473,14 +475,6 @@ export default function ProjectsBoardPanel({
         </div>
       </Panel>
 
-      {!readOnly && showDeleteModal && currentBoard && (
-        <DeleteBoardModal
-          boardName={currentBoard.name}
-          onConfirm={handleDeleteBoard}
-          onCancel={() => setShowDeleteModal(false)}
-          isDeleting={isDeleting}
-        />
-      )}
     </>
   );
 }

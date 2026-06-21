@@ -7,7 +7,7 @@ import { SkeletonText } from '@/components/ui/Skeleton';
 import ChatWindow, { Message } from '@/components/forum/ChatWindow';
 import CreateProblemModal from '@/components/forum/CreateProblemModal';
 import EditProblemModal from '@/components/forum/EditProblemModal';
-import DeleteProblemModal from '@/components/forum/DeleteProblemModal';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useAllProblems, useDeleteProblem } from '@/features/problems/hooks';
 import { useForumMessagesByProblem, useCreateForumMessage, useDeleteForumMessage, useUpdateForumMessage } from '@/features/forum-messages/hooks';
 import { fetchAllTasks } from '@/features/tasks/api';
@@ -29,7 +29,7 @@ function ForumContent() {
   const [activeProblemId, setActiveProblemId] = useState('');
   const [showCreate,   setShowCreate]   = useState(false);
   const [editProblem,  setEditProblem]  = useState<UIProblem | null>(null);
-  const [deleteModal,  setDeleteModal]  = useState<{ open: boolean; problemId: string; problemName: string }>({ open: false, problemId: '', problemName: '' });
+  const confirm = useConfirm();
   const [search,       setSearch]       = useState('');
   const pendingRef = useRef<string | null>(null);
 
@@ -265,7 +265,13 @@ function ForumContent() {
                       )}
                       {canManage && (
                         <button
-                          onClick={e => { e.stopPropagation(); setDeleteModal({ open: true, problemId: problem.id, problemName: problem.name }); }}
+                          onClick={async e => {
+                            e.stopPropagation();
+                            if (!(await confirm({ title: 'Удалить тему', message: `Удалить «${problem.name}» и все её сообщения?`, danger: true, confirmLabel: 'Удалить' }))) return;
+                            deleteProblem(problem.id, {
+                              onSuccess: () => { if (activeProblemId === problem.id) { setActiveProblemId(''); updateQuery(null); } },
+                            });
+                          }}
                           disabled={isDeleting}
                           className="p-1.5 rounded-lg text-app-2 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
                           title="Удалить"
@@ -356,20 +362,6 @@ function ForumContent() {
           }}
         />
       )}
-      <DeleteProblemModal
-        open={deleteModal.open}
-        onClose={() => setDeleteModal({ open: false, problemId: '', problemName: '' })}
-        onConfirm={() => {
-          deleteProblem(deleteModal.problemId, {
-            onSuccess: () => {
-              if (activeProblemId === deleteModal.problemId) { setActiveProblemId(''); updateQuery(null); }
-              setDeleteModal({ open: false, problemId: '', problemName: '' });
-            },
-          });
-        }}
-        problemName={deleteModal.problemName}
-        isDeleting={isDeleting}
-      />
     </div>
   );
 }

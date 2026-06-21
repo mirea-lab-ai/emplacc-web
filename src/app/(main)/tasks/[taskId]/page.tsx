@@ -15,6 +15,7 @@ import { SkeletonTaskDetail } from '@/components/ui/Skeleton';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
 import { ConveyorTaskPanel } from '@/features/conveyor/components';
+import { TaskCommitsPanel } from '@/components/git/GitPanels';
 import { formatDateShort, formatDateTime } from '@/lib/date';
 
 type TaskFull = {
@@ -335,6 +336,8 @@ export default function TaskPage({ params }: { params: Promise<{ taskId: string 
           </div>
 
           <ConveyorTaskPanel taskId={task.id} />
+
+          <TaskCommitsPanel taskId={task.id} />
         </div>
 
         {/* ── Right sidebar ── */}

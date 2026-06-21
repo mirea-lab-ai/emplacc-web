@@ -7,12 +7,13 @@ import ProjectsTeamsPanel from '@/components/projects/ProjectsTeamsPanel';
 import ProjectsSettingsPanel from '@/components/projects/ProjectsSettingsPanel';
 import ProjectsBoardList from '@/components/projects/ProjectsBoardList';
 import CreateBoardModal from '@/components/projects/CreateBoardModal';
+import { ProjectGitPanel } from '@/components/git/GitPanels';
 import { useIsClient } from '@/hooks/useIsClient';
 import { getUserId, isAuthed } from '@/lib/auth';
 import { fetchProjectById, type UIProject } from '@/features/projects/api';
 import { useUserRole } from '@/features/roles/hooks';
 
-type ProjectSection = 'board' | 'teams' | 'settings';
+type ProjectSection = 'board' | 'teams' | 'git' | 'settings';
 
 const STATUS_META: Record<string, { label: string; dot: string }> = {
   active:  { label: 'Активный',   dot: 'bg-emerald-400' },
@@ -23,6 +24,7 @@ const STATUS_META: Record<string, { label: string; dot: string }> = {
 const NAV_ITEMS: { key: ProjectSection; label: string; icon: string }[] = [
   { key: 'board',    label: 'Доска',     icon: '📋' },
   { key: 'teams',    label: 'Команды',   icon: '👥' },
+  { key: 'git',      label: 'Репозитории', icon: '🌿' },
   { key: 'settings', label: 'Настройки', icon: '⚙️' },
 ];
 
@@ -157,6 +159,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
               />
             )}
             {!isGuest && section === 'teams' && <ProjectsTeamsPanel projectId={projectId} />}
+            {!isGuest && section === 'git' && (
+              <div className="h-full overflow-y-auto pr-1">
+                <ProjectGitPanel projectId={projectId} readOnly={isGuest} />
+              </div>
+            )}
             {!isGuest && section === 'settings' && (
               <ProjectsSettingsPanel
                 project={project}

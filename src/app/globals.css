@@ -175,14 +175,16 @@ body::before {
 .t-caption  { font-size: 0.75rem;  color: var(--text-muted);     letter-spacing: 0.03em; }
 .t-label    { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 
-/* ── Theme-aware utilities (заменяют инлайновые text-white / bg-white/* для поддержки светлой темы) ── */
-.text-app   { color: var(--text-primary); }
-.text-app-2 { color: var(--text-secondary); }
-.text-app-3 { color: var(--text-muted); }
-.bg-app-subtle { background-color: var(--bg-subtle); }
-.bg-app-hover  { background-color: var(--hover-bg); }
-.border-app { border-color: var(--surface-border); }
-.ring-app   { --tw-ring-color: var(--surface-border); }
+/* ── Theme-aware utilities (заменяют инлайновые text-white / bg-white/* для поддержки светлой темы) ──
+   Объявлены через @utility, чтобы Tailwind v4 генерировал варианты (hover:/focus:/…).
+   Раньше это были обычные классы → hover:bg-app-hover / hover:text-app молча не работали. */
+@utility text-app      { color: var(--text-primary); }
+@utility text-app-2    { color: var(--text-secondary); }
+@utility text-app-3    { color: var(--text-muted); }
+@utility bg-app-subtle { background-color: var(--bg-subtle); }
+@utility bg-app-hover  { background-color: var(--hover-bg); }
+@utility border-app    { border-color: var(--surface-border); }
+@utility ring-app      { --tw-ring-color: var(--surface-border); }
 
 /* ── Buttons ── */
 .btn-primary {

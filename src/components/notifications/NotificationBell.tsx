@@ -153,7 +153,7 @@ export default function NotificationBell() {
                       <div className="t-caption mt-0.5">{formatDateShort(n.created_at)}</div>
                     </div>
                     {href && (
-                      <span className="self-center shrink-0 text-app-3 group-hover:text-emerald-300 transition-colors" aria-hidden>→</span>
+                      <span className="self-center shrink-0 grid h-7 w-7 place-items-center rounded-lg bg-app-hover/50 text-app-3 ring-1 ring-app transition-colors group-hover:bg-emerald-500/15 group-hover:text-emerald-300 group-hover:ring-emerald-500/30" aria-hidden>→</span>
                     )}
                   </div>
                 );

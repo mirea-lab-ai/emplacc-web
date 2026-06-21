@@ -141,27 +141,34 @@ export default function NotificationBell() {
             ) : (
               items.map((n) => {
                 const href = entityHref(n);
-                const inner = (
-                  <div className={`flex gap-3 px-4 py-3 transition-colors hover:bg-app-hover ${n.read ? '' : 'bg-emerald-500/5'}`}>
-                    <span className="shrink-0 text-lg">{ICON[n.type] ?? '🔔'}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-app truncate">{n.title}</span>
-                        {!n.read && <span className="shrink-0 h-2 w-2 rounded-full bg-emerald-400" />}
+                return (
+                  <div key={n.id} className={`flex items-stretch ${n.read ? '' : 'bg-emerald-500/5'}`}>
+                    {/* Клик по телу — пометить прочитанным (без перехода). */}
+                    <button
+                      onClick={() => { if (!n.read) markRead.mutate(n.id); }}
+                      title={n.read ? undefined : 'Отметить прочитанным'}
+                      className="flex min-w-0 flex-1 gap-3 px-4 py-3 text-left transition-colors hover:bg-app-hover">
+                      <span className="shrink-0 text-lg">{ICON[n.type] ?? '🔔'}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-app truncate">{n.title}</span>
+                          {!n.read && <span className="shrink-0 h-2 w-2 rounded-full bg-emerald-400" />}
+                        </div>
+                        {n.body && <div className="t-caption truncate mt-0.5">{n.body}</div>}
+                        <div className="t-caption mt-0.5">{formatDateShort(n.created_at)}</div>
                       </div>
-                      {n.body && <div className="t-caption truncate mt-0.5">{n.body}</div>}
-                      <div className="t-caption mt-0.5">{formatDateShort(n.created_at)}</div>
-                    </div>
+                    </button>
+                    {/* Стрелка — открыть страницу-источник (и пометить прочитанным). */}
                     {href && (
-                      <span className="self-center shrink-0 grid h-7 w-7 place-items-center rounded-lg bg-app-hover/50 text-app-3 ring-1 ring-app transition-colors group-hover:bg-emerald-500/15 group-hover:text-emerald-300 group-hover:ring-emerald-500/30" aria-hidden>→</span>
+                      <Link
+                        href={href}
+                        onClick={() => { if (!n.read) markRead.mutate(n.id); setOpen(false); }}
+                        title="Открыть источник"
+                        className="mr-3 grid h-8 w-8 shrink-0 self-center place-items-center rounded-lg bg-app-hover/50 text-app-3 ring-1 ring-app transition-colors hover:bg-emerald-500/20 hover:text-emerald-300 hover:ring-emerald-500/40">
+                        →
+                      </Link>
                     )}
                   </div>
-                );
-                const handle = () => { if (!n.read) markRead.mutate(n.id); setOpen(false); };
-                return href ? (
-                  <Link key={n.id} href={href} onClick={handle} className="group block">{inner}</Link>
-                ) : (
-                  <button key={n.id} onClick={handle} className="group block w-full text-left">{inner}</button>
                 );
               })
             )}

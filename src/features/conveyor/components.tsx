@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Panel from '@/components/ui/Panel';
+import { MarkdownView } from '@/components/ui/MarkdownEditor';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
 import copy from '@/locales/ru/conveyor.json';
@@ -945,9 +946,13 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [] 
       {!state.loading && sourceId && !latest && <EmptyText>{copy.forumDigest.empty}</EmptyText>}
       {latest && (
         <div className="space-y-2">
-          <p className={`text-sm ${latest.summary?.trim() ? 'text-app-2' : 'text-app-3 italic'}`}>
-            {latest.summary?.trim() || 'Дайджест создан, но сводка пуста — вероятно, LLM не настроена в админке («Настроить LLM»).'}
-          </p>
+          {latest.summary?.trim() ? (
+            <div className="text-sm text-app-2 leading-relaxed [&_p]:my-1 [&_ul]:my-1 [&_li]:ml-4 [&_li]:list-disc [&_strong]:text-app">
+              <MarkdownView content={latest.summary} />
+            </div>
+          ) : (
+            <p className="text-sm text-app-3 italic">Дайджест создан, но сводка пуста — вероятно, LLM не настроена в админке («Настроить LLM»).</p>
+          )}
           <div className="space-y-2">
             {candidates.map((candidate) => {
               const canConfirm = Boolean(candidate.status_id);

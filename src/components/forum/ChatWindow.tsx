@@ -40,12 +40,15 @@ export function renderMentions(text: string): string {
   return text
     .replace(/@\[([^\]]+)\]\(user:[^)]+\)/g,
       (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px">@${escapeMentionLabel(name)}</span>`)
-    .replace(/#\[([^\]]+)\]\(project:[^)]+\)/g,
-      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(168,85,247,0.15);color:#c4b5fd;margin:0 2px">📁 ${escapeMentionLabel(name)}</span>`)
+    // Проект — кликабельный чип-ссылка на страницу проекта.
+    .replace(/#\[([^\]]+)\]\(project:([^)]+)\)/g,
+      (_m, name, id) => `<a href="/projects/${encodeURIComponent(id)}" style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(168,85,247,0.15);color:#c4b5fd;margin:0 2px;text-decoration:none">📁 ${escapeMentionLabel(name)}</a>`)
+    // Команда — ссылка на раздел команд (отдельной страницы команды нет).
     .replace(/#\[([^\]]+)\]\(team:[^)]+\)/g,
-      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(249,115,22,0.15);color:#fdba74;margin:0 2px">👥 ${escapeMentionLabel(name)}</span>`)
-    .replace(/#\[([^\]]+)\]\(task:[^)]+\)/g,
-      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(16,185,129,0.15);color:#6ee7b7;margin:0 2px">✅ ${escapeMentionLabel(name)}</span>`);
+      (_m, name) => `<a href="/teams" style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(249,115,22,0.15);color:#fdba74;margin:0 2px;text-decoration:none">👥 ${escapeMentionLabel(name)}</a>`)
+    // Задача — кликабельный чип-ссылка на страницу задачи (переход по упоминанию).
+    .replace(/#\[([^\]]+)\]\(task:([^)]+)\)/g,
+      (_m, name, id) => `<a href="/tasks/${encodeURIComponent(id)}" style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(16,185,129,0.15);color:#6ee7b7;margin:0 2px;text-decoration:none">✅ ${escapeMentionLabel(name)}</a>`);
 }
 
 // Превращает mention-маркап в человекочитаемый текст для превью (цитата ответа,

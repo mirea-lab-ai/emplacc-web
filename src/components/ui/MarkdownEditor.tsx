@@ -406,11 +406,37 @@ function rehypeSanitizeInline() {
 
 // ─────────────────────────────────────────────────────────────
 
+// Мягкий перенос строки (одиночный \n) в CommonMark схлопывается в пробел, из-за
+// чего многострочные сообщения в чате слипаются в один абзац. Этот мини-плагин
+// (без новой зависимости — аналог remark-breaks) превращает \n внутри текстовых
+// узлов в hard break. Код-блоки/inline-code — это отдельные leaf-узлы (type
+// 'code'/'inlineCode'), их value мы не трогаем, поэтому переносы в коде целы.
+function remarkSoftBreaks() {
+  const walk = (node: { type: string; value?: string; children?: unknown[] }) => {
+    if (!Array.isArray(node.children)) return;
+    const out: unknown[] = [];
+    for (const child of node.children as { type: string; value?: string; children?: unknown[] }[]) {
+      if (child.type === 'text' && typeof child.value === 'string' && child.value.includes('\n')) {
+        const parts = child.value.split('\n');
+        parts.forEach((part, i) => {
+          if (i > 0) out.push({ type: 'break' });
+          if (part) out.push({ type: 'text', value: part });
+        });
+      } else {
+        walk(child);
+        out.push(child);
+      }
+    }
+    node.children = out;
+  };
+  return (tree: { type: string; children?: unknown[] }) => walk(tree);
+}
+
 export function MarkdownView({ content }: { content: string }) {
   const processed = useMemo(() => renderMentions(content), [content]);
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkSoftBreaks]}
       rehypePlugins={[rehypeRaw, rehypeSanitizeInline]}
       components={{
         img: ({ src, alt }) => <RefreshableImage src={src} alt={alt} />,

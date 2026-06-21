@@ -140,7 +140,11 @@ function ForumContent() {
           self: isSelf,
           replyToId: m.replyToId ?? null,
           replyTo: m.replyTo ?? null,
-          isEdited: !!(m.updatedAt && m.createdAt && m.updatedAt !== m.createdAt),
+          // «Изменено» только при реальном редактировании: на создании createdAt и
+          // updatedAt могут отличаться на доли секунды (GORM проставляет UpdatedAt
+          // отдельным time.Now() при INSERT), поэтому сравниваем с допуском, а не строго.
+          isEdited: !!(m.updatedAt && m.createdAt
+            && new Date(m.updatedAt).getTime() - new Date(m.createdAt).getTime() > 2000),
         };
       });
   }, [forumMessages, usersMap, activeProblemId]);

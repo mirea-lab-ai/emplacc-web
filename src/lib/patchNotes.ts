@@ -7,6 +7,13 @@ export type PatchNote = { version: string; date: string; notes: string[] };
 // Позже можно перенести в бэкенд/админку, чтобы редактировать без передеплоя.
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.3.19',
+    date: '2026-06-22',
+    notes: [
+      'Форум: длинный дайджест больше не распирает страницу — тело дайджеста скроллится внутри (max 45vh), сообщения снова видны.',
+    ],
+  },
+  {
     version: '0.3.18',
     date: '2026-06-22',
     notes: [

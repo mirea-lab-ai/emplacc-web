@@ -957,7 +957,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [],
           </button>
         )}
       </header>
-      {!collapsed && (<>
+      {!collapsed && (<div className="max-h-[45vh] space-y-3 overflow-y-auto custom-scroll pr-1">
       {!sourceId && <EmptyText>{copy.forumDigest.sourceRequired}</EmptyText>}
       {state.loading && <SkeletonText lines={2} />}
       {state.error && <ErrorText error={state.error} />}
@@ -1000,7 +1000,7 @@ export function ConveyorForumDigestPanel({ sourceId, sourceTitle, messages = [],
       <button type="button" onClick={() => void handleCreate()} disabled={!sourceId || busy} className="rounded-xl bg-app-hover px-4 py-2 text-sm font-semibold text-app-2 ring-1 ring-app disabled:opacity-50">
         {busy ? copy.forumDigest.creating : copy.forumDigest.create}
       </button>
-      </>)}
+      </div>)}
     </Panel>
   );
 }

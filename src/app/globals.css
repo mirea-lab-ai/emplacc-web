@@ -175,7 +175,7 @@ body::before {
 .t-title    { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
 .t-body     { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
 .t-caption  { font-size: 0.75rem;  color: var(--text-muted);     letter-spacing: 0.03em; }
-.t-label    { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.t-label    { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
 
 /* ── Theme-aware utilities (заменяют инлайновые text-white / bg-white/* для поддержки светлой темы) ──
    Объявлены через @utility, чтобы Tailwind v4 генерировал варианты (hover:/focus:/…).

@@ -97,6 +97,7 @@ export default function MyTasksPage() {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((t) => {
                   const pm = getTaskPriorityMeta(t.priority);
+                  const overdue = !!t.due && new Date(t.due) < new Date(new Date().toDateString());
                   return (
                     <Link key={t.id} href={`/tasks/${t.id}`}
                       className="t-surface-hover rounded-2xl p-4 ring-1 ring-app hover:ring-emerald-500/40 hover:-translate-y-0.5 transition-all block">
@@ -105,7 +106,11 @@ export default function MyTasksPage() {
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${pm.badgeClass}`}>
                           {pm.label}
                         </span>
-                        {t.due && <span className="t-caption">до {formatDateShort(t.due)}</span>}
+                        {t.due && (
+                          <span className={overdue ? 'text-xs font-medium text-red-400' : 't-caption'}>
+                            {overdue ? 'просрочено ' : 'до '}{formatDateShort(t.due)}
+                          </span>
+                        )}
                       </div>
                     </Link>
                   );

@@ -196,9 +196,6 @@ export default function Card({
           </div>
           <div className="min-w-0">
             <div className="truncate text-sm text-app">{primaryLabel ?? 'Без исполнителя'}</div>
-            {primaryAssignee?.email && (
-              <div className="truncate text-xs text-app-2">{primaryAssignee.email}</div>
-            )}
           </div>
         </div>
       ) : (

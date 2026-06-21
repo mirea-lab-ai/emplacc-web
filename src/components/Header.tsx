@@ -129,7 +129,7 @@ export default function Header({ items }: Props) {
       <div className="flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="group inline-flex items-center gap-2.5 focus:outline-none"
+          className="group inline-flex shrink-0 items-center gap-2.5 focus:outline-none"
           aria-label="На главную Emplacc"
         >
           <Logo className="h-8 w-auto sm:h-9" variant="colored" priority />
@@ -138,7 +138,7 @@ export default function Header({ items }: Props) {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {/* Search button */}
           <button
             onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }))}
@@ -153,7 +153,7 @@ export default function Header({ items }: Props) {
           <CommandPalette />
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 lg:flex ml-1">
+          <nav className="hidden min-w-0 items-center gap-1 overflow-x-auto custom-scroll lg:flex ml-1">
             {navigationItems.map(({ label, href }) => {
               const active = isActive(href);
               return (
@@ -162,7 +162,7 @@ export default function Header({ items }: Props) {
                   href={href}
                   aria-current={active ? 'page' : undefined}
                   className={[
-                    'px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-150',
+                    'shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-150',
                     active
                       ? 'bg-emerald-500/12 text-emerald-300 ring-1 ring-emerald-500/20'
                       : 'text-app-2 hover:text-app hover:bg-app-hover',

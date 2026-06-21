@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import Avatar from '@/components/ui/Avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { APP_VERSION } from '@/lib/patchNotes';
 import CommandPalette from '@/components/ui/CommandPalette';
 import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
 import { http } from '@/lib/http';
@@ -232,6 +233,11 @@ export default function Header({ items }: Props) {
                       </svg>
                       Выйти из системы
                     </button>
+                    <Link href="/settings" onClick={() => setProfileOpen(false)}
+                      className="block px-3 pt-1.5 pb-0.5 text-center text-[11px] text-app-2/50 transition hover:text-app-2"
+                      title="О системе и список изменений">
+                      Emplacc v{APP_VERSION}
+                    </Link>
                   </div>
                 </div>
               )}

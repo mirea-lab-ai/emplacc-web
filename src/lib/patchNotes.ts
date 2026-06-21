@@ -1,0 +1,44 @@
+// Версия интерфейса (зашивается в билд через NEXT_PUBLIC_APP_VERSION = тег образа).
+export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || 'dev';
+
+export type PatchNote = { version: string; date: string; notes: string[] };
+
+// Курируемый changelog (MVP-источник patch news). Новые записи — сверху.
+// Позже можно перенести в бэкенд/админку, чтобы редактировать без передеплоя.
+export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: '0.3.14',
+    date: '2026-06-22',
+    notes: [
+      'Панель «О системе»: версии интерфейса, бэкенда и сервисов + patch news.',
+      'Форум: кликабельные чипы задач/проектов/команд, перенос строк в сообщениях, исправлено ложное «изменено».',
+      'MCP: инструкции для агентов, оптимизация по токенам, инструменты `create_forum_message` / `update_forum_message`.',
+    ],
+  },
+  {
+    version: '0.3.x',
+    date: '2026-06-21',
+    notes: [
+      'Чистка дублирующих MCP-инструментов — один канонический `conveyor_*` на действие.',
+      'Доступ к conveyor для ролей admin/manager (исправлен `permission_denied`).',
+      'Форумные дайджесты через LLM, сворачиваемая панель.',
+    ],
+  },
+  {
+    version: '0.3.0',
+    date: '2026-06-20',
+    notes: [
+      'Гексагональная архитектура бэкенда (ports/infra/app/transport) + fitness-проверки.',
+      'Realtime через SSE (v2), нормализованный envelope `{data,error,meta}`.',
+      'Светлая тема, дизайн-система, мобильная вёрстка.',
+      'Модуль учёта коммитов (GitHub + GitFlic), MCP-сервер для агентов.',
+    ],
+  },
+];
+
+// Markdown-представление changelog для рендера через MarkdownView.
+export function patchNotesMarkdown(): string {
+  return PATCH_NOTES
+    .map((p) => `### v${p.version} — ${p.date}\n${p.notes.map((n) => `- ${n}`).join('\n')}`)
+    .join('\n\n');
+}

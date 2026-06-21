@@ -6,6 +6,7 @@ import Avatar from '@/components/ui/Avatar';
 import AvatarEditor from '@/components/settings/AvatarEditor';
 import TextField from '@/components/settings/TextField';
 import APITokens from '@/components/settings/APITokens';
+import AboutSystem from '@/components/settings/AboutSystem';
 import { useToast } from '@/components/ui/Toast';
 import { SkeletonProfileHeader, SkeletonField } from '@/components/ui/Skeleton';
 import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
@@ -38,7 +39,7 @@ export default function SettingsPage() {
   const [profession, setProfession] = useState('');
   const [tgId,       setTgId]       = useState('');
   const [avatarSrc,  setAvatarSrc]  = useState<string | undefined>();
-  const [tab,        setTab]        = useState<'profile' | 'tokens'>('profile');
+  const [tab,        setTab]        = useState<'profile' | 'tokens' | 'about'>('profile');
 
   useEffect(() => {
     if (userData) {
@@ -77,6 +78,7 @@ export default function SettingsPage() {
   const TABS = [
     { id: 'profile' as const, label: 'Профиль' },
     { id: 'tokens'  as const, label: 'API-токены' },
+    { id: 'about'   as const, label: 'О системе' },
   ];
 
   if (isLoading) {
@@ -190,6 +192,8 @@ export default function SettingsPage() {
           <APITokens />
         </Panel>
       )}
+
+      {tab === 'about' && <AboutSystem />}
     </div>
   );
 }

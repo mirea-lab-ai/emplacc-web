@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-qu
 import { useState } from 'react';
 import { useTokenAutoRefresh } from '@/hooks/useTokenAutoRefresh';
 import { useUserCache } from '@/hooks/useUserCache';
+import { useRealtime } from '@/lib/realtime';
 import { ToastProvider, notifyGlobalError } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { getErrorMessage } from '@/lib/errors';
@@ -16,6 +17,11 @@ function TokenRefreshInitializer() {
 
 function UserCacheInitializer() {
     useUserCache();
+    return null;
+}
+
+function RealtimeInitializer() {
+    useRealtime();
     return null;
 }
 
@@ -39,6 +45,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               <ConfirmProvider>
                 <TokenRefreshInitializer />
                 <UserCacheInitializer />
+                <RealtimeInitializer />
                 {children}
               </ConfirmProvider>
             </ToastProvider>

@@ -130,7 +130,7 @@ export default function ChatWindow({
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mentionCtx = useRef<{ node: Text; start: number; end: number } | null>(null);
-  const [hoverUser, setHoverUser] = useState<{ uid: string; x: number; y: number } | null>(null);
+  const [hoverUser, setHoverUser] = useState<{ uid: string; x: number; top: number; bottom: number } | null>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -194,7 +194,7 @@ export default function ChatWindow({
     if (!uid) return;
     cancelHoverClose();
     const r = el.getBoundingClientRect();
-    setHoverUser({ uid, x: r.left, y: r.bottom });
+    setHoverUser({ uid, x: r.left, top: r.top, bottom: r.bottom });
   };
   const onMentionOut = (e: React.MouseEvent) => {
     if (!(e.target as HTMLElement).closest?.('.mention-user')) return;
@@ -395,7 +395,7 @@ export default function ChatWindow({
 
       {/* Messages */}
       {hoverUser && (
-        <MentionHoverCard uid={hoverUser.uid} x={hoverUser.x} y={hoverUser.y}
+        <MentionHoverCard uid={hoverUser.uid} x={hoverUser.x} top={hoverUser.top} bottom={hoverUser.bottom}
           onEnter={cancelHoverClose} onLeave={scheduleHoverClose}/>
       )}
       <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll px-4 py-4 space-y-0.5"
@@ -747,16 +747,21 @@ function tgBubblePath(W: number, H: number, isSelf: boolean): string {
 }
 
 // Карточка профиля при наведении на @-упоминание.
-function MentionHoverCard({ uid, x, y, onEnter, onLeave }: {
-  uid: string; x: number; y: number; onEnter: () => void; onLeave: () => void;
+function MentionHoverCard({ uid, x, top, bottom, onEnter, onLeave }: {
+  uid: string; x: number; top: number; bottom: number; onEnter: () => void; onLeave: () => void;
 }) {
   const { data: user } = useUser(uid);
   const name = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : '';
-  const left = typeof window !== 'undefined' ? Math.min(x, window.innerWidth - 260) : x;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 9999;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 9999;
+  const CARD_H = 84; // оценка высоты карточки для флипа
+  const left = Math.max(8, Math.min(x, vw - 260));
+  // Если внизу мало места — показываем карточку НАД упоминанием.
+  const topPos = bottom + CARD_H + 12 > vh ? Math.max(8, top - CARD_H - 6) : bottom + 6;
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave}
       className="fixed z-50 t-surface-elevated rounded-xl ring-1 ring-app shadow-xl p-3 w-60 text-sm"
-      style={{ left: Math.max(8, left), top: y + 6, backdropFilter: 'blur(12px)' }}>
+      style={{ left, top: topPos, backdropFilter: 'blur(12px)' }}>
       <div className="flex items-center gap-3">
         <Avatar name={name || '—'} url={user?.avatarUrl} email={user?.email} fallbackKey={uid} size="lg"/>
         <div className="min-w-0">

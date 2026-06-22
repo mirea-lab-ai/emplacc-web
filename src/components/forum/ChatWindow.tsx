@@ -197,22 +197,26 @@ export default function ChatWindow({
 
   // Hover-карточка профиля на @-упоминаниях (делегирование на контейнере сообщений).
   const cancelHoverClose = () => { if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; } };
-  const scheduleHoverClose = () => { cancelHoverClose(); hoverTimer.current = setTimeout(() => setHoverUser(null), 180); };
-  const onMentionOver = (e: React.MouseEvent) => {
-    const el = (e.target as HTMLElement).closest?.('.mention-user') as HTMLElement | null;
-    if (!el) return;
-    const uid = el.className.match(/\bmu-([0-9a-fA-F-]+)/)?.[1];
-    if (!uid) return;
-    cancelHoverClose();
-    const r = el.getBoundingClientRect();
-    // Флип по нижней границе СПИСКА сообщений (над композером), а не окна.
-    const listBottom = listRef.current?.getBoundingClientRect().bottom ?? window.innerHeight;
-    const CARD_H = 92;
-    const top = r.bottom + CARD_H + 12 > listBottom ? Math.max(8, r.top - CARD_H - 6) : r.bottom + 6;
-    setHoverUser({ uid, x: r.left, top });
+  const scheduleHoverClose = () => {
+    if (hoverTimer.current) return; // уже запланировано — не продлеваем бесконечно
+    hoverTimer.current = setTimeout(() => { hoverTimer.current = null; setHoverUser(null); }, 250);
   };
-  const onMentionOut = (e: React.MouseEvent) => {
-    if (!(e.target as HTMLElement).closest?.('.mention-user')) return;
+  const closeHoverNow = () => { cancelHoverClose(); setHoverUser(null); };
+  // Один обработчик: над упоминанием — открыть карточку, иначе — запланировать закрытие.
+  const onListOver = (e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest?.('.mention-user') as HTMLElement | null;
+    if (el) {
+      const uid = el.className.match(/\bmu-([0-9a-fA-F-]+)/)?.[1];
+      if (!uid) return;
+      cancelHoverClose();
+      const r = el.getBoundingClientRect();
+      // Флип по нижней границе СПИСКА сообщений (над композером), а не окна.
+      const listBottom = listRef.current?.getBoundingClientRect().bottom ?? window.innerHeight;
+      const CARD_H = 92;
+      const top = r.bottom + CARD_H + 12 > listBottom ? Math.max(8, r.top - CARD_H - 6) : r.bottom + 6;
+      setHoverUser(prev => (prev && prev.uid === uid ? prev : { uid, x: r.left, top }));
+      return;
+    }
     scheduleHoverClose();
   };
 
@@ -414,7 +418,7 @@ export default function ChatWindow({
           onEnter={cancelHoverClose} onLeave={scheduleHoverClose}/>
       )}
       <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll px-4 py-4 space-y-0.5"
-           onMouseOver={onMentionOver} onMouseOut={onMentionOut}
+           onMouseOver={onListOver} onMouseLeave={scheduleHoverClose} onScroll={closeHoverNow}
            style={{ backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(16,185,129,0.03), transparent 60%)' }}>
         {isLoading && <div className="flex justify-center py-8"><span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/></div>}
         {!isLoading && error && <div className="text-center text-red-400 py-8 text-sm">Ошибка загрузки</div>}

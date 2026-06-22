@@ -116,6 +116,15 @@ export default function ChatWindow({
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionTrigger, setMentionTrigger] = useState<'@' | '#' | null>(null);
   const [mentionAnchor, setMentionAnchor] = useState(0);
+  // Режим отправки: Enter (по умолчанию) или Ctrl/Cmd+Enter.
+  const [sendMode, setSendMode] = useState<'enter' | 'ctrl-enter'>(
+    () => (typeof window !== 'undefined' && localStorage.getItem('emplacc-send-mode') === 'ctrl-enter') ? 'ctrl-enter' : 'enter',
+  );
+  const toggleSendMode = () => {
+    const v = sendMode === 'enter' ? 'ctrl-enter' : 'enter';
+    setSendMode(v);
+    try { localStorage.setItem('emplacc-send-mode', v); } catch {}
+  };
 
   const listRef     = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -138,6 +147,11 @@ export default function ChatWindow({
     const last = messages[messages.length - 1];
     if (last && !last.self && last.ts && Date.now() - last.ts < 15000) playReceive();
   }, [messages]);
+
+  // При нажатии «Ответить» — авто-фокус в поле ввода.
+  useEffect(() => {
+    if (replyTo) textareaRef.current?.focus();
+  }, [replyTo]);
 
   const resizeTextarea = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto';
@@ -189,7 +203,11 @@ export default function ChatWindow({
       if (e.key === 'Escape') { setMentionOpen(false); return; }
       if (e.key === 'Enter') { e.preventDefault(); return; }
     }
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); }
+    if (e.key !== 'Enter') return;
+    // Enter-режим: Enter — отправка, Shift+Enter — перенос.
+    // Ctrl+Enter-режим: Ctrl/Cmd+Enter — отправка, Enter — перенос.
+    const isSendCombo = sendMode === 'ctrl-enter' ? (e.ctrlKey || e.metaKey) : !e.shiftKey;
+    if (isSendCombo) { e.preventDefault(); void send(); }
   };
 
   const handleDraftChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -422,6 +440,15 @@ export default function ChatWindow({
             className="flex-1 bg-transparent text-app placeholder:text-app-3 resize-none focus:outline-none text-sm leading-relaxed min-h-[24px] max-h-40"
             style={{ height: '24px' }}/>
         </div>
+
+        <button type="button" onClick={toggleSendMode}
+          title={sendMode === 'ctrl-enter'
+            ? 'Отправка: Ctrl+Enter (Enter — перенос строки). Нажми, чтобы переключить на Enter'
+            : 'Отправка: Enter (Shift+Enter — перенос строки). Нажми, чтобы переключить на Ctrl+Enter'}
+          aria-label="Режим отправки сообщения"
+          className="shrink-0 self-end pb-2 px-1.5 text-[11px] font-medium text-app-3 hover:text-app-2 transition-colors whitespace-nowrap">
+          {sendMode === 'ctrl-enter' ? '⌃↵' : '↵'}
+        </button>
 
         <button onClick={() => void send()} disabled={!hasContent || isSending || uploading}
           className={`h-10 w-10 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 disabled:scale-90 press ${hasContent ? '' : 'bg-app-hover'}`}

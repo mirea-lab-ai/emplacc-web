@@ -8,6 +8,7 @@ import TextField from '@/components/settings/TextField';
 import APITokens from '@/components/settings/APITokens';
 import AboutSystem from '@/components/settings/AboutSystem';
 import NotificationSettings from '@/components/settings/NotificationSettings';
+import AliasesSettings from '@/components/settings/AliasesSettings';
 import { useToast } from '@/components/ui/Toast';
 import { SkeletonProfileHeader, SkeletonField } from '@/components/ui/Skeleton';
 import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
@@ -40,7 +41,7 @@ export default function SettingsPage() {
   const [profession, setProfession] = useState('');
   const [tgId,       setTgId]       = useState('');
   const [avatarSrc,  setAvatarSrc]  = useState<string | undefined>();
-  const [tab,        setTab]        = useState<'profile' | 'tokens' | 'notifications' | 'about'>('profile');
+  const [tab,        setTab]        = useState<'profile' | 'tokens' | 'notifications' | 'aliases' | 'about'>('profile');
 
   useEffect(() => {
     if (userData) {
@@ -80,6 +81,7 @@ export default function SettingsPage() {
     { id: 'profile'       as const, label: 'Профиль' },
     { id: 'tokens'        as const, label: 'API-токены' },
     { id: 'notifications' as const, label: 'Уведомления' },
+    { id: 'aliases'       as const, label: 'Псевдонимы' },
     { id: 'about'         as const, label: 'О системе' },
   ];
 
@@ -196,6 +198,12 @@ export default function SettingsPage() {
       )}
 
       {tab === 'notifications' && <NotificationSettings />}
+
+      {tab === 'aliases' && (
+        <Panel className="p-6 animate-fade-in">
+          <AliasesSettings />
+        </Panel>
+      )}
 
       {tab === 'about' && <AboutSystem />}
     </div>

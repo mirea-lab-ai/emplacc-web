@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Avatar from '@/components/ui/Avatar';
 import { MarkdownView } from '@/components/ui/MarkdownEditor';
+import { useUser } from '@/features/user/hooks';
 import { uploadImage, uploadFile } from '@/lib/upload';
 import { playSend, playReceive } from '@/lib/sound';
 import type { UIForumMessageReplyPreview } from '@/features/forum-messages/api';
@@ -18,7 +19,7 @@ export type Message = {
   isEdited?: boolean;
 };
 
-export type MentionItem = { id: string; label: string; type: 'user' | 'task' | 'project' | 'team' };
+export type MentionItem = { id: string; label: string; type: 'user' | 'task' | 'project' | 'team'; sub?: string };
 
 // ── Mention format: @[Name](user:id) or #[Name](project:id) etc ──
 function buildMentionText(trigger: '@' | '#', item: MentionItem): string {
@@ -42,8 +43,8 @@ export function renderMentions(text: string): string {
     // Агент-тег "[agent <harness>]" — бейдж, чтобы сообщения агентов были видны (не сырой текст).
     .replace(/\[agent ([^\]]+)\]/g,
       (_m, name) => `<span style="display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(45,212,191,0.15);color:#5eead4;margin:0 2px">🤖 ${escapeMentionLabel(name)}</span>`)
-    .replace(/@\[([^\]]+)\]\(user:[^)]+\)/g,
-      (_m, name) => `<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px">@${escapeMentionLabel(name)}</span>`)
+    .replace(/@\[([^\]]+)\]\(user:([^)]+)\)/g,
+      (_m, name, uid) => `<span class="mention-user mu-${escapeMentionLabel(uid)}" style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(59,130,246,0.15);color:#93c5fd;margin:0 2px;cursor:pointer">@${escapeMentionLabel(name)}</span>`)
     // Проект — кликабельный чип-ссылка на страницу проекта.
     .replace(/#\[([^\]]+)\]\(project:([^)]+)\)/g,
       (_m, name, id) => `<a href="/projects/${encodeURIComponent(id)}" style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(168,85,247,0.15);color:#c4b5fd;margin:0 2px;text-decoration:none">📁 ${escapeMentionLabel(name)}</a>`)
@@ -129,6 +130,8 @@ export default function ChatWindow({
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mentionCtx = useRef<{ node: Text; start: number; end: number } | null>(null);
+  const [hoverUser, setHoverUser] = useState<{ uid: string; x: number; y: number } | null>(null);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const el = listRef.current;
@@ -179,6 +182,23 @@ export default function ChatWindow({
     range.setStartAfter(node); range.collapse(true);
     sel.removeAllRanges(); sel.addRange(range);
     if (editorRef.current) setDraft(serializeComposer(editorRef.current));
+  };
+
+  // Hover-карточка профиля на @-упоминаниях (делегирование на контейнере сообщений).
+  const cancelHoverClose = () => { if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; } };
+  const scheduleHoverClose = () => { cancelHoverClose(); hoverTimer.current = setTimeout(() => setHoverUser(null), 180); };
+  const onMentionOver = (e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest?.('.mention-user') as HTMLElement | null;
+    if (!el) return;
+    const uid = el.className.match(/\bmu-([0-9a-fA-F-]+)/)?.[1];
+    if (!uid) return;
+    cancelHoverClose();
+    const r = el.getBoundingClientRect();
+    setHoverUser({ uid, x: r.left, y: r.bottom });
+  };
+  const onMentionOut = (e: React.MouseEvent) => {
+    if (!(e.target as HTMLElement).closest?.('.mention-user')) return;
+    scheduleHoverClose();
   };
 
   const send = async () => {
@@ -374,7 +394,12 @@ export default function ChatWindow({
       )}
 
       {/* Messages */}
+      {hoverUser && (
+        <MentionHoverCard uid={hoverUser.uid} x={hoverUser.x} y={hoverUser.y}
+          onEnter={cancelHoverClose} onLeave={scheduleHoverClose}/>
+      )}
       <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll px-4 py-4 space-y-0.5"
+           onMouseOver={onMentionOver} onMouseOut={onMentionOut}
            style={{ backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(16,185,129,0.03), transparent 60%)' }}>
         {isLoading && <div className="flex justify-center py-8"><span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/></div>}
         {!isLoading && error && <div className="text-center text-red-400 py-8 text-sm">Ошибка загрузки</div>}
@@ -449,12 +474,13 @@ export default function ChatWindow({
         <div className="t-surface-elevated mx-4 mb-1 rounded-xl border border-app overflow-hidden shrink-0"
              style={{ backdropFilter: 'blur(12px)' }}>
           {filteredMentions.map(item => (
-            <button key={item.id} onClick={() => insertMention(item)}
+            <button key={`${item.type}-${item.id}-${item.label}`} onClick={() => insertMention(item)}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-app-hover transition-colors text-left">
-              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${mentionTypeBadge(item.type)}`}>
-                {mentionTypeIcon(item.type)} {item.type}
+              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${item.sub ? 'bg-emerald-500/20 text-emerald-200' : mentionTypeBadge(item.type)}`}>
+                {item.sub ? '🔖 alias' : <>{mentionTypeIcon(item.type)} {item.type}</>}
               </span>
               <span className="text-app">{item.label}</span>
+              {item.sub && <span className="text-app-3 text-xs">{item.sub}</span>}
             </button>
           ))}
         </div>
@@ -718,6 +744,29 @@ function tgBubblePath(W: number, H: number, isSelf: boolean): string {
     `Q ${X(0)} 0 ${X(R)} 0`,
     'Z',
   ].join(' ');
+}
+
+// Карточка профиля при наведении на @-упоминание.
+function MentionHoverCard({ uid, x, y, onEnter, onLeave }: {
+  uid: string; x: number; y: number; onEnter: () => void; onLeave: () => void;
+}) {
+  const { data: user } = useUser(uid);
+  const name = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : '';
+  const left = typeof window !== 'undefined' ? Math.min(x, window.innerWidth - 260) : x;
+  return (
+    <div onMouseEnter={onEnter} onMouseLeave={onLeave}
+      className="fixed z-50 t-surface-elevated rounded-xl ring-1 ring-app shadow-xl p-3 w-60 text-sm"
+      style={{ left: Math.max(8, left), top: y + 6, backdropFilter: 'blur(12px)' }}>
+      <div className="flex items-center gap-3">
+        <Avatar name={name || '—'} url={user?.avatarUrl} email={user?.email} fallbackKey={uid} size="lg"/>
+        <div className="min-w-0">
+          <div className="font-semibold text-app truncate">{name || 'Загрузка…'}</div>
+          {user?.profession && <div className="text-xs text-app-2 truncate">{user.profession}</div>}
+          {user?.email && <div className="text-xs text-app-3 truncate">{user.email}</div>}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Composer: рендер токенов упоминаний как чипов (uuid скрыт) ─────────────

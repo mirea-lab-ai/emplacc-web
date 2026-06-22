@@ -14,6 +14,7 @@ import { fetchAllTasks } from '@/features/tasks/api';
 import { useQuery } from '@tanstack/react-query';
 import { useAllUsers } from '@/features/user/hooks';
 import { useAllTeams, useAllProjects } from '@/features/teams/hooks';
+import { useAliases } from '@/features/aliases/hooks';
 import { useIsClient } from '@/hooks/useIsClient';
 import { isAuthed, getUserId } from '@/lib/auth';
 import { useUserRole } from '@/features/roles/hooks';
@@ -49,6 +50,7 @@ function ForumContent() {
   const { data: users } = useAllUsers(1, 500, hasCreds);
   const { data: allTeams } = useAllTeams(hasCreds);
   const { data: allProjects } = useAllProjects(hasCreds);
+  const { data: aliases } = useAliases(hasCreds);
   const { data: allTasksData } = useQuery({
     queryKey: ['allTasksForMentions'],
     queryFn: () => fetchAllTasks(1, 100),
@@ -183,8 +185,16 @@ function ForumContent() {
       type: 'task' as const,
     }));
 
-    return [...userItems, ...projectItems, ...teamItems, ...taskItems];
-  }, [users, allProjects, allTeams]);
+    // Приватные псевдонимы: @alias → целевой пользователь (метка = alias, id = uuid цели).
+    const aliasItems = (aliases ?? []).map(a => ({
+      id: a.targetUserId,
+      label: a.alias,
+      type: 'user' as const,
+      sub: a.targetName ? `→ ${a.targetName}` : undefined,
+    }));
+
+    return [...aliasItems, ...userItems, ...projectItems, ...teamItems, ...taskItems];
+  }, [users, allProjects, allTeams, allTasksData, aliases]);
 
   // Отправляем сервисное сообщение от системного пользователя
   const sendServiceMessage = useCallback((text: string) => {

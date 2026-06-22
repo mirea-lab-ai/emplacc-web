@@ -38,3 +38,15 @@ export async function markNotificationRead(id: string): Promise<void> {
 export async function markAllNotificationsRead(): Promise<void> {
   await jsonOrThrow(await http('/notification/read-all', { method: 'POST' }));
 }
+
+export async function getEmailPref(): Promise<boolean> {
+  const j = await jsonOrThrow(await http('/notification/preferences'));
+  return j?.email_notifications !== false; // дефолт — включено
+}
+
+export async function setEmailPref(enabled: boolean): Promise<void> {
+  await jsonOrThrow(await http('/notification/preferences', {
+    method: 'PUT',
+    body: JSON.stringify({ email_notifications: enabled }),
+  }));
+}

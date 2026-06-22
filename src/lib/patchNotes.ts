@@ -7,6 +7,13 @@ export type PatchNote = { version: string; date: string; notes: string[] };
 // Позже можно перенести в бэкенд/админку, чтобы редактировать без передеплоя.
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.3.26',
+    date: '2026-06-22',
+    notes: [
+      'Conveyor: наряды (work orders) задачи теперь отображаются — добавлен листинг по задаче (раньше показывались только созданные в текущей сессии).',
+    ],
+  },
+  {
     version: '0.3.25',
     date: '2026-06-22',
     notes: [

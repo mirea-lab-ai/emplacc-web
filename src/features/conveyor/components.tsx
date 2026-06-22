@@ -26,6 +26,7 @@ import {
   createGeneratedReport,
   createWaiver,
   createWorkOrder,
+  listWorkOrders,
   fetchConveyorSnapshot,
   failWorkOrder,
   getGeneratedReportMarkdown,
@@ -139,6 +140,19 @@ export function ConveyorWorkOrderSection({ taskId, approvalRequired }: { taskId:
   const [targetName, setTargetName] = useState('');
   const [resultEvidenceId, setResultEvidenceId] = useState('');
   const [busyAction, setBusyAction] = useState<string | null>(null);
+
+  // Подтягиваем существующий наряд задачи (раньше секция показывала пусто, пока
+  // наряд не создашь в этой сессии — наряды от других не отображались).
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => listWorkOrders(taskId)
+      .then((list) => { if (alive) setWorkOrder(list[0] ?? null); })
+      .catch(() => {});
+    refresh();
+    window.addEventListener('emplacc:realtime', refresh);
+    return () => { alive = false; window.removeEventListener('emplacc:realtime', refresh); };
+  }, [taskId]);
+
   const currentStatus = approvalRequired ? 'approval_required' : workOrder?.status;
 
   const canCreate = Boolean(!busyAction && taskId && providerBoardId.trim() && providerStatusId.trim() && goal.trim());

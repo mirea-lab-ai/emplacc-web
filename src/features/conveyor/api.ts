@@ -188,6 +188,7 @@ const WORK_ITEM_EVIDENCE_PATH = '/api/work-items/{id}/evidence';
 const WORK_ITEM_EVENTS_PATH = '/api/work-items/{id}/events';
 const WORK_ITEM_LINKS_PATH = '/api/work-items/{id}/links';
 const WORK_ITEM_AGENT_RUNS_PATH = '/api/work-items/{id}/agent-runs';
+const WORK_ITEM_WORK_ORDERS_PATH = '/api/work-items/{id}/work-orders';
 const WORK_ITEM_WAIVERS_PATH = '/api/work-items/{id}/waivers';
 const WORK_ITEM_APPROVAL_REQUESTS_PATH = '/api/work-items/{id}/approval-requests';
 const APPROVAL_REQUESTS_PATH = '/api/approval-requests';
@@ -371,6 +372,11 @@ export async function createWorkOrder(payload: CreateWorkOrderPayload) {
 
 export async function getWorkOrder(workOrderId: string) {
   return requestJson<ConveyorWorkOrder>(`${WORK_ORDERS_PATH}/${encodeURIComponent(workOrderId)}`);
+}
+
+export async function listWorkOrders(workItemId: string) {
+  const payload = await requestJson<unknown>(withId(WORK_ITEM_WORK_ORDERS_PATH, workItemId));
+  return normalizeList<ConveyorWorkOrder>(payload, ['work_orders', 'items']);
 }
 
 export async function acceptWorkOrder(workOrderId: string, payload: AcceptWorkOrderPayload) {

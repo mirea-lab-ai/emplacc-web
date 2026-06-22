@@ -29,30 +29,40 @@ export default function AvatarEditor({
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [imgFailed, setImgFailed] = useState(false);
+  const [gravatarFailed, setGravatarFailed] = useState(false);
   const [retried,   setRetried]   = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => { setDraft(src); setImgFailed(false); setRetried(false); }, [src]);
-
-  const handleImgError = async () => {
-    const current = draft ?? src;
-    if (!retried && current && isPresignedUrl(current)) {
-      setRetried(true);
-      try {
-        const fresh = await refreshPresignedUrl(current);
-        setDraft(fresh);
-        return;
-      } catch { /* fall through */ }
-    }
-    setImgFailed(true);
-  };
+  useEffect(() => { setDraft(src); setImgFailed(false); setGravatarFailed(false); setRetried(false); }, [src]);
 
   const gravatarUrl = useMemo(() => {
     if (!email) return undefined;
     return getGravatarUrl(email, 256);
   }, [email]);
 
-  const displaySrc = !imgFailed ? (draft ?? src ?? gravatarUrl) : undefined;
+  // Каскад: загруженный аватар (draft/src) → (refresh presigned) → gravatar → инициалы.
+  const primarySrc = draft ?? src;
+  const usingPrimary = !imgFailed && !!primarySrc;
+  const usingGravatar = !usingPrimary && !gravatarFailed && !!gravatarUrl;
+  const displaySrc = usingPrimary ? primarySrc : usingGravatar ? gravatarUrl : undefined;
+
+  const handleImgError = async () => {
+    if (usingPrimary) {
+      if (!retried && primarySrc && isPresignedUrl(primarySrc)) {
+        setRetried(true);
+        try {
+          const fresh = await refreshPresignedUrl(primarySrc);
+          setDraft(fresh);
+          return;
+        } catch { /* не вышло — падаем на gravatar ниже */ }
+      }
+      setImgFailed(true); // свой аватар не открылся → пробуем gravatar
+      return;
+    }
+    if (usingGravatar) {
+      setGravatarFailed(true); // gravatar не открылся → инициалы
+    }
+  };
 
   // Esc закрывает
   useEffect(() => {

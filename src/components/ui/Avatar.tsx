@@ -34,29 +34,41 @@ export default function Avatar({ name, url, email, fallbackKey, size = 'md' }: A
     return getGravatarUrl(gravatarSource, dimension);
   }, [gravatarSource, size]);
 
-  const [imageFailed, setImageFailed] = useState(false);
+  const [urlFailed, setUrlFailed] = useState(false);
+  const [gravatarFailed, setGravatarFailed] = useState(false);
   const [refreshedUrl, setRefreshedUrl] = useState<string | undefined>(undefined);
   const [retried, setRetried] = useState(false);
 
   useEffect(() => {
-    setImageFailed(false);
+    setUrlFailed(false);
+    setGravatarFailed(false);
     setRefreshedUrl(undefined);
     setRetried(false);
   }, [url, gravatarUrl]);
 
-  const displayUrl = refreshedUrl ?? (!imageFailed ? (url ?? gravatarUrl) : undefined);
+  // Каскад источников: загруженный url → (refresh presigned) → gravatar → инициалы.
+  const primaryUrl = refreshedUrl ?? url;
+  const usingPrimary = !urlFailed && !!primaryUrl;
+  const usingGravatar = !usingPrimary && !gravatarFailed && !!gravatarUrl;
+  const displayUrl = usingPrimary ? primaryUrl : usingGravatar ? gravatarUrl : undefined;
 
   const handleError = async () => {
-    const currentUrl = refreshedUrl ?? url;
-    if (!retried && currentUrl && isPresignedUrl(currentUrl)) {
-      setRetried(true);
-      try {
-        const fresh = await refreshPresignedUrl(currentUrl);
-        setRefreshedUrl(fresh);
-        return;
-      } catch { /* fallthrough to initials */ }
+    if (usingPrimary) {
+      // Истёкший presigned — один раз пробуем обновить ссылку.
+      if (!retried && primaryUrl && isPresignedUrl(primaryUrl)) {
+        setRetried(true);
+        try {
+          const fresh = await refreshPresignedUrl(primaryUrl);
+          setRefreshedUrl(fresh);
+          return;
+        } catch { /* не вышло — падаем на gravatar ниже */ }
+      }
+      setUrlFailed(true); // загруженный аватар не открылся → пробуем gravatar
+      return;
     }
-    setImageFailed(true);
+    if (usingGravatar) {
+      setGravatarFailed(true); // gravatar не открылся → инициалы
+    }
   };
 
   if (displayUrl) {

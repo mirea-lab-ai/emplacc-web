@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Avatar from '@/components/ui/Avatar';
 import { MarkdownView } from '@/components/ui/MarkdownEditor';
 import { uploadImage, uploadFile } from '@/lib/upload';
@@ -493,11 +493,36 @@ function Bubble({
     new Date(msg.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), [msg.ts]);
   const displayName = msg.author.name || 'Неизвестно';
 
-  // Хвостик сообщения: у последнего в группе нижний угол со стороны автора
-  // заостряется (часть самого пузыря — всегда совпадает с фоном/бордером/темой).
-  const br = isSelf
-    ? `16px 16px ${isLastInGroup ? '2px' : '16px'} 16px`
-    : `16px 16px 16px ${isLastInGroup ? '2px' : '16px'}`;
+  // Замер пузыря, чтобы построить clip-path под его реальный размер (под любой контент/высоту).
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = bubbleRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = el.offsetWidth, h = el.offsetHeight;
+      setDims(prev => (prev && prev.w === w && prev.h === h ? prev : { w, h }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Фон пузыря единой фигурой: у последнего в группе — телеграмный хвостик (clip-path),
+  // иначе скруглённый прямоугольник. Стекло/blur и тема сохраняются.
+  const tailActive = isLastInGroup && !!dims;
+  const bubbleBg: React.CSSProperties = {
+    background: isSelf ? SELF_BUBBLE_BG : 'var(--surface-elevated)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    // Мягкая тень вместо inset-бордера: следует за формой с хвостом и не ломается на clip-path.
+    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.22))',
+  };
+  if (tailActive && dims) bubbleBg.clipPath = `path('${tgBubblePath(dims.w, dims.h, isSelf)}')`;
+  else bubbleBg.borderRadius = 16;
+  if (isSelf) { bubbleBg.left = 0; bubbleBg.right = tailActive ? -TAIL_OUT : 0; }
+  else { bubbleBg.right = 0; bubbleBg.left = tailActive ? -TAIL_OUT : 0; }
 
   return (
     <div className={`flex items-end gap-2 ${isSelf ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}
@@ -563,15 +588,9 @@ function Bubble({
           </div>
         )}
 
-        <div className={`relative px-3 py-2 text-sm ${isSelf ? '' : 't-surface-elevated border border-app'}`}
-             style={{
-               borderRadius: br,
-               background: isSelf
-                 ? 'linear-gradient(135deg, rgba(16,185,129,0.55), rgba(132,204,22,0.45))'
-                 : undefined,
-               backdropFilter: 'blur(8px)',
-               ...(isSelf ? { border: '1px solid rgba(255,255,255,0.06)' } : {}),
-             }}>
+        <div ref={bubbleRef} className="relative px-3 py-2 text-sm">
+          <span aria-hidden className="absolute top-0 bottom-0 pointer-events-none" style={bubbleBg}/>
+          <div className="relative">
           {isEditing ? (
             <div className="space-y-1.5">
               <textarea autoFocus value={editDraft}
@@ -602,6 +621,7 @@ function Bubble({
               </svg>
             )}
           </div>
+          </div>
         </div>
       </div>
     </div>
@@ -617,6 +637,35 @@ function ActionBtn({ children, title, onClick, danger = false }: {
       {children}
     </button>
   );
+}
+
+const TAIL_OUT = 6;
+const SELF_BUBBLE_BG = 'linear-gradient(135deg, rgba(16,185,129,0.55), rgba(132,204,22,0.45))';
+
+// Адаптивный путь пузыря с телеграмным хвостиком (точная геометрия из Figma «Telegram UI»).
+// Хвост — снизу со стороны автора; тело и 3 обычных угла масштабируются под W×H.
+function tgBubblePath(W: number, H: number, isSelf: boolean): string {
+  const R = Math.min(18, H / 2 - 1, W / 2 - 1);
+  const X = isSelf ? (x: number) => W - x : (x: number) => x + TAIL_OUT;
+  return [
+    `M ${X(R)} 0`,
+    `L ${X(W - R)} 0`,
+    `Q ${X(W)} 0 ${X(W)} ${R}`,
+    `L ${X(W)} ${H - R}`,
+    `Q ${X(W)} ${H} ${X(W - R)} ${H}`,
+    `L ${X(17.245)} ${H}`,
+    `C ${X(13.227)} ${H - 0.0001} ${X(9.532)} ${H - 1.3594} ${X(6.6)} ${H - 3.6338}`,
+    `C ${X(3.374)} ${H - 0.9028} ${X(-0.722)} ${H + 0.2162} ${X(-5.662)} ${H - 0.2578}`,
+    `C ${X(-5.803)} ${H - 0.2715} ${X(-5.931)} ${H - 0.3509} ${X(-6.004)} ${H - 0.4736}`,
+    `C ${X(-6.107)} ${H - 0.645} ${X(-6.081)} ${H - 0.8557} ${X(-5.957)} ${H - 0.9971}`,
+    `L ${X(-5.489)} ${H - 1.3018}`,
+    `C ${X(-3.154)} ${H - 2.7183} ${X(-1.663)} ${H - 4.1649} ${X(-0.968)} ${H - 5.6309}`,
+    `C ${X(-0.601)} ${H - 6.4072} ${X(-0.326)} ${H - 7.6696} ${X(-0.158)} ${H - 9.4424}`,
+    `C ${X(0.01)} ${H - 11.2072} ${X(0.071)} ${H - 13.4546} ${X(0.022)} ${H - 16.1875}`,
+    `L ${X(0)} ${R}`,
+    `Q ${X(0)} 0 ${X(R)} 0`,
+    'Z',
+  ].join(' ');
 }
 
 const COLORS = ['#e17076','#faa774','#b0d060','#6eccca','#65aced','#a695e7','#ee7aae'];

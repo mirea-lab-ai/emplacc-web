@@ -115,7 +115,6 @@ export default function ChatWindow({
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionTrigger, setMentionTrigger] = useState<'@' | '#' | null>(null);
-  const [mentionAnchor, setMentionAnchor] = useState(0);
   // Режим отправки: Enter (по умолчанию) или Ctrl/Cmd+Enter.
   const [sendMode, setSendMode] = useState<'enter' | 'ctrl-enter'>(
     () => (typeof window !== 'undefined' && localStorage.getItem('emplacc-send-mode') === 'ctrl-enter') ? 'ctrl-enter' : 'enter',
@@ -127,8 +126,9 @@ export default function ChatWindow({
   };
 
   const listRef     = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mentionCtx = useRef<{ node: Text; start: number; end: number } | null>(null);
 
   useEffect(() => {
     const el = listRef.current;
@@ -150,12 +150,35 @@ export default function ChatWindow({
 
   // При нажатии «Ответить» — авто-фокус в поле ввода.
   useEffect(() => {
-    if (replyTo) textareaRef.current?.focus();
+    if (replyTo) editorRef.current?.focus();
   }, [replyTo]);
 
-  const resizeTextarea = (el: HTMLTextAreaElement) => {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  // Внешние изменения draft (очистка после отправки) → перерисовать редактор с чипами.
+  // Во время ввода serializeComposer(el) === draft, поэтому перерисовки/прыжка курсора нет.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    if (serializeComposer(el) !== draft) el.innerHTML = renderComposerHTML(draft);
+  }, [draft]);
+
+  const placeCaretEnd = (el: HTMLElement) => {
+    const sel = window.getSelection();
+    if (!sel) return;
+    const r = document.createRange();
+    r.selectNodeContents(el); r.collapse(false);
+    sel.removeAllRanges(); sel.addRange(r);
+  };
+
+  const insertTextAtCaret = (text: string) => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const node = document.createTextNode(text);
+    range.insertNode(node);
+    range.setStartAfter(node); range.collapse(true);
+    sel.removeAllRanges(); sel.addRange(range);
+    if (editorRef.current) setDraft(serializeComposer(editorRef.current));
   };
 
   const send = async () => {
@@ -192,57 +215,73 @@ export default function ChatWindow({
     playSend();
     setDraft('');
     setReplyTo(null);
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.focus();
-    }
+    editorRef.current?.focus();
   };
 
-  const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const onEditorKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (mentionOpen) {
       if (e.key === 'Escape') { setMentionOpen(false); return; }
       if (e.key === 'Enter') { e.preventDefault(); return; }
     }
     if (e.key !== 'Enter') return;
+    e.preventDefault();
     // Enter-режим: Enter — отправка, Shift+Enter — перенос.
     // Ctrl+Enter-режим: Ctrl/Cmd+Enter — отправка, Enter — перенос.
     const isSendCombo = sendMode === 'ctrl-enter' ? (e.ctrlKey || e.metaKey) : !e.shiftKey;
-    if (isSendCombo) { e.preventDefault(); void send(); }
+    if (isSendCombo) { void send(); return; }
+    insertTextAtCaret('\n'); // перенос строки (white-space:pre-wrap отрисует)
   };
 
-  const handleDraftChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setDraft(val);
-    resizeTextarea(e.target);
+  const onEditorInput = () => {
+    const el = editorRef.current;
+    if (!el) return;
+    setDraft(serializeComposer(el));
+    detectMention();
+  };
 
-    const pos = e.target.selectionStart;
-    const before = val.slice(0, pos);
-    const atMatch = before.match(/(?:^|[\s])(@)(\S*)$/);
-    const hashMatch = before.match(/(?:^|[\s])(#)(\S*)$/);
-
-    if (atMatch) {
-      setMentionTrigger('@');
-      setMentionQuery(atMatch[2]);
-      setMentionAnchor(pos - atMatch[2].length - 1);
-      setMentionOpen(true);
-    } else if (hashMatch) {
-      setMentionTrigger('#');
-      setMentionQuery(hashMatch[2]);
-      setMentionAnchor(pos - hashMatch[2].length - 1);
-      setMentionOpen(true);
-    } else {
-      setMentionOpen(false);
-    }
+  // Детект @/# перед курсором для автокомплита упоминаний.
+  const detectMention = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) { setMentionOpen(false); return; }
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) { setMentionOpen(false); return; }
+    const textNode = node as Text;
+    const offset = range.startOffset;
+    const before = (textNode.nodeValue ?? '').slice(0, offset);
+    const m = before.match(/(?:^|\s)([@#])(\S*)$/);
+    if (!m) { setMentionOpen(false); return; }
+    mentionCtx.current = { node: textNode, start: offset - m[2].length - 1, end: offset };
+    setMentionTrigger(m[1] as '@' | '#');
+    setMentionQuery(m[2]);
+    setMentionOpen(true);
   };
 
   const insertMention = (item: MentionItem) => {
+    const ctx = mentionCtx.current;
+    const el = editorRef.current;
+    if (!ctx || !el) { setMentionOpen(false); return; }
     const trigger = mentionTrigger ?? '@';
-    const insertion = buildMentionText(trigger, item) + ' ';
-    const before = draft.slice(0, mentionAnchor);
-    const after  = draft.slice(mentionAnchor + 1 + mentionQuery.length);
-    setDraft(before + insertion + after);
+    const range = document.createRange();
+    try {
+      range.setStart(ctx.node, ctx.start);
+      range.setEnd(ctx.node, ctx.end);
+    } catch { setMentionOpen(false); return; }
+    range.deleteContents();
+    const chip = document.createElement('span');
+    chip.contentEditable = 'false';
+    chip.dataset.md = buildMentionText(trigger, item);
+    chip.setAttribute('style', chipStyle(item.type));
+    chip.textContent = (item.type === 'user' ? '@' : '#') + item.label;
+    range.insertNode(chip);
+    const space = document.createTextNode(' ');
+    chip.after(space);
+    const sel = window.getSelection();
+    if (sel) { const r = document.createRange(); r.setStartAfter(space); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); }
+    setDraft(serializeComposer(el));
     setMentionOpen(false);
-    setTimeout(() => textareaRef.current?.focus(), 0);
+    mentionCtx.current = null;
+    el.focus();
   };
 
   const filteredMentions = useMemo(() => {
@@ -275,7 +314,14 @@ export default function ChatWindow({
 
   const onPaste = (e: React.ClipboardEvent) => {
     const files = e.clipboardData.files;
-    if (files.length > 0) { e.preventDefault(); addFiles(files); }
+    if (files.length > 0) { e.preventDefault(); addFiles(files); return; }
+    // Текст вставляем как plain и токенизируем markup-упоминания в чипы.
+    const text = e.clipboardData.getData('text/plain');
+    if (!text) return;
+    e.preventDefault();
+    insertTextAtCaret(text);
+    const el = editorRef.current;
+    if (el) { const md = serializeComposer(el); el.innerHTML = renderComposerHTML(md); placeCaretEnd(el); setDraft(md); }
   };
 
   const grouped = useMemo(() => messages.map((m, i) => {
@@ -434,11 +480,17 @@ export default function ChatWindow({
         </button>
 
         <div className="bg-app-subtle flex-1 flex items-end gap-2 rounded-2xl ring-1 ring-app px-3 py-2">
-          <textarea ref={textareaRef} rows={1} value={draft}
-            onChange={handleDraftChange} onKeyDown={onKey} onPaste={onPaste}
-            placeholder="Сообщение… (@человек, #задача, #проект, #команда)"
-            className="flex-1 bg-transparent text-app placeholder:text-app-3 resize-none focus:outline-none text-sm leading-relaxed min-h-[24px] max-h-40"
-            style={{ height: '24px' }}/>
+          <div className="relative flex-1">
+            {!draft && (
+              <span className="pointer-events-none absolute left-0 top-0 text-app-3 text-sm leading-relaxed select-none">
+                Сообщение… (@человек, #задача, #проект, #команда)
+              </span>
+            )}
+            <div ref={editorRef} contentEditable suppressContentEditableWarning
+              role="textbox" aria-multiline="true"
+              onInput={onEditorInput} onKeyDown={onEditorKeyDown} onPaste={onPaste}
+              className="bg-transparent text-app focus:outline-none text-sm leading-relaxed min-h-[24px] max-h-40 overflow-y-auto whitespace-pre-wrap break-words"/>
+          </div>
         </div>
 
         <button type="button" onClick={toggleSendMode}
@@ -666,6 +718,50 @@ function tgBubblePath(W: number, H: number, isSelf: boolean): string {
     `Q ${X(0)} 0 ${X(R)} 0`,
     'Z',
   ].join(' ');
+}
+
+// ── Composer: рендер токенов упоминаний как чипов (uuid скрыт) ─────────────
+// Токен: @[имя](user:uuid) | #[имя](task|project|team:uuid)
+const COMPOSER_TOKEN = /([@#])\[([^\]]+)\]\((user|task|project|team):([0-9a-fA-F-]+)\)/g;
+
+function escapeHTML(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function chipStyle(kind: string): string {
+  const c = kind === 'user' ? '#6ee7b7' : kind === 'task' ? '#fcd34d' : kind === 'project' ? '#93c5fd' : '#c4b5fd';
+  const bg = kind === 'user' ? 'rgba(16,185,129,0.18)' : kind === 'task' ? 'rgba(250,204,21,0.16)' : kind === 'project' ? 'rgba(59,130,246,0.18)' : 'rgba(167,139,250,0.18)';
+  return `display:inline-flex;align-items:center;padding:0 6px;margin:0 1px;border-radius:6px;background:${bg};color:${c};font-weight:500;white-space:nowrap;`;
+}
+
+// markup → HTML с чипами (для contenteditable). Переносы строки сохраняются как \n (white-space:pre-wrap).
+function renderComposerHTML(md: string): string {
+  let out = '', last = 0, m: RegExpExecArray | null;
+  COMPOSER_TOKEN.lastIndex = 0;
+  while ((m = COMPOSER_TOKEN.exec(md))) {
+    out += escapeHTML(md.slice(last, m.index));
+    const display = (m[3] === 'user' ? '@' : '#') + m[2];
+    out += `<span contenteditable="false" data-md="${escapeHTML(m[0])}" style="${chipStyle(m[3])}">${escapeHTML(display)}</span>`;
+    last = m.index + m[0].length;
+  }
+  out += escapeHTML(md.slice(last));
+  return out;
+}
+
+// DOM contenteditable → markup (чипы возвращают свой data-md, текст и \n — как есть).
+function serializeComposer(node: Node): string {
+  let s = '';
+  node.childNodes.forEach((n) => {
+    if (n.nodeType === Node.TEXT_NODE) s += (n as Text).nodeValue ?? '';
+    else if (n.nodeType === Node.ELEMENT_NODE) {
+      const el = n as HTMLElement;
+      if (el.dataset && el.dataset.md !== undefined) s += el.dataset.md;
+      else if (el.tagName === 'BR') s += '\n';
+      else if (el.tagName === 'DIV' || el.tagName === 'P') { if (s && !s.endsWith('\n')) s += '\n'; s += serializeComposer(el); }
+      else s += serializeComposer(el);
+    }
+  });
+  return s;
 }
 
 const COLORS = ['#e17076','#faa774','#b0d060','#6eccca','#65aced','#a695e7','#ee7aae'];

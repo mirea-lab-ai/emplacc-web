@@ -493,10 +493,11 @@ function Bubble({
     new Date(msg.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), [msg.ts]);
   const displayName = msg.author.name || 'Неизвестно';
 
-  // Border radius: last in group gets pointed tail corner
+  // Хвостик сообщения: у последнего в группе нижний угол со стороны автора
+  // заостряется (часть самого пузыря — всегда совпадает с фоном/бордером/темой).
   const br = isSelf
-    ? `16px 16px ${isLastInGroup ? '4px' : '16px'} 16px`
-    : `16px 16px 16px ${isLastInGroup ? '4px' : '16px'}`;
+    ? `16px 16px ${isLastInGroup ? '2px' : '16px'} 16px`
+    : `16px 16px 16px ${isLastInGroup ? '2px' : '16px'}`;
 
   return (
     <div className={`flex items-end gap-2 ${isSelf ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}
@@ -571,8 +572,6 @@ function Bubble({
                backdropFilter: 'blur(8px)',
                ...(isSelf ? { border: '1px solid rgba(255,255,255,0.06)' } : {}),
              }}>
-          {isLastInGroup && <Tail isSelf={isSelf}/>}
-
           {isEditing ? (
             <div className="space-y-1.5">
               <textarea autoFocus value={editDraft}
@@ -599,7 +598,7 @@ function Bubble({
             {msg.isEdited && <span className="text-[10px] opacity-40">изм.</span>}
             {isSelf && (
               <svg className="w-3.5 h-3.5 text-emerald-300/70" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 8l4 4L14 4"/><path d="M5 8l4 4 5-8" opacity="0.5"/>
+                <path d="M2 8.5l3.5 3.5L13 4.5"/>
               </svg>
             )}
           </div>
@@ -617,18 +616,6 @@ function ActionBtn({ children, title, onClick, danger = false }: {
       className={`p-1.5 rounded-lg transition-colors ${danger ? 'text-app-3 hover:text-red-400 hover:bg-red-500/10' : 'text-app-3 hover:text-app hover:bg-app-hover'}`}>
       {children}
     </button>
-  );
-}
-
-function Tail({ isSelf }: { isSelf: boolean }) {
-  return (
-    <svg width="8" height="13" viewBox="0 0 8 13"
-         className="absolute bottom-0 pointer-events-none"
-         style={{ [isSelf ? 'right' : 'left']: '-7px' }}>
-      {isSelf
-        ? <path d="M8 0 Q8 10 0 13 Q4 8 5 0 Z" fill="rgba(16,185,129,0.45)"/>
-        : <path d="M0 0 Q0 10 8 13 Q4 8 3 0 Z" fill="var(--surface-elevated)"/>}
-    </svg>
   );
 }
 

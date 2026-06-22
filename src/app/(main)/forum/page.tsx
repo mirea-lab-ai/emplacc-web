@@ -242,8 +242,8 @@ function ForumContent() {
                       className={[
                         'w-full text-left rounded-xl px-3 py-2.5 transition-all duration-150 pr-16',
                         active
-                          ? 'bg-emerald-500/15 text-emerald-100 ring-1 ring-emerald-500/40'
-                          : 't-surface-hover hover:ring-1 hover:ring-emerald-500/40 text-app-2 hover:text-app',
+                          ? 'bg-emerald-500/15 text-emerald-100 ring-1 ring-inset ring-emerald-500/40'
+                          : 't-surface-hover hover:ring-1 hover:ring-inset hover:ring-emerald-500/40 text-app-2 hover:text-app',
                       ].join(' ')}
                     >
                       <div className="font-medium text-sm truncate">{problem.name}</div>

@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
+import { BRAND_NAME, IS_HSE } from '@/lib/brand';
 import { generateCodeChallenge, generateCodeVerifier, generateState, saveAuthState } from '@/lib/pkce';
 
 const FEATURES = [
@@ -23,8 +24,12 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <Logo variant="colored" className="h-9 w-auto" />
-          <span className="t-accent-text text-2xl font-bold tracking-tight">Emplacc</span>
+          {IS_HSE ? (
+            <span aria-hidden className="h-9 w-9 rounded-[5px]" style={{ background: 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' }} />
+          ) : (
+            <Logo variant="colored" className="h-9 w-auto" />
+          )}
+          <span className="t-accent-text text-2xl font-bold tracking-tight">{BRAND_NAME}</span>
         </div>
 
         {/* Main content — vertically centred */}
@@ -52,7 +57,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="relative z-10 t-caption">
-          © {new Date().getFullYear()} Emplacc · Корпоративная платформа
+          © {new Date().getFullYear()} {BRAND_NAME} · Корпоративная платформа
         </div>
       </div>
 
@@ -64,8 +69,12 @@ export default function LoginPage() {
         <div className="w-full max-w-[340px] space-y-7">
           {/* Mobile logo */}
           <div className="flex items-center gap-3 lg:hidden">
+            {IS_HSE ? (
+            <span aria-hidden className="h-9 w-9 rounded-[5px]" style={{ background: 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' }} />
+          ) : (
             <Logo variant="colored" className="h-9 w-auto" />
-            <span className="t-accent-text text-2xl font-bold">Emplacc</span>
+          )}
+            <span className="t-accent-text text-2xl font-bold">{BRAND_NAME}</span>
           </div>
 
           <div className="t-surface-elevated rounded-2xl p-8 space-y-6">

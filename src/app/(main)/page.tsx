@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { BRAND_NAME } from '@/lib/brand';
 import YourTasks from '@/components/main/YourTasks';
 import HelpRequests from '@/components/main/HelpRequests';
 import ForumUpdates from '@/components/main/ForumUpdates';
@@ -134,7 +135,7 @@ function GuestBanner() {
   return (
     <div className="t-surface-accent rounded-2xl px-6 py-5">
       <div className="t-label mb-1 text-emerald-400/70">Гостевой доступ</div>
-      <h2 className="t-title text-app">Добро пожаловать в Emplacc</h2>
+      <h2 className="t-title text-app">Добро пожаловать в {BRAND_NAME}</h2>
       <p className="t-body mt-1">У вас доступ только для чтения. Обратитесь к администратору для расширения прав.</p>
     </div>
   );

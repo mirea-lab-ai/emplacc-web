@@ -7,6 +7,13 @@ export type PatchNote = { version: string; date: string; notes: string[] };
 // Позже можно перенести в бэкенд/админку, чтобы редактировать без передеплоя.
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.3.41',
+    date: '2026-06-22',
+    notes: [
+      'Оформление: подготовка системы тем и стилизации интерфейса (переключаемые цветовые схемы).',
+    ],
+  },
+  {
     version: '0.3.40',
     date: '2026-06-22',
     notes: [

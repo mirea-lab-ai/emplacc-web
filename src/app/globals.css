@@ -435,3 +435,56 @@ body::before {
 .custom-scroll::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--accent-end), var(--accent-start));
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HSE / MyTask white-label — оформление ВШЭ.
+   Палитра: HSE Blue #0f2d69, alt #234b9b, Cyan #0fa0d7.
+   Переопределяет акцент, тёмные поверхности и Tailwind-палитру emerald/lime
+   (перекрашивает все утилиты разом). Работает и в тёмной, и в светлой теме.
+   ══════════════════════════════════════════════════════════════════════════ */
+[data-brand="hse"] {
+  --accent-start:  #0f2d69;
+  --accent-end:    #0fa0d7;
+  --accent-mid:    #234b9b;
+  --accent-glow:   rgba(15,160,215,0.25);
+  --accent-ink:    #ffffff;
+  --accent-text-a: #6f9be0;
+  --accent-text-b: #35bde8;
+
+  /* Tailwind v4: emerald → HSE blue */
+  --color-emerald-50:  #eaeefb; --color-emerald-100: #c9d3f0; --color-emerald-200: #9fb0e0;
+  --color-emerald-300: #6f87cc; --color-emerald-400: #234b9b; --color-emerald-500: #0f2d69;
+  --color-emerald-600: #0d285e; --color-emerald-700: #0b2152; --color-emerald-800: #091a41;
+  --color-emerald-900: #061230; --color-emerald-950: #040c20;
+  /* Tailwind v4: lime → HSE cyan */
+  --color-lime-50:  #e6f6fc; --color-lime-100: #c0e9f7; --color-lime-200: #8ed7ef;
+  --color-lime-300: #4ec0e4; --color-lime-400: #22aede; --color-lime-500: #0fa0d7;
+  --color-lime-600: #0c86b5; --color-lime-700: #0a6b90; --color-lime-800: #08526e;
+  --color-lime-900: #063a4e; --color-lime-950: #04222e;
+  /* teal (местами как акцент) → cyan */
+  --color-teal-300: #4ec0e4; --color-teal-400: #22aede; --color-teal-500: #0fa0d7; --color-teal-600: #0c86b5;
+}
+
+/* HSE тёмная тема — сине-графитовые поверхности вместо зелёного подтона */
+[data-brand="hse"]:not([data-theme="light"]) {
+  --page-bg:          #070b14;
+  --surface-elevated: rgba(22,28,42,0.98);
+  --select-bg:        #0d1424;
+  --bg-fx-1: radial-gradient(ellipse 900px 600px at 15% -5%,  rgba(15,45,105,0.30), transparent 65%);
+  --bg-fx-2: radial-gradient(ellipse 700px 400px at 90%  15%, rgba(15,160,215,0.14), transparent 60%);
+  --bg-fx-3: radial-gradient(ellipse 500px 300px at 50%  80%, rgba(15,45,105,0.14), transparent 70%);
+}
+
+/* HSE светлая тема — синий акцент, поверхности из [data-theme="light"] */
+[data-brand="hse"][data-theme="light"] {
+  --accent-start:  #0f2d69;
+  --accent-end:    #234b9b;
+  --accent-mid:    #0d285e;
+  --accent-glow:   rgba(15,45,105,0.18);
+  --accent-ink:    #ffffff;
+  --accent-text-a: #0f2d69;
+  --accent-text-b: #234b9b;
+  --bg-fx-1: radial-gradient(ellipse 900px 600px at 15% -5%,  rgba(15,45,105,0.10), transparent 65%);
+  --bg-fx-2: radial-gradient(ellipse 700px 400px at 90%  15%, rgba(15,160,215,0.08), transparent 60%);
+  --bg-fx-3: radial-gradient(ellipse 500px 300px at 50%  80%, rgba(15,45,105,0.06), transparent 70%);
+}

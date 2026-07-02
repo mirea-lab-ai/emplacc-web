@@ -7,6 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import Avatar from '@/components/ui/Avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { APP_VERSION } from '@/lib/patchNotes';
+import { BRAND_NAME, IS_HSE } from '@/lib/brand';
 import CommandPalette from '@/components/ui/CommandPalette';
 import { clearTokens, getUserId, isAuthed } from '@/lib/auth';
 import { http } from '@/lib/http';
@@ -131,11 +132,16 @@ export default function Header({ items }: Props) {
         <Link
           href="/"
           className="group inline-flex shrink-0 items-center gap-2.5 focus:outline-none"
-          aria-label="На главную Emplacc"
+          aria-label={`На главную ${BRAND_NAME}`}
         >
-          <Logo className="h-8 w-auto sm:h-9" variant="colored" priority />
+          {IS_HSE ? (
+            <span aria-hidden className="h-8 w-8 shrink-0 rounded-[5px] sm:h-9 sm:w-9"
+                  style={{ background: 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' }} />
+          ) : (
+            <Logo className="h-8 w-auto sm:h-9" variant="colored" priority />
+          )}
           <span className="t-accent-text hidden text-2xl font-bold tracking-tight sm:inline">
-            Emplacc
+            {BRAND_NAME}
           </span>
         </Link>
 
@@ -236,7 +242,7 @@ export default function Header({ items }: Props) {
                     <Link href="/settings" onClick={() => setProfileOpen(false)}
                       className="block px-3 pt-1.5 pb-0.5 text-center text-[11px] text-app-2/50 transition hover:text-app-2"
                       title="О системе и список изменений">
-                      Emplacc v{APP_VERSION}
+                      {BRAND_NAME} v{APP_VERSION}
                     </Link>
                   </div>
                 </div>

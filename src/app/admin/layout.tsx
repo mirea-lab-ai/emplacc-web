@@ -5,9 +5,10 @@ import Header from '@/components/Header';
 import Providers from '@/app/providers';
 import AuthGate from '@/components/AuthGate';
 import AdminGuard from '@/components/AdminGuard';
+import { BRAND_NAME } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Emplacc',
+  title: BRAND_NAME,
   description: 'Track tasks and time',
 };
 const admin_nav = [

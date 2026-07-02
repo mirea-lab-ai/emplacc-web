@@ -419,7 +419,7 @@ export default function ChatWindow({
       )}
       <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll px-4 py-4 space-y-0.5"
            onMouseOver={onListOver} onMouseLeave={scheduleHoverClose} onScroll={closeHoverNow}
-           style={{ backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(16,185,129,0.03), transparent 60%)' }}>
+           style={{ backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(var(--accent-rgb),0.03), transparent 60%)' }}>
         {isLoading && <div className="flex justify-center py-8"><span className="inline-block h-5 w-5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin-slow"/></div>}
         {!isLoading && error && <div className="text-center text-red-400 py-8 text-sm">Ошибка загрузки</div>}
         {!isLoading && !error && messages.length === 0 && (
@@ -446,7 +446,7 @@ export default function ChatWindow({
         ))}
         {(isSending || uploading) && (
           <div className="flex justify-end pr-1 mt-1">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl" style={{ background: 'rgba(16,185,129,0.2)' }}>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl" style={{ background: 'rgba(var(--accent-rgb),0.2)' }}>
               {[0,1,2].map(i => <span key={i} className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-soft" style={{ animationDelay: `${i*150}ms` }}/>)}
             </div>
           </div>
@@ -549,7 +549,7 @@ export default function ChatWindow({
 
         <button onClick={() => void send()} disabled={!hasContent || isSending || uploading}
           className={`h-10 w-10 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 disabled:scale-90 press ${hasContent ? '' : 'bg-app-hover'}`}
-          style={{ background: hasContent ? 'linear-gradient(135deg,#10b981,#84cc16)' : undefined }}>
+          style={{ background: hasContent ? 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' : undefined }}>
           <svg className={`w-4 h-4 transition-transform ${hasContent ? '-rotate-45 text-black' : 'text-app-3'}`}
                fill="currentColor" viewBox="0 0 20 20">
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
@@ -737,7 +737,7 @@ function ActionBtn({ children, title, onClick, danger = false }: {
 }
 
 const TAIL_OUT = 6;
-const SELF_BUBBLE_BG = 'linear-gradient(135deg, rgba(16,185,129,0.55), rgba(132,204,22,0.45))';
+const SELF_BUBBLE_BG = 'linear-gradient(135deg, rgba(var(--accent-rgb),0.55), rgba(var(--accent-rgb-2),0.45))';
 
 // Адаптивный путь пузыря с телеграмным хвостиком (точная геометрия из Figma «Telegram UI»).
 // Хвост — снизу со стороны автора; тело и 3 обычных угла масштабируются под W×H.

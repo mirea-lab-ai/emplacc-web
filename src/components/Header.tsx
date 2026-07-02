@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Logo } from '@/components/ui/Logo';
+import { Logo, HseMark } from '@/components/ui/Logo';
 import Avatar from '@/components/ui/Avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { APP_VERSION } from '@/lib/patchNotes';
@@ -135,8 +135,7 @@ export default function Header({ items }: Props) {
           aria-label={`На главную ${BRAND_NAME}`}
         >
           {IS_HSE ? (
-            <span aria-hidden className="h-8 w-8 shrink-0 rounded-[5px] sm:h-9 sm:w-9"
-                  style={{ background: 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' }} />
+            <HseMark className="h-8 w-auto shrink-0 sm:h-9" />
           ) : (
             <Logo className="h-8 w-auto sm:h-9" variant="colored" priority />
           )}

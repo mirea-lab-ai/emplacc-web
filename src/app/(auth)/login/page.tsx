@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Logo } from '@/components/ui/Logo';
+import { Logo, HseMark } from '@/components/ui/Logo';
 import { BRAND_NAME, IS_HSE } from '@/lib/brand';
 import { generateCodeChallenge, generateCodeVerifier, generateState, saveAuthState } from '@/lib/pkce';
 
@@ -25,7 +25,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
           {IS_HSE ? (
-            <span aria-hidden className="h-9 w-9 rounded-[5px]" style={{ background: 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' }} />
+            <HseMark className="h-9 w-auto" />
           ) : (
             <Logo variant="colored" className="h-9 w-auto" />
           )}
@@ -70,7 +70,7 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="flex items-center gap-3 lg:hidden">
             {IS_HSE ? (
-            <span aria-hidden className="h-9 w-9 rounded-[5px]" style={{ background: 'linear-gradient(135deg,var(--accent-start),var(--accent-end))' }} />
+            <HseMark className="h-9 w-auto" />
           ) : (
             <Logo variant="colored" className="h-9 w-auto" />
           )}

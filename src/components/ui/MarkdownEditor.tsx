@@ -280,43 +280,57 @@ export default function MarkdownEditor({
 
 // ── Refreshable media components ─────────────────────────────
 
+// Истёкшую presigned-ссылку НЕ показываем вообще (иначе картинка мелькает битой):
+// пока идёт фоновый рефреш — рендерим null, показываем уже рабочий URL.
+function needsPreRefresh(u?: string): boolean {
+  return !!u && isPresignedUrl(u) && isPresignedExpired(u);
+}
+
 function RefreshableImage({ src, alt, className }: { src?: string | Blob; alt?: string; className?: string }) {
   const initial = typeof src === 'string' ? src : undefined;
-  const [url, setUrl] = useState(initial);
+  const [url, setUrl] = useState<string | undefined>(needsPreRefresh(initial) ? undefined : initial);
   const [retried, setRetried] = useState(false);
-  // Проактивно: если presigned-ссылка уже истекла — обновляем ДО показа, чтобы браузер
-  // не закэшировал 403 и картинка не «залипала» битой.
   useEffect(() => {
-    setUrl(initial);
+    let cancelled = false;
     setRetried(false);
-    if (initial && isPresignedUrl(initial) && isPresignedExpired(initial)) {
-      refreshPresignedUrl(initial).then(setUrl).catch(() => {});
+    if (needsPreRefresh(initial) && initial) {
+      setUrl(undefined); // не рендерим истёкшую ссылку
+      refreshPresignedUrl(initial).then(f => { if (!cancelled) setUrl(f); }).catch(() => { if (!cancelled) setUrl(initial); });
+    } else {
+      setUrl(initial);
     }
+    return () => { cancelled = true; };
   }, [initial]);
   const handleError = async () => {
     if (retried || !url || !isPresignedUrl(url)) return;
     setRetried(true);
     try { setUrl(await refreshPresignedUrl(url)); } catch { /* show broken image */ }
   };
+  if (!url) return null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt={alt ?? ''} className={className ?? 'max-w-full rounded-lg my-2'} onError={handleError} />;
 }
 
 function RefreshableVideo({ src }: { src?: string }) {
-  const [url, setUrl] = useState<string | undefined>(src);
+  const [url, setUrl] = useState<string | undefined>(needsPreRefresh(src) ? undefined : src);
   const [retried, setRetried] = useState(false);
   useEffect(() => {
-    setUrl(src);
+    let cancelled = false;
     setRetried(false);
-    if (src && isPresignedUrl(src) && isPresignedExpired(src)) {
-      refreshPresignedUrl(src).then(setUrl).catch(() => {});
+    if (needsPreRefresh(src) && src) {
+      setUrl(undefined);
+      refreshPresignedUrl(src).then(f => { if (!cancelled) setUrl(f); }).catch(() => { if (!cancelled) setUrl(src); });
+    } else {
+      setUrl(src);
     }
+    return () => { cancelled = true; };
   }, [src]);
   const handleError = async () => {
     if (retried || !url || !isPresignedUrl(url)) return;
     setRetried(true);
     try { setUrl(await refreshPresignedUrl(url)); } catch { /* ignore */ }
   };
+  if (!url) return null;
   return <video src={url} controls className="max-w-full rounded-lg my-2" onError={handleError} />;
 }
 

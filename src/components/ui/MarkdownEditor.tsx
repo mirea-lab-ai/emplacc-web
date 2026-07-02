@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
+import { useRef, useState, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { uploadImage, uploadFile, isPresignedUrl, isPresignedExpired, refreshPresignedUrl } from '@/lib/upload';
+import { uploadImage, uploadFile, isPresignedUrl, refreshPresignedUrl } from '@/lib/upload';
 import { renderMentions, type MentionItem } from '@/components/forum/ChatWindow';
 
 type Props = {
@@ -280,57 +280,28 @@ export default function MarkdownEditor({
 
 // ── Refreshable media components ─────────────────────────────
 
-// Истёкшую presigned-ссылку НЕ показываем вообще (иначе картинка мелькает битой):
-// пока идёт фоновый рефреш — рендерим null, показываем уже рабочий URL.
-function needsPreRefresh(u?: string): boolean {
-  return !!u && isPresignedUrl(u) && isPresignedExpired(u);
-}
-
+// Ссылки на вложения приходят с бэка уже свежими (freshenContentURLs). onError — лишь
+// подстраховка на редкий случай истечения между выдачей и показом.
 function RefreshableImage({ src, alt, className }: { src?: string | Blob; alt?: string; className?: string }) {
-  const initial = typeof src === 'string' ? src : undefined;
-  const [url, setUrl] = useState<string | undefined>(needsPreRefresh(initial) ? undefined : initial);
+  const [url, setUrl] = useState(typeof src === 'string' ? src : undefined);
   const [retried, setRetried] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    setRetried(false);
-    if (needsPreRefresh(initial) && initial) {
-      setUrl(undefined); // не рендерим истёкшую ссылку
-      refreshPresignedUrl(initial).then(f => { if (!cancelled) setUrl(f); }).catch(() => { if (!cancelled) setUrl(initial); });
-    } else {
-      setUrl(initial);
-    }
-    return () => { cancelled = true; };
-  }, [initial]);
   const handleError = async () => {
     if (retried || !url || !isPresignedUrl(url)) return;
     setRetried(true);
     try { setUrl(await refreshPresignedUrl(url)); } catch { /* show broken image */ }
   };
-  if (!url) return null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt={alt ?? ''} className={className ?? 'max-w-full rounded-lg my-2'} onError={handleError} />;
 }
 
 function RefreshableVideo({ src }: { src?: string }) {
-  const [url, setUrl] = useState<string | undefined>(needsPreRefresh(src) ? undefined : src);
+  const [url, setUrl] = useState<string | undefined>(src);
   const [retried, setRetried] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    setRetried(false);
-    if (needsPreRefresh(src) && src) {
-      setUrl(undefined);
-      refreshPresignedUrl(src).then(f => { if (!cancelled) setUrl(f); }).catch(() => { if (!cancelled) setUrl(src); });
-    } else {
-      setUrl(src);
-    }
-    return () => { cancelled = true; };
-  }, [src]);
   const handleError = async () => {
     if (retried || !url || !isPresignedUrl(url)) return;
     setRetried(true);
     try { setUrl(await refreshPresignedUrl(url)); } catch { /* ignore */ }
   };
-  if (!url) return null;
   return <video src={url} controls className="max-w-full rounded-lg my-2" onError={handleError} />;
 }
 

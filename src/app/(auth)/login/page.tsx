@@ -119,6 +119,7 @@ function SSOButton() {
     const url = `${authUrl}/realms/${realm}/protocol/openid-connect/auth` +
       `?response_type=code&client_id=${encodeURIComponent(clientId!)}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&scope=${encodeURIComponent('openid profile email')}` +
       `&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256` +
       `&state=${encodeURIComponent(state)}`;
     window.location.href = url;

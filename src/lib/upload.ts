@@ -45,6 +45,26 @@ export function isPresignedUrl(url: string): boolean {
   return typeof url === 'string' && url.includes('X-Amz-Signature');
 }
 
+/**
+ * Истёк ли presigned URL (по его же query: X-Amz-Date + X-Amz-Expires).
+ * bufferSec — запас, чтобы обновить чуть заранее. Если параметров нет — считаем не истёкшим.
+ */
+export function isPresignedExpired(url: string, bufferSec = 60): boolean {
+  try {
+    const u = new URL(url);
+    const dateStr = u.searchParams.get('X-Amz-Date');
+    const expiresStr = u.searchParams.get('X-Amz-Expires');
+    if (!dateStr || !expiresStr) return false;
+    const m = dateStr.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
+    if (!m) return false;
+    const signed = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+    const expiresAt = signed + parseInt(expiresStr, 10) * 1000;
+    return Date.now() >= expiresAt - bufferSec * 1000;
+  } catch {
+    return false;
+  }
+}
+
 /** Извлекает object path из presigned URL (e.g. "images/uuid.jpg") */
 export function extractObjectPath(presignedUrl: string): string | null {
   try {

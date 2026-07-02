@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useState, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { uploadImage, uploadFile, isPresignedUrl, refreshPresignedUrl } from '@/lib/upload';
+import { uploadImage, uploadFile, isPresignedUrl, isPresignedExpired, refreshPresignedUrl } from '@/lib/upload';
 import { renderMentions, type MentionItem } from '@/components/forum/ChatWindow';
 
 type Props = {
@@ -281,8 +281,18 @@ export default function MarkdownEditor({
 // ── Refreshable media components ─────────────────────────────
 
 function RefreshableImage({ src, alt, className }: { src?: string | Blob; alt?: string; className?: string }) {
-  const [url, setUrl] = useState(typeof src === 'string' ? src : undefined);
+  const initial = typeof src === 'string' ? src : undefined;
+  const [url, setUrl] = useState(initial);
   const [retried, setRetried] = useState(false);
+  // Проактивно: если presigned-ссылка уже истекла — обновляем ДО показа, чтобы браузер
+  // не закэшировал 403 и картинка не «залипала» битой.
+  useEffect(() => {
+    setUrl(initial);
+    setRetried(false);
+    if (initial && isPresignedUrl(initial) && isPresignedExpired(initial)) {
+      refreshPresignedUrl(initial).then(setUrl).catch(() => {});
+    }
+  }, [initial]);
   const handleError = async () => {
     if (retried || !url || !isPresignedUrl(url)) return;
     setRetried(true);
@@ -295,6 +305,13 @@ function RefreshableImage({ src, alt, className }: { src?: string | Blob; alt?: 
 function RefreshableVideo({ src }: { src?: string }) {
   const [url, setUrl] = useState<string | undefined>(src);
   const [retried, setRetried] = useState(false);
+  useEffect(() => {
+    setUrl(src);
+    setRetried(false);
+    if (src && isPresignedUrl(src) && isPresignedExpired(src)) {
+      refreshPresignedUrl(src).then(setUrl).catch(() => {});
+    }
+  }, [src]);
   const handleError = async () => {
     if (retried || !url || !isPresignedUrl(url)) return;
     setRetried(true);

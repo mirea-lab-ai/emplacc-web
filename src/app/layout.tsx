@@ -1,13 +1,14 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { BRAND, BRAND_NAME } from '@/lib/brand';
+import { BRAND, BRAND_NAME, IS_HSE } from '@/lib/brand';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
     title: BRAND_NAME,
     description: 'Track tasks and time',
+    icons: { icon: IS_HSE ? '/icon-hse.svg' : '/icon.svg' },
 };
 
 const THEME_INIT = `try{var t=localStorage.getItem('emplacc-theme');if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}if(t==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}`;
